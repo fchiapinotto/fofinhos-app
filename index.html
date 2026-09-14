@@ -125,6 +125,7 @@
 const $=(s,e=document)=>e.querySelector(s);
 const SB_URL="https://fctyjollnxthppfjtilq.supabase.co";
 const SB_KEY="sb_publishable_oRsjR49Gs4b8WatMinr1Jw__j5MM9O_";
+const VAPID_PUB="BFl2xeodAzpajWVf7ZTtdM08YG5e8znV1uIsMsHmFNN3l9_PVOX1tSlXjbPMf5DzEL9v4lVYNTuxR2j2is6NpJc";
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
 
 // ===== referência =====
@@ -262,10 +263,43 @@ V.ficha=()=>{const c=caoAtual();const pa=pesoAtual(c.id);const prods=PROD.filter
     ${c.observacao?`<div class="obs">${esc(c.observacao)}</div>`:''}<div class="t-mut" style="margin-top:10px">Tocar no nome para editar.</div></div>`;
   h+=`<div class="sec">Em uso — ração, remédios, produtos <span onclick="sheetProd(null)">+ produto</span></div><div class="pet">${prods.length?prods.map(prodRow).join(''):'<div class="t-mut">Nenhum produto cadastrado.</div>'}</div>`;
   h+=`<div class="sec">Rotinas e lembretes <span onclick="editRot(null)">+ rotina</span></div><div class="pet">${rots.length?rots.map(r=>`<div class="prod" onclick="editRot(${r.id})"><i class="ti ${(TIPOS[r.tipo]||TIPOS.outro).ic}" style="color:var(--ink3);font-size:18px;margin-top:2px"></i><div style="flex:1"><div class="pn">${esc(r.titulo)}${r.ativo?'':'<span class="tag b">pausada</span>'}${r.cao_id==null?'<span class="tag b">os dois</span>':''}</div><div class="pd">a cada ${r.intervalo_dias} dias${r.produto?' · '+esc(r.produto):''}${r.proxima_data?' · próxima '+dBR(r.proxima_data):''}</div></div></div>`).join(''):'<div class="t-mut">Nenhuma rotina.</div>'}</div>`;
+  h+=pushSec();
   h+=`<div class="sec">Contatos <span onclick="sheetCont(null)">+ contato</span></div><div class="pet">`+(CONT.length?CONT.map(k=>`<div class="ct"><div style="flex:1;min-width:0" onclick="sheetCont(${k.id})"><div class="cp">${esc(k.papel)}</div><div class="cn">${esc(k.nome)||'<span style=\"color:var(--ink3)\">preencher</span>'}</div>${k.telefone||k.endereco?`<div class="cs">${esc(k.telefone||'')}${k.telefone&&k.endereco?' · ':''}${esc(k.endereco||'')}</div>`:''}${k.observacao?`<div class="cs">${esc(k.observacao)}</div>`:''}</div>${k.telefone?`<a class="call" href="tel:${esc(k.telefone.replace(/[^0-9+]/g,''))}"><i class="ti ti-phone"></i></a>`:''}</div>`).join(''):'<div class="t-mut">Nenhum contato.</div>')+`</div>`;
   h+=`<div style="text-align:center;margin:18px 0 6px"><button class="lnk" style="color:var(--ink3)" onclick="sair()">Sair da conta (${esc(autor==='Carol'?'Carol':'Fernando')})</button></div>`;
   return h;};
 function prodRow(p){return`<div class="prod" onclick="sheetProd(${p.id})"><i class="ti ti-package" style="color:var(--ink3);font-size:18px;margin-top:2px"></i><div style="flex:1;min-width:0"><div class="pn">${esc(p.nome)}${p.cao_id==null?'<span class="tag b">os dois</span>':''}</div><div class="pd">${[CATP[p.categoria],p.marca,p.apresentacao,p.dose,p.frequencia,p.valor?money(p.valor):''].filter(Boolean).map(esc).join(' · ')}</div>${p.observacao?`<div class="pd" style="margin-top:2px">${esc(p.observacao)}</div>`:''}</div></div>`;}
+
+// ===== notificações push =====
+let PUSH={sup:('serviceWorker' in navigator)&&('PushManager' in window)&&('Notification' in window),sub:null,pronto:false};
+const naTela=()=>!!(navigator.standalone||(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches));
+const ehIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+function urlBase64ToUint8Array(b){const pad='='.repeat((4-b.length%4)%4);const s=(b+pad).replace(/-/g,'+').replace(/_/g,'/');const raw=atob(s);const a=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
+async function pushCheck(){if(!PUSH.sup){PUSH.pronto=true;return;}
+  try{const reg=await navigator.serviceWorker.ready;PUSH.sub=await reg.pushManager.getSubscription();}catch(e){PUSH.sub=null;}
+  PUSH.pronto=true;if(atual==='ficha')render('ficha');}
+function pushSec(){const t=`<div class="sec">Notificações</div>`;
+  if(!PUSH.sup||(ehIOS()&&!naTela()))return t+`<div class="pet"><div class="t-mut">No iPhone, adicione o app à Tela de Início pelo Safari e ative aqui dentro.</div></div>`;
+  if(!PUSH.pronto)return t+`<div class="pet"><div class="t-mut">Verificando…</div></div>`;
+  if(PUSH.sub)return t+`<div class="pet"><div style="font-size:14px;font-weight:600;margin-bottom:3px">Ativas neste aparelho</div><div class="t-mut">Lembretes de vacinas e rotinas e avisos da caixa de entrada chegam aqui.</div><button class="btn" style="margin-top:12px" onclick="desativarPush()">Desativar</button></div>`;
+  if(Notification.permission==='denied')return t+`<div class="pet"><div style="font-size:14px;font-weight:600;margin-bottom:3px">Bloqueadas neste aparelho</div><div class="t-mut">Libere nos Ajustes do celular (Notificações → Nossos Fofinhos) e volte aqui.</div></div>`;
+  return t+`<div class="pet"><div style="font-size:14px;font-weight:600;margin-bottom:3px">Não ativadas neste aparelho</div><div class="t-mut">Ative para receber os lembretes e os avisos da caixa de entrada.</div><button class="btn btn-p" style="margin-top:12px" id="btnPush" onclick="ativarPush()">Ativar notificações</button></div>`;}
+async function ativarPush(){const b=$('#btnPush');if(b){b.disabled=true;b.textContent='Ativando…';}
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=='granted'){toast('Permissão não concedida');PUSH.pronto=true;render('ficha');return;}
+    const reg=await navigator.serviceWorker.ready;
+    let s=await reg.pushManager.getSubscription();
+    if(!s)s=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUB)});
+    const sub=JSON.parse(JSON.stringify(s));
+    const {data:{session}}=await sb.auth.getSession();
+    const r=await sb.from('pet_push_subs').upsert({endpoint:sub.endpoint,sub:sub,email:(session&&session.user.email)||null,aparelho:navigator.userAgent.slice(0,120),ativo:true,falhas:0},{onConflict:'endpoint'});
+    if(r.error)throw r.error;
+    PUSH.sub=s;render('ficha');toast('Notificações ativas');
+  }catch(e){if(b){b.disabled=false;b.textContent='Ativar notificações';}toast('Não consegui ativar: '+((e&&e.message)||e));}}
+async function desativarPush(){try{
+    const s=PUSH.sub;if(s){const ep=s.endpoint;try{await s.unsubscribe();}catch(e){}await sb.from('pet_push_subs').delete().eq('endpoint',ep);}
+    PUSH.sub=null;render('ficha');toast('Notificações desativadas');
+  }catch(e){toast('Não consegui desativar');}}
 
 // ===== sheets =====
 function openSheet(h){$('#sheetIn').innerHTML=h;$('#sheet').classList.add('on');}
@@ -429,7 +463,7 @@ async function salvarEntrada(){const evs=(ENTRADA.res.eventos||[]).map(entradaEv
   if(prods.length){const r=await sb.from('pet_produtos').insert(prods).select();if(r.data)PROD=PROD.concat(r.data);}
   render(atual);toast('Registrado');}
 async function refreshApp(){if($('#login').classList.contains('on'))return;const b=$('#btnRefresh');b.classList.add('spin');const t0=Date.now();try{await loadAll();render(atual);}catch(e){}setTimeout(()=>b.classList.remove('spin'),Math.max(0,500-(Date.now()-t0)));}
-if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').then(()=>pushCheck()).catch(()=>{PUSH.pronto=true;});}else{PUSH.pronto=true;}
 boot();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshApp();});
 </script>
