@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nossos Fofinhos</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Fofinhos">
+<meta name="theme-color" content="#4a6b3a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--verde:#4a6b3a;--verde-d:#33502a;--verde-cl:#e9f0e4;--rosa:#c8506a;--rosa-cl:#fbe8ed;--azul:#2f5da3;--azul-cl:#e9f0fa;--ambar:#b8860b;--ambar-cl:#f8f1dc;--roxo:#6b4fa0;--roxo-cl:#ece7f7;
+    --ink:#1b2330;--ink2:#5f6673;--ink3:#9aa1ad;--bg:#f5f4f0;--card:#fff;--line:#e8e6e0;--r:16px;--rl:20px;--hero-img:none;
+    --c-jorge:#b5652a;--c-jorge-cl:#f8ebe0;--c-stout:#2f4858;--c-stout-cl:#e4ebef;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .app{max-width:480px;margin:0 auto;min-height:100vh;padding:0 0 94px}
+  header{position:sticky;top:0;z-index:20;background:rgba(245,244,240,.88);backdrop-filter:blur(12px);padding:12px 16px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .h-title{font-size:15px;font-weight:700;letter-spacing:-.2px;white-space:nowrap}
+  .seg{display:flex;background:#e9e7e1;border-radius:12px;padding:3px}
+  .seg div{display:flex;align-items:center;gap:6px;padding:5px 10px 5px 6px;border-radius:9px;font-size:12.5px;font-weight:600;color:var(--ink2);cursor:pointer;white-space:nowrap}
+  .seg div img{width:22px;height:22px;border-radius:50%;object-fit:cover}
+  .seg div.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .seg div.on.j{color:var(--c-jorge)}.seg div.on.s{color:var(--c-stout)}
+  main{padding:6px 16px}
+  .sec{font-size:12px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.7px;margin:22px 2px 10px;display:flex;justify-content:space-between;align-items:baseline}
+  .sec span{text-transform:none;letter-spacing:0;font-weight:600;color:var(--verde);font-size:12.5px;cursor:pointer}
+  .t-mut{font-size:13px;color:var(--ink2)}
+  .empty{text-align:center;color:var(--ink3);font-size:14px;padding:26px 12px}
+  .hero{border-radius:var(--rl);padding:210px 18px 16px;margin:8px 0 4px;color:#fff;background:linear-gradient(180deg,rgba(20,35,18,0) 0%,rgba(20,35,18,.25) 50%,rgba(20,35,18,.85) 100%),var(--hero-img) center 30%/cover;text-shadow:0 1px 8px rgba(0,0,0,.45)}
+  .hero.nofoto{padding-top:18px;background:linear-gradient(150deg,#4f7440,#2f4a28)}
+  .hero .hn{font-size:26px;font-weight:700;letter-spacing:-.4px}.hero .hs{font-size:13.5px;opacity:.95;margin-top:2px}
+  .hero .kpis{display:flex;gap:22px;margin-top:12px}.hero .kpi b{display:block;font-size:20px;font-weight:700;line-height:1.1}.hero .kpi span{font-size:11.5px;opacity:.9}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;margin-bottom:9px;display:flex;align-items:center;gap:12px}
+  .ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0}
+  .cb{flex:1;min-width:0}.cb .tt{font-size:15px;font-weight:600;line-height:1.3}.cb .ts{font-size:12.5px;color:var(--ink2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cr{text-align:right;flex-shrink:0}.cr .d{font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums}
+  .cr .d.late{color:var(--rosa)}.cr .d.soon{color:var(--ambar)}.cr .d.ok{color:var(--verde)}
+  .tag{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:99px;vertical-align:1px;margin-left:5px}
+  .tag.ia{background:var(--roxo-cl);color:var(--roxo)}.tag.late{background:var(--rosa-cl);color:var(--rosa)}.tag.ok{background:var(--verde-cl);color:var(--verde)}.tag.novo{background:var(--azul-cl);color:var(--azul)}.tag.b{background:#e9e7e1;color:var(--ink2)}.tag.soon{background:var(--ambar-cl);color:var(--ambar)}
+  .done-btn{border:1px solid var(--verde);color:var(--verde);background:var(--verde-cl);border-radius:10px;padding:7px 10px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+  .mini{border:none;background:none;color:var(--ink3);font-size:19px;cursor:pointer;padding:4px}.mini.ok{color:var(--verde)}.mini.del{color:var(--rosa)}.mini.doc{color:var(--azul)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--line);background:var(--card);border-radius:13px;padding:13px 15px;font-size:15px;font-weight:500;color:var(--ink);cursor:pointer;width:100%}
+  .btn-p{background:var(--verde);color:#fff;border-color:var(--verde)}.btn-danger{color:var(--rosa);border-color:var(--rosa-cl);background:var(--rosa-cl)}
+  textarea,input,select{width:100%;font-family:inherit;font-size:16px;border:1px solid var(--line);border-radius:13px;padding:12px;background:var(--card);color:var(--ink)}
+  textarea:focus,input:focus,select:focus{outline:none;border-color:var(--verde)}
+  .field{margin-bottom:12px}.field label{font-size:12.5px;color:var(--ink2);display:block;margin-bottom:5px;font-weight:500}
+  .row2{display:flex;gap:10px}.row2>.field{flex:1}
+  .fam{background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin-bottom:9px;overflow:hidden}
+  .fam .fh{display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer}
+  .fam .fb{border-top:1px solid var(--line);background:#fbfaf7;padding:6px 14px 8px}
+  .hrow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}.hrow:last-child{border-bottom:none}
+  .hrow .hd{font-weight:600;font-variant-numeric:tabular-nums;width:64px;flex-shrink:0}.hrow .hb{flex:1;min-width:0;color:var(--ink2)}.hrow .hb b{color:var(--ink);font-weight:600}
+  .obs{font-size:12.5px;color:var(--ink2);margin-top:6px;line-height:1.45;white-space:pre-wrap}
+  .pet{background:var(--card);border:1px solid var(--line);border-radius:var(--rl);padding:16px;margin-bottom:14px}
+  .pet .ph{display:flex;align-items:center;gap:13px}.pet .av{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden}.pet .av img{width:100%;height:100%;object-fit:cover}
+  .pet h3{margin:0;font-size:20px;font-weight:700}.pet .sub{font-size:13px;color:var(--ink2)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin-top:14px}.grid div{font-size:13.5px}.grid b{display:block;font-size:11px;color:var(--ink3);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+  .chart svg{width:100%;height:120px;display:block}
+  .prod{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}.prod:last-child{border-bottom:none}
+  .prod .pn{font-size:14px;font-weight:600}.prod .pd{font-size:12.5px;color:var(--ink2)}
+  .ct{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}.ct:last-child{border-bottom:none}
+  .ct .cp{font-size:11px;color:var(--ink3);font-weight:600;text-transform:uppercase;letter-spacing:.4px}.ct .cn{font-size:14px;font-weight:600}.ct .cs{font-size:12.5px;color:var(--ink2)}
+  .ct a.call{width:38px;height:38px;border-radius:50%;background:var(--verde-cl);color:var(--verde);display:flex;align-items:center;justify-content:center;font-size:18px;text-decoration:none;flex-shrink:0}
+  .up-btn{display:flex;align-items:center;justify-content:center;gap:8px;border:1.5px dashed var(--verde);color:var(--verde);border-radius:14px;padding:18px;font-size:15px;font-weight:600;cursor:pointer;background:var(--verde-cl);margin:8px 0 6px}
+  .note{font-size:12.5px;color:var(--ink2);background:#efeee8;border-radius:12px;padding:10px 12px;margin-bottom:14px;line-height:1.5}
+  .doc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:9px}
+  .doc .dh{display:flex;align-items:center;gap:10px}.doc .dn{flex:1;min-width:0;font-size:14px;font-weight:600;line-height:1.3}
+  .doc .dm{font-size:12px;color:var(--ink3);margin-top:2px}
+  .lnk{color:var(--verde);font-size:13px;font-weight:600;cursor:pointer;background:none;border:none;padding:0}
+  nav{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;padding:8px 0 calc(8px + env(safe-area-inset-bottom))}
+  nav a{flex:1;text-align:center;color:var(--ink3);font-size:10.5px;font-weight:500;text-decoration:none;cursor:pointer}nav a i{display:block;font-size:22px;margin-bottom:2px}nav a.on{color:var(--verde)}
+  .fab{position:fixed;bottom:84px;right:max(16px,calc(50% - 240px + 16px));z-index:25;width:54px;height:54px;border-radius:50%;background:var(--verde);color:#fff;border:none;font-size:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 22px rgba(51,80,42,.35)}.fab:active{transform:scale(.94)}
+  .sheet{position:fixed;inset:0;background:rgba(15,22,35,.45);display:none;align-items:flex-end;justify-content:center;z-index:40}.sheet.on{display:flex}
+  .sheet-in{background:var(--card);width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));animation:up .22s ease;max-height:90vh;overflow:auto}
+  @keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:translateY(0);opacity:1}}
+  .sheet h3{margin:2px 0 14px;font-size:18px;font-weight:600}
+  .toast{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:13.5px;padding:10px 16px;border-radius:99px;z-index:50;opacity:0;transition:opacity .2s;pointer-events:none}.toast.on{opacity:1}
+  .login{position:fixed;inset:0;background:var(--bg);z-index:60;display:none;align-items:center;justify-content:center;padding:24px}.login.on{display:flex}
+  .login-in{width:100%;max-width:380px;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:26px 22px;text-align:center}
+  .login-in img{width:96px;height:96px;border-radius:24px;object-fit:cover;margin-bottom:10px}
+  .login-in h2{margin:0 0 4px;font-size:22px}.login-in p{margin:0 0 18px;font-size:13.5px;color:var(--ink2)}
+  .login-in .field{text-align:left}.login .err{color:var(--rosa);font-size:13px;margin-top:10px;min-height:18px}
+  .falar{display:flex;align-items:center;gap:12px;background:var(--card);border:1.5px dashed var(--verde);border-radius:var(--r);padding:12px 14px;margin:10px 0 4px;cursor:pointer;color:var(--verde);font-weight:600;font-size:14.5px}
+  .falar i{font-size:22px}.falar span{color:var(--ink2);font-weight:400;font-size:12.5px;display:block}
+  .ent{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}.ent:last-child{border-bottom:none}.ent .et{font-size:14px;font-weight:600}.ent .es{font-size:12.5px;color:var(--ink2)}
+  #btnRefresh.spin{animation:sp .7s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="h-title">Nossos Fofinhos</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="seg" id="segCao"></div>
+      <i class="ti ti-microphone" onclick="sheetFalar()" title="Falar ou escrever" style="font-size:21px;color:var(--verde);cursor:pointer"></i>
+      <i class="ti ti-refresh" id="btnRefresh" onclick="refreshApp()" style="font-size:20px;color:var(--ink2);cursor:pointer"></i>
+    </div>
+  </header>
+  <main id="view"><div class="empty">Carregando… 🐾</div></main>
+</div>
+<button class="fab" id="fab" onclick="fabAction()" aria-label="Criar">+</button>
+<nav>
+  <a data-go="hoje" class="on" onclick="go('hoje')"><i class="ti ti-sun"></i>Hoje</a>
+  <a data-go="cart" onclick="go('cart')"><i class="ti ti-vaccine"></i>Carteirinha</a>
+  <a data-go="vet" onclick="go('vet')"><i class="ti ti-stethoscope"></i>Vet</a>
+  <a data-go="docs" onclick="go('docs')"><i class="ti ti-files"></i>Documentos</a>
+  <a data-go="ficha" onclick="go('ficha')"><i class="ti ti-paw"></i>Ficha</a>
+</nav>
+<div class="login" id="login"><div class="login-in"><img src="icon-180.png" alt=""><h2>Nossos Fofinhos</h2><p>Entre com o e-mail da família. Você recebe um código de 6 dígitos.</p>
+  <div id="lg1"><div class="field"><label>E-mail</label><input type="email" id="lgEmail" autocomplete="email" inputmode="email" placeholder="seu@gmail.com"></div><button class="btn btn-p" onclick="enviarCodigo()">Enviar código</button></div>
+  <div id="lg2" style="display:none"><div class="field"><label>Código recebido por e-mail</label><input id="lgCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="123456" style="text-align:center;font-size:22px;letter-spacing:6px"></div><button class="btn btn-p" onclick="entrarCodigo()">Entrar</button><button class="lnk" style="margin-top:12px" onclick="lgVoltar()">usar outro e-mail</button></div>
+  <div class="err" id="lgErr"></div></div></div>
+<div class="sheet" id="sheet"><div class="sheet-in" id="sheetIn"></div></div>
+<div class="toast" id="toast"></div>
+<input type="file" id="filein" accept="image/*,application/pdf" style="display:none" multiple>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const $=(s,e=document)=>e.querySelector(s);
+const SB_URL="https://fctyjollnxthppfjtilq.supabase.co";
+const SB_KEY="sb_publishable_oRsjR49Gs4b8WatMinr1Jw__j5MM9O_";
+const sb=window.supabase.createClient(SB_URL,SB_KEY);
+
+// ===== referência =====
+const TIPOS={vacina:{n:"Vacina",ic:"ti-vaccine",c:"#2f5da3",bg:"#e9f0fa"},vermifugo:{n:"Vermífugo",ic:"ti-pill",c:"#6b4fa0",bg:"#ece7f7"},antipulga:{n:"Antipulgas e carrapatos",ic:"ti-bug",c:"#b8860b",bg:"#f8f1dc"},
+  banho:{n:"Banho",ic:"ti-bath",c:"#1f8a9e",bg:"#e0f2f5"},tosa:{n:"Tosa",ic:"ti-scissors",c:"#1f8a9e",bg:"#e0f2f5"},consulta:{n:"Consulta",ic:"ti-stethoscope",c:"#4a6b3a",bg:"#e9f0e4"},
+  exame:{n:"Exame",ic:"ti-file-analytics",c:"#c8506a",bg:"#fbe8ed"},medicacao:{n:"Medicação",ic:"ti-medicine-syrup",c:"#6b4fa0",bg:"#ece7f7"},peso:{n:"Peso",ic:"ti-scale",c:"#5f6673",bg:"#eeeeea"},
+  cirurgia:{n:"Cirurgia",ic:"ti-first-aid-kit",c:"#c8506a",bg:"#fbe8ed"},higiene:{n:"Higiene",ic:"ti-brush",c:"#1f8a9e",bg:"#e0f2f5"},outro:{n:"Outro",ic:"ti-paw",c:"#5f6673",bg:"#eeeeea"}};
+const TIPOS_EV=['vacina','vermifugo','antipulga','banho','tosa','consulta','exame','medicacao','peso','cirurgia','outro'];
+const TIPOS_ROT=['vacina','vermifugo','antipulga','banho','tosa','consulta','exame','medicacao','higiene','outro'];
+const CATP={racao:"Ração",petisco:"Petisco",antipulga:"Antipulgas",vermifugo:"Vermífugo",medicacao:"Medicação",suplemento:"Suplemento",higiene:"Higiene",outro:"Outro"};
+const CATD={carteira:"Carteiras e atestados",exame:"Exames",receita:"Receitas",certificado:"Certificados",nota:"Notas e recibos",outro:"Outros"};
+// famílias de vacina (reconhecidas pelo título/produto)
+const FAM=[{k:'v10',n:'Polivalente (V8 / V10)',re:/poliv|\bv8\b|\bv10\b|dhpp|vanguard htlp|vanguard plus|锐必威|宠必威/i},
+  {k:'raiva',n:'Antirrábica',re:/raiva|rabvac|antirr|defensor|bioraiva|狂犬/i},
+  {k:'gripe',n:'Gripe canina (tosse dos canis)',re:/gripe|bronchi|bordetella|traqueo|tosse|b oral/i},
+  {k:'giardia',n:'Giárdia',re:/giard/i},{k:'leish',n:'Leishmaniose',re:/leish/i}];
+const MES=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+
+// ===== estado =====
+let CAES=[],EV=[],ROT=[],PROD=[],DOCS=[],CONT=[];
+let cao=null, atual='hoje', autor='Fernando', aberto={};
+const FOTOS={}; const SIGNED={};
+
+// ===== helpers =====
+const hojeISO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const dBR=iso=>{if(!iso)return'';const p=iso.split('-');return p[2]+'/'+p[1]+'/'+p[0].slice(2);};
+const dLong=iso=>{if(!iso)return'';const d=new Date(iso+'T00:00:00');return d.getDate()+' '+MES[d.getMonth()]+' '+d.getFullYear();};
+const addDays=(iso,n)=>{const d=new Date(iso+'T00:00:00');d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const diasAte=iso=>Math.round((new Date(iso+'T00:00:00')-new Date(hojeISO()+'T00:00:00'))/864e5);
+const money=n=>'R$ '+Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>(s==null?'':(''+s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+const caoAtual=()=>CAES.find(c=>c.id===cao);
+const caoCor=c=>c.nome==='Jorge'?'var(--c-jorge)':'var(--c-stout)';
+const fotoUrl=c=>(c&&c.foto_path&&FOTOS[c.foto_path])||null;
+function idade(iso){if(!iso)return'';const b=new Date(iso+'T00:00:00'),h=new Date();let a=h.getFullYear()-b.getFullYear(),m=h.getMonth()-b.getMonth();if(h.getDate()<b.getDate())m--;if(m<0){a--;m+=12;}return a>0?`${a} ano${a>1?'s':''}${m?` e ${m} m`:''}`:`${m} meses`;}
+function prazo(iso){if(!iso)return{t:'sem data',cls:'',tag:'b',lbl:'sem registro'};const n=diasAte(iso);if(n<0)return{t:`${-n} d atrás`,cls:'late',tag:'late',lbl:'vencida'};if(n===0)return{t:'hoje',cls:'late',tag:'late',lbl:'vence hoje'};if(n<=30)return{t:`em ${n} d`,cls:'soon',tag:'soon',lbl:'vence em breve'};return{t:dBR(iso),cls:'ok',tag:'ok',lbl:'em dia'};}
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),1800);}
+const meu=x=>x.cao_id===cao||x.cao_id==null;
+const pesoAtual=id=>EV.filter(e=>e.cao_id===id&&e.peso_kg).sort((a,b)=>b.data.localeCompare(a.data))[0]||null;
+const docById=id=>DOCS.find(d=>d.id===id);
+function famDe(e){const s=(e.titulo||'')+' '+(e.produto||'');return FAM.find(f=>f.re.test(s));}
+
+// ===== carregar =====
+async function loadAll(){
+  const [c,e,r,p,d,k]=await Promise.all([
+    sb.from('pet_caes').select('*').eq('ativo',true).order('ordem'),
+    sb.from('pet_eventos').select('*').order('data',{ascending:false}).order('id',{ascending:false}),
+    sb.from('pet_rotinas').select('*').order('ordem'),
+    sb.from('pet_produtos').select('*').order('categoria').order('nome'),
+    sb.from('pet_documentos').select('*').order('data_doc',{ascending:false,nullsFirst:true}).order('criado_em',{ascending:false}),
+    sb.from('pet_contatos').select('*').order('ordem')]);
+  for(const x of [c,e,r,p,d,k]) if(x.error) throw x.error;
+  CAES=c.data;EV=e.data;ROT=r.data;PROD=p.data;DOCS=d.data;CONT=k.data;
+  if(!CAES.some(x=>x.id===cao)){let s=null;try{s=+localStorage.getItem('fof_cao');}catch(_){}cao=CAES.some(x=>x.id===s)?s:(CAES[0]||{}).id;}
+  await signFotos();renderSeg();
+}
+async function signFotos(){const paths=CAES.map(c=>c.foto_path).filter(Boolean);if(!paths.length)return;try{const r=await sb.storage.from('pet-docs').createSignedUrls(paths,604800);(r.data||[]).forEach(x=>{if(x.signedUrl&&!x.error)FOTOS[x.path]=x.signedUrl;});}catch(e){}}
+function renderSeg(){$('#segCao').innerHTML=CAES.map(c=>`<div class="${cao===c.id?'on '+(c.nome==='Jorge'?'j':'s'):''}" onclick="setCao(${c.id})">${fotoUrl(c)?`<img src="${fotoUrl(c)}" alt="">`:''}${c.nome}</div>`).join('');}
+function setCao(v){cao=v;try{localStorage.setItem('fof_cao',v);}catch(_){}renderSeg();render(atual);}
+
+// ===== cards =====
+function rotCard(r){const t=TIPOS[r.tipo]||TIPOS.outro;const p=prazo(r.proxima_data);
+  return`<div class="card"><div class="ic" style="background:${t.bg};color:${t.c}"><i class="ti ${t.ic}"></i></div>
+    <div class="cb" onclick="editRot(${r.id})"><div class="tt">${esc(r.titulo)}</div><div class="ts">${r.produto?esc(r.produto)+' · ':''}${r.ultima_data?'última '+dBR(r.ultima_data):'sem registro'}${r.ativo?'':' · pausada'}</div></div>
+    <div class="cr"><div class="d ${p.cls}">${p.t}</div><button class="done-btn" onclick="event.stopPropagation();sheetFeito(${r.id})">Feito</button></div></div>`;}
+function evCard(e){const t=TIPOS[e.tipo]||TIPOS.outro;const doc=docById(e.documento_id);const sub=[e.produto,e.lote?'lote '+e.lote:'',e.veterinario||e.clinica,e.peso_kg?e.peso_kg+' kg':'',e.valor?money(e.valor):''].filter(Boolean).join(' · ');
+  return`<div class="card" style="${e.confirmado?'':'border-color:#cdbfe8'}"><div class="ic" style="background:${t.bg};color:${t.c}"><i class="ti ${t.ic}"></i></div>
+    <div class="cb" onclick="editEv(${e.id})"><div class="tt">${esc(e.titulo)}${e.confirmado?'':'<span class="tag ia">a confirmar</span>'}</div><div class="ts">${dBR(e.data)}${sub?' · '+esc(sub):''}</div>${e.observacao&&['exame','consulta','medicacao','cirurgia'].includes(e.tipo)?`<div class="obs" style="white-space:normal;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">${esc(e.observacao)}</div>`:''}</div>
+    ${doc?`<button class="mini doc" title="Abrir documento" onclick="event.stopPropagation();abrirDoc('${esc(doc.path)}')"><i class="ti ti-file-text"></i></button>`:''}
+    ${e.confirmado?'':`<button class="mini ok" title="Confirmar" onclick="event.stopPropagation();confirmar(${e.id})"><i class="ti ti-circle-check"></i></button>`}</div>`;}
+function hrow(e){const doc=docById(e.documento_id);return`<div class="hrow"><div class="hd">${dBR(e.data)}</div><div class="hb" onclick="editEv(${e.id})"><b>${esc(e.produto||e.titulo)}</b>${e.lote?' · lote '+esc(e.lote):''}${e.veterinario?' · '+esc(e.veterinario.split('(')[0].trim()):''}${e.confirmado?'':' <span class="tag ia">a confirmar</span>'}</div>${doc?`<i class="ti ti-file-text" style="color:var(--azul);cursor:pointer" onclick="abrirDoc('${esc(doc.path)}')"></i>`:''}</div>`;}
+function toggle(k){aberto[k]=!aberto[k];render(atual);}
+
+// ===== views =====
+const V={};
+V.hoje=()=>{const c=caoAtual();if(!c)return'<div class="empty">Cadastre um cão.</div>';
+  const rots=ROT.filter(r=>r.ativo&&meu(r)&&r.proxima_data).sort((a,b)=>a.proxima_data.localeCompare(b.proxima_data));
+  const late=rots.filter(r=>diasAte(r.proxima_data)<=0),soon=rots.filter(r=>{const n=diasAte(r.proxima_data);return n>0&&n<=30;}),next=rots.filter(r=>diasAte(r.proxima_data)>30).slice(0,3);
+  const aconf=EV.filter(e=>!e.confirmado&&e.cao_id===cao),novos=DOCS.filter(d=>d.status==='novo').length,pa=pesoAtual(c.id);
+  let h=`<div class="hero ${fotoUrl(c)?'':'nofoto'}" style="${fotoUrl(c)?`--hero-img:url('${fotoUrl(c)}')`:''}"><div class="hn">${esc(c.nome)}</div><div class="hs">${idade(c.nascimento)}${c.raca?' · '+esc(c.raca):''}${pa?' · '+pa.peso_kg+' kg':''}</div>
+    <div class="kpis"><div class="kpi"><b>${late.length}</b><span>atrasado${late.length===1?'':'s'}</span></div><div class="kpi"><b>${soon.length}</b><span>em 30 dias</span></div>${aconf.length?`<div class="kpi"><b>${aconf.length}</b><span>a confirmar</span></div>`:''}</div></div>`;
+  h+=`<div class="falar" onclick="sheetFalar()"><i class="ti ti-microphone"></i><div>Falar ou escrever um registro<span>“dei Bravecto na Stout hoje, 95 reais” · “banho dos dois ontem”</span></div></div>`;
+  if(novos)h+=`<div class="note" onclick="go('docs')" style="cursor:pointer;margin-top:10px"><b>${novos} documento${novos>1?'s':''} na caixa de entrada</b> — o Claude lê e registra à noite (ou peça "processa a caixa").</div>`;
+  if(late.length)h+=`<div class="sec">Atrasado</div>`+late.map(rotCard).join('');
+  if(soon.length)h+=`<div class="sec">Vence em 30 dias</div>`+soon.map(rotCard).join('');
+  if(next.length)h+=`<div class="sec">Próximos</div>`+next.map(rotCard).join('');
+  if(!late.length&&!soon.length&&!next.length)h+=`<div class="empty">Nada agendado. Cadastre rotinas na Carteirinha.</div>`;
+  if(aconf.length)h+=`<div class="sec">A confirmar (${aconf.length}) <span onclick="confirmarTodos()">confirmar todos</span></div>`+aconf.slice(0,aberto.aconf?999:4).map(evCard).join('')+(aconf.length>4&&!aberto.aconf?`<button class="lnk" onclick="toggle('aconf')">ver os ${aconf.length}</button>`:'');
+  return h;};
+V.cart=()=>{const vac=EV.filter(e=>e.tipo==='vacina'&&e.cao_id===cao);let h=`<div class="sec" style="margin-top:12px">Vacinas <span onclick="editEv(null,{tipo:'vacina'})">+ dose</span></div>`;
+  const usadas=new Set();
+  for(const f of FAM){const evs=vac.filter(e=>famDe(e)===f);if(!evs.length)continue;evs.forEach(e=>usadas.add(e.id));const last=evs[0];const rot=ROT.find(r=>r.tipo==='vacina'&&meu(r)&&r.ativo&&f.re.test((r.titulo||'')+' '+(r.produto||'')));const prox=(rot&&rot.proxima_data)||last.proxima_data||addDays(last.data,365);const p=prazo(prox);const k='f'+f.k;
+    h+=`<div class="fam"><div class="fh" onclick="toggle('${k}')"><div class="ic" style="background:${TIPOS.vacina.bg};color:${TIPOS.vacina.c}"><i class="ti ti-vaccine"></i></div><div class="cb"><div class="tt">${f.n}<span class="tag ${p.tag}">${p.lbl}</span></div><div class="ts">última ${dBR(last.data)}${last.produto?' · '+esc(last.produto):''} · próxima ${dBR(prox)}</div></div><div class="cr"><button class="done-btn" onclick="event.stopPropagation();${rot?`sheetFeito(${rot.id})`:`editEv(null,{tipo:'vacina',titulo:'${f.n}'})`}">Dose</button></div></div>
+      ${aberto[k]?`<div class="fb">${evs.map(hrow).join('')}</div>`:''}</div>`;}
+  const outras=vac.filter(e=>!usadas.has(e.id));if(outras.length)h+=`<div class="fam"><div class="fh" onclick="toggle('fout')"><div class="ic" style="background:${TIPOS.vacina.bg};color:${TIPOS.vacina.c}"><i class="ti ti-vaccine"></i></div><div class="cb"><div class="tt">Outras vacinas</div><div class="ts">${outras.length} registro${outras.length>1?'s':''}</div></div></div>${aberto.fout?`<div class="fb">${outras.map(hrow).join('')}</div>`:''}</div>`;
+  if(!vac.length)h+='<div class="empty">Nenhuma vacina registrada.</div>';
+  const bloco=(titulo,tipos,k)=>{const rs=ROT.filter(r=>tipos.includes(r.tipo)&&meu(r));const evs=EV.filter(e=>tipos.includes(e.tipo)&&e.cao_id===cao);let s=`<div class="sec">${titulo} <span onclick="editRot(null,'${tipos[0]}')">+ rotina</span></div>`;
+    if(!rs.length&&!evs.length)return s+'<div class="t-mut" style="margin:0 2px 8px">Nada cadastrado.</div>';
+    s+=rs.map(rotCard).join('');
+    if(evs.length)s+=`<div class="fam"><div class="fh" onclick="toggle('${k}')"><div class="cb"><div class="tt" style="font-size:13.5px;color:var(--ink2)">Histórico · ${evs.length} registro${evs.length>1?'s':''}</div></div><i class="ti ti-chevron-${aberto[k]?'up':'down'}" style="color:var(--ink3)"></i></div>${aberto[k]?`<div class="fb">${evs.map(hrow).join('')}</div>`:''}</div>`;return s;};
+  h+=bloco('Proteção — antipulgas e vermífugo',['antipulga','vermifugo'],'hprot');
+  h+=bloco('Banho e tosa',['banho','tosa'],'hbanho');
+  return h;};
+V.vet=()=>{const c=caoAtual();let h=pesoChart(c);
+  const ex=EV.filter(e=>e.tipo==='exame'&&e.cao_id===cao),co=EV.filter(e=>['consulta','medicacao','cirurgia','outro'].includes(e.tipo)&&e.cao_id===cao);
+  h+=`<div class="sec">Exames <span onclick="editEv(null,{tipo:'exame'})">+ exame</span></div>`+(ex.length?ex.map(evCard).join(''):'<div class="t-mut" style="margin:0 2px">Nenhum exame registrado.</div>');
+  h+=`<div class="sec">Consultas e orientações <span onclick="editEv(null,{tipo:'consulta'})">+ consulta</span></div>`+(co.length?co.map(evCard).join(''):'<div class="t-mut" style="margin:0 2px">Nada registrado.</div>');
+  const ps=EV.filter(e=>e.peso_kg&&e.cao_id===cao);
+  h+=`<div class="sec">Pesagens <span onclick="editEv(null,{tipo:'peso',titulo:'Pesagem'})">+ peso</span></div><div class="fam"><div class="fb" style="border-top:none;background:var(--card)">${ps.length?ps.map(e=>`<div class="hrow"><div class="hd">${dBR(e.data)}</div><div class="hb" onclick="editEv(${e.id})"><b>${e.peso_kg} kg</b>${e.tipo!=='peso'?' · '+esc(e.titulo):''}${e.clinica?' · '+esc(e.clinica):''}</div></div>`).join(''):'<div class="t-mut">Sem pesagens.</div>'}</div></div>`;
+  return h;};
+function pesoChart(c){const ps=EV.filter(e=>e.cao_id===c.id&&e.peso_kg).sort((a,b)=>a.data.localeCompare(b.data));if(ps.length<2)return'';
+  const W=440,H=120,P=28;const xs=ps.map(p=>new Date(p.data).getTime()),ys=ps.map(p=>+p.peso_kg);const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys)-.4,y1=Math.max(...ys)+.4;
+  const X=t=>P+(t-x0)/(x1-x0||1)*(W-2*P),Y=v=>H-P+6-(v-y0)/(y1-y0||1)*(H-2*P);const pts=ps.map((p,i)=>`${X(xs[i]).toFixed(1)},${Y(ys[i]).toFixed(1)}`).join(' ');
+  return`<div class="pet" style="padding:12px 14px;margin-top:10px"><div style="display:flex;justify-content:space-between;font-size:13px;align-items:baseline"><b>Peso</b><span class="t-mut">${ps[0].peso_kg} kg (${dBR(ps[0].data)}) → ${ps[ps.length-1].peso_kg} kg (${dBR(ps[ps.length-1].data)})</span></div>
+    <div class="chart" style="margin-top:10px"><svg viewBox="0 0 ${W} ${H}"><polyline fill="none" stroke="${caoCor(c)}" stroke-width="2.5" stroke-linejoin="round" points="${pts}"/>${ps.map((p,i)=>`<circle cx="${X(xs[i]).toFixed(1)}" cy="${Y(ys[i]).toFixed(1)}" r="3.5" fill="${caoCor(c)}"/><text x="${X(xs[i]).toFixed(1)}" y="${(Y(ys[i])-9).toFixed(1)}" font-size="10" text-anchor="middle" fill="#5f6673">${p.peso_kg}</text>`).join('')}</svg></div></div>`;}
+V.docs=()=>{const st={novo:['na caixa','novo'],processando:['lendo…','novo'],processado:['registrado','ok'],erro:['erro','late'],ignorado:['ignorado','b']};
+  let h=`<div class="up-btn" onclick="pickDocs()"><i class="ti ti-camera-plus"></i> Foto ou PDF de exame, receita, carteira…</div><div class="note">Sobe para a caixa de entrada. O Claude lê, traduz se preciso e cria os registros como <b>"a confirmar"</b>.</div>`;
+  const docCard=d=>{const s=st[d.status]||st.novo;const n=EV.filter(e=>e.documento_id===d.id).length;const k='d'+d.id;
+    return`<div class="doc"><div class="dh"><i class="ti ${d.tipo_mime==='application/pdf'?'ti-file-type-pdf':'ti-photo'}" style="font-size:22px;color:var(--ink3)"></i>
+      <div style="flex:1;min-width:0" onclick="toggle('${k}')"><div class="dn">${esc(d.nome||d.path.split('/').pop())}</div><div class="dm">${d.data_doc?dLong(d.data_doc)+' · ':''}${d.paginas?d.paginas.split(',').length+' pág · ':''}${n?n+' registro'+(n>1?'s':'')+' · ':''}<span class="tag ${s[1]}" style="margin-left:0">${s[0]}</span></div></div>
+      <button class="mini doc" onclick="abrirDoc('${esc(d.path)}')"><i class="ti ti-external-link"></i></button></div>
+      ${aberto[k]?`${d.resumo?`<div class="obs">${esc(d.resumo)}</div>`:''}${d.erro?`<div class="obs" style="color:var(--rosa)">${esc(d.erro)}</div>`:''}<div style="display:flex;gap:14px;margin-top:8px">${d.status!=='novo'?`<button class="lnk" onclick="reprocessar(${d.id})">reprocessar</button>`:''}<button class="lnk" style="color:var(--rosa)" onclick="delDoc(${d.id})">apagar</button></div>`:''}</div>`;};
+  const inbox=DOCS.filter(d=>['novo','processando','erro'].includes(d.status));if(inbox.length)h+=`<div class="sec">Caixa de entrada</div>`+inbox.map(docCard).join('');
+  const arq=DOCS.filter(d=>!['novo','processando','erro'].includes(d.status)&&meu(d));
+  for(const [k,n] of Object.entries(CATD)){const l=arq.filter(d=>(d.categoria||'outro')===k);if(l.length)h+=`<div class="sec">${n}</div>`+l.map(docCard).join('');}
+  if(!arq.length&&!inbox.length)h+='<div class="empty">Nenhum documento ainda.</div>';
+  return h;};
+V.ficha=()=>{const c=caoAtual();const pa=pesoAtual(c.id);const prods=PROD.filter(p=>meu(p)&&p.em_uso);const rots=ROT.filter(meu);
+  let h=`<div class="pet" style="margin-top:10px"><div class="ph" onclick="editCao(${c.id})"><div class="av" style="background:${caoCor(c)}">${fotoUrl(c)?`<img src="${fotoUrl(c)}" alt="${c.nome}">`:c.nome[0]}</div><div><h3>${esc(c.nome)}${c.apelido_antigo?` <span class="t-mut" style="font-weight:500;font-size:14px">ex-${esc(c.apelido_antigo)}</span>`:''}</h3><div class="sub">${esc(c.raca||'')} · ${c.sexo==='F'?'fêmea':'macho'} · ${idade(c.nascimento)}</div></div></div>
+    <div class="grid"><div><b>Nascimento</b>${dLong(c.nascimento)||'—'}</div><div><b>Adoção</b>${dLong(c.adocao)||'<span style="color:var(--rosa)">informar</span>'}</div><div><b>Peso atual</b>${pa?pa.peso_kg+' kg <span class="t-mut">('+dBR(pa.data)+')</span>':'—'}</div><div><b>Microchip</b>${esc(c.microchip||'—')}</div><div><b>Castração</b>${c.castrado==null?'—':(c.castrado?'sim':'não')}</div><div><b>Alergias</b>${esc(c.alergias||'—')}</div></div>
+    ${c.observacao?`<div class="obs">${esc(c.observacao)}</div>`:''}<div class="t-mut" style="margin-top:10px">Tocar no nome para editar.</div></div>`;
+  h+=`<div class="sec">Em uso — ração, remédios, produtos <span onclick="sheetProd(null)">+ produto</span></div><div class="pet">${prods.length?prods.map(prodRow).join(''):'<div class="t-mut">Nenhum produto cadastrado.</div>'}</div>`;
+  h+=`<div class="sec">Rotinas e lembretes <span onclick="editRot(null)">+ rotina</span></div><div class="pet">${rots.length?rots.map(r=>`<div class="prod" onclick="editRot(${r.id})"><i class="ti ${(TIPOS[r.tipo]||TIPOS.outro).ic}" style="color:var(--ink3);font-size:18px;margin-top:2px"></i><div style="flex:1"><div class="pn">${esc(r.titulo)}${r.ativo?'':'<span class="tag b">pausada</span>'}${r.cao_id==null?'<span class="tag b">os dois</span>':''}</div><div class="pd">a cada ${r.intervalo_dias} dias${r.produto?' · '+esc(r.produto):''}${r.proxima_data?' · próxima '+dBR(r.proxima_data):''}</div></div></div>`).join(''):'<div class="t-mut">Nenhuma rotina.</div>'}</div>`;
+  h+=`<div class="sec">Contatos <span onclick="sheetCont(null)">+ contato</span></div><div class="pet">`+(CONT.length?CONT.map(k=>`<div class="ct"><div style="flex:1;min-width:0" onclick="sheetCont(${k.id})"><div class="cp">${esc(k.papel)}</div><div class="cn">${esc(k.nome)||'<span style=\"color:var(--ink3)\">preencher</span>'}</div>${k.telefone||k.endereco?`<div class="cs">${esc(k.telefone||'')}${k.telefone&&k.endereco?' · ':''}${esc(k.endereco||'')}</div>`:''}${k.observacao?`<div class="cs">${esc(k.observacao)}</div>`:''}</div>${k.telefone?`<a class="call" href="tel:${esc(k.telefone.replace(/[^0-9+]/g,''))}"><i class="ti ti-phone"></i></a>`:''}</div>`).join(''):'<div class="t-mut">Nenhum contato.</div>')+`</div>`;
+  h+=`<div style="text-align:center;margin:18px 0 6px"><button class="lnk" style="color:var(--ink3)" onclick="sair()">Sair da conta (${esc(autor==='Carol'?'Carol':'Fernando')})</button></div>`;
+  return h;};
+function prodRow(p){return`<div class="prod" onclick="sheetProd(${p.id})"><i class="ti ti-package" style="color:var(--ink3);font-size:18px;margin-top:2px"></i><div style="flex:1;min-width:0"><div class="pn">${esc(p.nome)}${p.cao_id==null?'<span class="tag b">os dois</span>':''}</div><div class="pd">${[CATP[p.categoria],p.marca,p.apresentacao,p.dose,p.frequencia,p.valor?money(p.valor):''].filter(Boolean).map(esc).join(' · ')}</div>${p.observacao?`<div class="pd" style="margin-top:2px">${esc(p.observacao)}</div>`:''}</div></div>`;}
+
+// ===== sheets =====
+function openSheet(h){$('#sheetIn').innerHTML=h;$('#sheet').classList.add('on');}
+function closeSheet(){$('#sheet').classList.remove('on');}
+function selCao(id,sel,allowBoth){return`<select id="${id}">${allowBoth?`<option value="" ${sel==null?'selected':''}>Os dois</option>`:''}${CAES.map(c=>`<option value="${c.id}" ${sel===c.id?'selected':''}>${c.nome}</option>`).join('')}</select>`;}
+function selTipo(id,list,sel){return`<select id="${id}">${list.map(t=>`<option value="${t}" ${sel===t?'selected':''}>${TIPOS[t].n}</option>`).join('')}</select>`;}
+function fabAction(){if(atual==='cart')editRot(null);else if(atual==='docs')pickDocs();else if(atual==='ficha')sheetProd(null);else if(atual==='vet')editEv(null,{tipo:'consulta'});else editEv(null);}
+const val=id=>($('#'+id)?$('#'+id).value.trim():'');const num=id=>{const v=val(id).replace(',','.');return v===''?null:+v;};
+
+// --- evento ---
+function editEv(id,preset){const e=id?EV.find(x=>x.id===id):Object.assign({cao_id:cao,tipo:'vacina',data:hojeISO(),confirmado:true},preset||{});const doc=docById(e.documento_id);
+  openSheet(`<h3>${id?'Editar registro':'Novo registro'}</h3>
+  <div class="row2"><div class="field"><label>Cão</label>${selCao('eC',e.cao_id)}</div><div class="field"><label>Tipo</label>${selTipo('eT',TIPOS_EV,e.tipo)}</div></div>
+  <div class="row2"><div class="field"><label>Data</label><input type="date" id="eD" value="${e.data||''}"></div><div class="field"><label>Próxima (se houver)</label><input type="date" id="eP" value="${e.proxima_data||''}"></div></div>
+  <div class="field"><label>Título</label><input id="eTi" value="${esc(e.titulo)}" placeholder="Ex.: V10 anual, banho, consulta…"></div>
+  <div class="row2"><div class="field"><label>Produto</label><input id="ePr" value="${esc(e.produto)}"></div><div class="field"><label>Lote</label><input id="eL" value="${esc(e.lote)}"></div></div>
+  <div class="row2"><div class="field"><label>Veterinário</label><input id="eV" value="${esc(e.veterinario)}"></div><div class="field"><label>Clínica</label><input id="eCl" value="${esc(e.clinica)}"></div></div>
+  <div class="row2"><div class="field"><label>Peso (kg)</label><input type="number" step="0.01" inputmode="decimal" id="eK" value="${e.peso_kg||''}"></div><div class="field"><label>Valor (R$)</label><input type="number" step="0.01" inputmode="decimal" id="eR" value="${e.valor||''}"></div></div>
+  <div class="field"><label>Observação</label><textarea id="eO" rows="3">${esc(e.observacao)}</textarea></div>
+  ${doc?`<div class="t-mut" style="margin:-4px 0 12px"><i class="ti ti-file-text"></i> ${esc(doc.nome)} · <button class="lnk" onclick="abrirDoc('${esc(doc.path)}')">abrir</button></div>`:''}
+  <button class="btn btn-p" onclick="saveEv(${id||'null'})">Salvar</button>
+  ${id?`<div style="display:flex;gap:8px;margin-top:8px">${e.confirmado?'':`<button class="btn" onclick="confirmar(${id});closeSheet()">Confirmar</button>`}<button class="btn btn-danger" onclick="delEv(${id})">Apagar</button></div>${e.pagina_origem?`<div class="t-mut" style="margin-top:10px">Origem: ${esc(e.origem)} · ${esc(e.pagina_origem)}${e.confianca?' · confiança '+e.confianca:''}</div>`:''}`:''}`);}
+async function saveEv(id){const t=val('eTi');if(!t||!val('eD')){toast('Título e data são obrigatórios');return;}
+  const row={cao_id:+val('eC'),tipo:val('eT'),data:val('eD'),proxima_data:val('eP')||null,titulo:t,produto:val('ePr')||null,lote:val('eL')||null,veterinario:val('eV')||null,clinica:val('eCl')||null,peso_kg:num('eK'),valor:num('eR'),observacao:val('eO')||null};
+  closeSheet();
+  if(id){const r=await sb.from('pet_eventos').update(row).eq('id',id).select().single();if(r.data)Object.assign(EV.find(x=>x.id===id),r.data);}
+  else{row.origem='manual';row.confirmado=true;row.criado_por=autor;const r=await sb.from('pet_eventos').insert(row).select().single();if(r.data)EV.unshift(r.data);EV.sort((a,b)=>b.data.localeCompare(a.data)||b.id-a.id);}
+  await syncRotina(row);render(atual);toast('Salvo');}
+async function syncRotina(ev){const rs=ROT.filter(r=>r.tipo===ev.tipo&&(r.cao_id===ev.cao_id||r.cao_id==null)&&r.ativo);if(!rs.length)return;
+  let r=null;if(ev.tipo==='vacina'){const f=famDe(ev);r=f?rs.find(x=>f.re.test((x.titulo||'')+' '+(x.produto||''))):null;}
+  if(!r)r=rs.find(x=>x.produto&&ev.produto&&x.produto.toLowerCase()===ev.produto.toLowerCase())||(rs.length===1?rs[0]:null);if(!r)return;
+  if(r.ultima_data&&r.ultima_data>ev.data)return;
+  const upd={ultima_data:ev.data,proxima_data:ev.proxima_data||addDays(ev.data,r.intervalo_dias)};Object.assign(r,upd);await sb.from('pet_rotinas').update(upd).eq('id',r.id);}
+async function confirmar(id){const e=EV.find(x=>x.id===id);if(!e)return;e.confirmado=true;render(atual);await sb.from('pet_eventos').update({confirmado:true}).eq('id',id);toast('Confirmado');}
+async function confirmarTodos(){const l=EV.filter(e=>!e.confirmado&&e.cao_id===cao);if(!l.length||!confirm(`Confirmar os ${l.length} registros de ${caoAtual().nome}?`))return;l.forEach(e=>e.confirmado=true);render(atual);await sb.from('pet_eventos').update({confirmado:true}).in('id',l.map(e=>e.id));toast('Confirmados');}
+async function delEv(id){if(!confirm('Apagar este registro?'))return;await sb.from('pet_eventos').delete().eq('id',id);EV=EV.filter(x=>x.id!==id);closeSheet();render(atual);}
+
+// --- rotina ---
+function editRot(id,tipo){const r=id?ROT.find(x=>x.id===id):{cao_id:cao,tipo:tipo||'vacina',intervalo_dias:{antipulga:30,vermifugo:90,banho:15,tosa:60}[tipo]||365,ativo:true};
+  openSheet(`<h3>${id?'Editar rotina':'Nova rotina'}</h3>
+  <div class="row2"><div class="field"><label>Cão</label>${selCao('rC',r.cao_id,true)}</div><div class="field"><label>Tipo</label>${selTipo('rT',TIPOS_ROT,r.tipo)}</div></div>
+  <div class="field"><label>Título</label><input id="rTi" value="${esc(r.titulo)}" placeholder="Ex.: Antipulgas mensal"></div>
+  <div class="row2"><div class="field"><label>Produto</label><input id="rP" value="${esc(r.produto)}"></div><div class="field"><label>A cada (dias)</label><input type="number" inputmode="numeric" id="rI" value="${r.intervalo_dias||''}"></div></div>
+  <div class="row2"><div class="field"><label>Última vez</label><input type="date" id="rU" value="${r.ultima_data||''}"></div><div class="field"><label>Próxima</label><input type="date" id="rN" value="${r.proxima_data||''}"></div></div>
+  <div class="field"><label>Observação</label><textarea id="rO" rows="2">${esc(r.observacao)}</textarea></div>
+  <div class="field"><label><input type="checkbox" id="rA" ${r.ativo?'checked':''} style="width:auto;margin-right:8px">Ativa (gera lembretes)</label></div>
+  <button class="btn btn-p" onclick="saveRot(${id||'null'})">Salvar</button>${id?`<button class="btn btn-danger" style="margin-top:8px" onclick="delRot(${id})">Apagar rotina</button>`:''}`);}
+async function saveRot(id){const t=val('rTi'),i=+val('rI');if(!t||!i){toast('Título e intervalo são obrigatórios');return;}
+  let prox=val('rN')||null;const ult=val('rU')||null;if(!prox&&ult)prox=addDays(ult,i);
+  const row={cao_id:val('rC')?+val('rC'):null,tipo:val('rT'),titulo:t,produto:val('rP')||null,intervalo_dias:i,ultima_data:ult,proxima_data:prox,observacao:val('rO')||null,ativo:$('#rA').checked};closeSheet();
+  if(id){const r=await sb.from('pet_rotinas').update(row).eq('id',id).select().single();if(r.data)Object.assign(ROT.find(x=>x.id===id),r.data);}
+  else{row.ordem=50;const r=await sb.from('pet_rotinas').insert(row).select().single();if(r.data)ROT.push(r.data);}
+  render(atual);toast('Salvo');}
+async function delRot(id){if(!confirm('Apagar esta rotina?'))return;await sb.from('pet_rotinas').delete().eq('id',id);ROT=ROT.filter(x=>x.id!==id);closeSheet();render(atual);}
+function sheetFeito(id){const r=ROT.find(x=>x.id===id);
+  openSheet(`<h3>${esc(r.titulo)} — feito</h3>
+  ${r.cao_id?'':`<div class="field"><label>Para</label>${CAES.map(c=>`<label style="display:inline-flex;align-items:center;gap:6px;margin-right:14px;font-size:15px"><input type="checkbox" class="fC" value="${c.id}" ${c.id===cao?'checked':''} style="width:auto">${c.nome}</label>`).join('')}</div>`}
+  <div class="row2"><div class="field"><label>Data</label><input type="date" id="fD" value="${hojeISO()}"></div><div class="field"><label>Valor (R$)</label><input type="number" step="0.01" inputmode="decimal" id="fR"></div></div>
+  <div class="row2"><div class="field"><label>Produto</label><input id="fP" value="${esc(r.produto)}"></div><div class="field"><label>Lote</label><input id="fL"></div></div>
+  ${['vacina','consulta','exame'].includes(r.tipo)?`<div class="row2"><div class="field"><label>Veterinário</label><input id="fV"></div><div class="field"><label>Peso (kg)</label><input type="number" step="0.01" inputmode="decimal" id="fK"></div></div>`:''}
+  <div class="field"><label>Observação</label><input id="fO"></div>
+  <div class="t-mut" style="margin-bottom:12px">Próxima ficará em <b>${dBR(addDays(hojeISO(),r.intervalo_dias))}</b> (a cada ${r.intervalo_dias} dias).</div>
+  <button class="btn btn-p" onclick="saveFeito(${id})">Registrar</button>`);}
+async function saveFeito(id){const r=ROT.find(x=>x.id===id);const d=val('fD')||hojeISO();const ids=r.cao_id?[r.cao_id]:[...document.querySelectorAll('.fC:checked')].map(x=>+x.value);if(!ids.length){toast('Escolha o cão');return;}closeSheet();
+  const prox=addDays(d,r.intervalo_dias);const rows=ids.map(c=>({cao_id:c,tipo:r.tipo==='higiene'?'outro':r.tipo,data:d,titulo:r.titulo,produto:val('fP')||null,lote:val('fL')||null,veterinario:val('fV')||null,peso_kg:num('fK'),valor:num('fR'),proxima_data:prox,observacao:val('fO')||null,origem:'manual',confirmado:true,criado_por:autor}));
+  const ins=await sb.from('pet_eventos').insert(rows).select();if(ins.data){EV=ins.data.concat(EV);}
+  const upd={ultima_data:d,proxima_data:prox};Object.assign(r,upd);await sb.from('pet_rotinas').update(upd).eq('id',id);render(atual);toast('Registrado · próxima '+dBR(prox));}
+
+// --- produto ---
+function sheetProd(id){const p=id?PROD.find(x=>x.id===id):{cao_id:cao,categoria:'racao',em_uso:true};
+  openSheet(`<h3>${id?'Editar produto':'Novo produto'}</h3>
+  <div class="row2"><div class="field"><label>Cão</label>${selCao('pC',p.cao_id,true)}</div><div class="field"><label>Categoria</label><select id="pK">${Object.entries(CATP).map(([k,n])=>`<option value="${k}" ${p.categoria===k?'selected':''}>${n}</option>`).join('')}</select></div></div>
+  <div class="field"><label>Nome</label><input id="pN" value="${esc(p.nome)}" placeholder="Ex.: Ração Premier Raças Pequenas"></div>
+  <div class="row2"><div class="field"><label>Marca</label><input id="pM" value="${esc(p.marca)}"></div><div class="field"><label>Apresentação</label><input id="pA" value="${esc(p.apresentacao)}" placeholder="10,1 kg / 1 cp / 1 ml"></div></div>
+  <div class="row2"><div class="field"><label>Dose / quantidade</label><input id="pD" value="${esc(p.dose)}" placeholder="80 g/dia"></div><div class="field"><label>Frequência</label><input id="pF" value="${esc(p.frequencia)}" placeholder="2x/dia · mensal"></div></div>
+  <div class="row2"><div class="field"><label>Valor (R$)</label><input type="number" step="0.01" inputmode="decimal" id="pV" value="${p.valor||''}"></div><div class="field"><label>Onde compra</label><input id="pW" value="${esc(p.onde_compra)}"></div></div>
+  <div class="field"><label>Observação</label><input id="pO" value="${esc(p.observacao)}"></div>
+  <div class="field"><label><input type="checkbox" id="pU" ${p.em_uso?'checked':''} style="width:auto;margin-right:8px">Em uso</label></div>
+  <button class="btn btn-p" onclick="saveProd(${id||'null'})">Salvar</button>${id?`<button class="btn btn-danger" style="margin-top:8px" onclick="delProd(${id})">Apagar</button>`:''}`);}
+async function saveProd(id){const n=val('pN');if(!n){toast('Informe o nome');return;}const row={cao_id:val('pC')?+val('pC'):null,categoria:val('pK'),nome:n,marca:val('pM')||null,apresentacao:val('pA')||null,dose:val('pD')||null,frequencia:val('pF')||null,valor:num('pV'),onde_compra:val('pW')||null,observacao:val('pO')||null,em_uso:$('#pU').checked};closeSheet();
+  if(id){const r=await sb.from('pet_produtos').update(row).eq('id',id).select().single();if(r.data)Object.assign(PROD.find(x=>x.id===id),r.data);}else{const r=await sb.from('pet_produtos').insert(row).select().single();if(r.data)PROD.push(r.data);}render(atual);toast('Salvo');}
+async function delProd(id){if(!confirm('Apagar produto?'))return;await sb.from('pet_produtos').delete().eq('id',id);PROD=PROD.filter(x=>x.id!==id);closeSheet();render(atual);}
+
+// --- cão ---
+function editCao(id){const c=CAES.find(x=>x.id===id);openSheet(`<h3>${esc(c.nome)}</h3>
+  <div class="row2"><div class="field"><label>Nascimento</label><input type="date" id="cN" value="${c.nascimento||''}"></div><div class="field"><label>Adoção</label><input type="date" id="cA" value="${c.adocao||''}"></div></div>
+  <div class="row2"><div class="field"><label>Raça</label><input id="cR" value="${esc(c.raca)}"></div><div class="field"><label>Microchip</label><input id="cM" value="${esc(c.microchip)}"></div></div>
+  <div class="row2"><div class="field"><label>Castrado</label><select id="cC"><option value="" ${c.castrado==null?'selected':''}>—</option><option value="1" ${c.castrado===true?'selected':''}>sim</option><option value="0" ${c.castrado===false?'selected':''}>não</option></select></div><div class="field"><label>Alergias</label><input id="cAl" value="${esc(c.alergias)}"></div></div>
+  <div class="field"><label>Observações</label><textarea id="cO" rows="4">${esc(c.observacao)}</textarea></div>
+  <button class="btn btn-p" onclick="saveCao(${id})">Salvar</button>`);}
+async function saveCao(id){const row={nascimento:val('cN')||null,adocao:val('cA')||null,raca:val('cR')||null,microchip:val('cM')||null,castrado:val('cC')===''?null:val('cC')==='1',alergias:val('cAl')||null,observacao:val('cO')||null};closeSheet();const r=await sb.from('pet_caes').update(row).eq('id',id).select().single();if(r.data)Object.assign(CAES.find(x=>x.id===id),r.data);render(atual);toast('Salvo');}
+
+// --- contato ---
+function sheetCont(id){const k=id?CONT.find(x=>x.id===id):{};openSheet(`<h3>${id?'Contato':'Novo contato'}</h3>
+  <div class="field"><label>Papel</label><input id="kP" value="${esc(k.papel)}" placeholder="Vet, clínica, banho e tosa…"></div><div class="field"><label>Nome</label><input id="kN" value="${esc(k.nome)}"></div>
+  <div class="row2"><div class="field"><label>Telefone</label><input id="kT" value="${esc(k.telefone)}"></div><div class="field"><label>CRMV</label><input id="kC" value="${esc(k.crmv)}"></div></div>
+  <div class="field"><label>Endereço</label><input id="kE" value="${esc(k.endereco)}"></div><div class="field"><label>Observação</label><input id="kO" value="${esc(k.observacao)}"></div>
+  <button class="btn btn-p" onclick="saveCont(${id||'null'})">Salvar</button>${id?`<button class="btn btn-danger" style="margin-top:8px" onclick="delCont(${id})">Apagar</button>`:''}`);}
+async function saveCont(id){const row={papel:val('kP')||'Contato',nome:val('kN')||null,telefone:val('kT')||null,crmv:val('kC')||null,endereco:val('kE')||null,observacao:val('kO')||null};closeSheet();
+  if(id){const r=await sb.from('pet_contatos').update(row).eq('id',id).select().single();if(r.data)Object.assign(CONT.find(x=>x.id===id),r.data);}else{row.ordem=50;const r=await sb.from('pet_contatos').insert(row).select().single();if(r.data)CONT.push(r.data);}render(atual);toast('Salvo');}
+async function delCont(id){if(!confirm('Apagar contato?'))return;await sb.from('pet_contatos').delete().eq('id',id);CONT=CONT.filter(x=>x.id!==id);closeSheet();render(atual);}
+
+// --- documentos ---
+function pickDocs(){const fi=$('#filein');fi.value='';fi.onchange=async e=>{const files=[...e.target.files];if(!files.length)return;toast('Enviando '+files.length+'…');
+  for(const f of files){try{await uploadDoc(f);}catch(err){toast('Erro: '+(err.message||err));}}await loadAll();go('docs');toast('Na caixa de entrada');};fi.click();}
+function shrink(file){return new Promise(res=>{const img=new Image();img.onload=()=>{const M=1800,sc=Math.min(1,M/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=img.width*sc;c.height=img.height*sc;c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(b=>res(b),'image/jpeg',.82);};img.src=URL.createObjectURL(file);});}
+async function uploadDoc(file){const pdf=file.type==='application/pdf';const blob=pdf?file:await shrink(file);const path='inbox/'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+(pdf?'.pdf':'.jpg');
+  const up=await sb.storage.from('pet-docs').upload(path,blob,{contentType:pdf?'application/pdf':'image/jpeg'});if(up.error)throw up.error;
+  const ins=await sb.from('pet_documentos').insert({cao_id:cao,path,nome:file.name,tipo_mime:pdf?'application/pdf':'image/jpeg',status:'novo',enviado_por:autor});if(ins.error)throw ins.error;}
+async function abrirDoc(path){let s=SIGNED[path];if(!s||s.t<Date.now()){const r=await sb.storage.from('pet-docs').createSignedUrl(path,3600);if(r.error){toast('Não abriu');return;}s=SIGNED[path]={url:r.data.signedUrl,t:Date.now()+3000e3};}window.open(s.url,'_blank');}
+async function delDoc(id){if(!confirm('Apagar documento? Os registros ligados continuam, sem o anexo.'))return;const d=DOCS.find(x=>x.id===id);await sb.from('pet_documentos').delete().eq('id',id);if(d)await sb.storage.from('pet-docs').remove([d.path]);DOCS=DOCS.filter(x=>x.id!==id);EV.forEach(e=>{if(e.documento_id===id)e.documento_id=null;});render('docs');}
+async function reprocessar(id){await sb.from('pet_documentos').update({status:'novo',erro:null}).eq('id',id);const d=DOCS.find(x=>x.id===id);if(d){d.status='novo';d.erro=null;}render('docs');toast('Volta para a caixa');}
+
+// ===== boot =====
+function render(v){$('#view').innerHTML=(V[v]||V.hoje)();}
+function go(v){atual=v;render(v);window.scrollTo(0,0);document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.go===v));}
+$('#sheet').addEventListener('click',e=>{if(e.target.id==='sheet')closeSheet();});
+let _rt;function scheduleReload(p){if(p&&p.table&&!/^pet_/.test(p.table))return;clearTimeout(_rt);_rt=setTimeout(async()=>{try{await loadAll();render(atual);}catch(e){}},700);}
+const FAMILIA=['chiapinotto@gmail.com','carolinecaye@gmail.com'];
+function setAutorDe(email){autor=(email||'').toLowerCase().indexOf('caroline')>-1?'Carol':'Fernando';}
+async function boot(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session||!FAMILIA.includes((session.user.email||'').toLowerCase())){if(session)await sb.auth.signOut();$('#login').classList.add('on');$('#view').innerHTML='';return;}
+  setAutorDe(session.user.email);$('#login').classList.remove('on');
+  try{await loadAll();render('hoje');}
+  catch(e){$('#view').innerHTML='<div class="empty">Erro ao carregar.<br>'+((e&&e.message)||'')+'<br>Recarregue a página. 🐾</div>';}
+  try{sb.channel('pets').on('postgres_changes',{event:'*',schema:'public'},scheduleReload).subscribe();}catch(e){}
+}
+sb.auth.onAuthStateChange((ev,sess)=>{if(ev==='SIGNED_IN'&&sess){$('#login').classList.remove('on');boot();}if(ev==='SIGNED_OUT'){$('#login').classList.add('on');$('#view').innerHTML='';}});
+// --- login por código ---
+let lgEmail='';
+async function enviarCodigo(){const em=val('lgEmail').toLowerCase();const err=$('#lgErr');err.textContent='';if(!FAMILIA.includes(em)){err.textContent='Este e-mail não está na família.';return;}
+  const r=await sb.auth.signInWithOtp({email:em,options:{shouldCreateUser:true}});if(r.error){err.textContent=r.error.message;return;}lgEmail=em;$('#lg1').style.display='none';$('#lg2').style.display='';setTimeout(()=>$('#lgCode').focus(),50);}
+async function entrarCodigo(){const t=val('lgCode').replace(/\D/g,'');const err=$('#lgErr');err.textContent='';if(t.length<6){err.textContent='Digite o código de 6 dígitos.';return;}
+  const r=await sb.auth.verifyOtp({email:lgEmail,token:t,type:'email'});if(r.error){err.textContent='Código inválido ou vencido. Peça outro.';return;}}
+function lgVoltar(){$('#lg2').style.display='none';$('#lg1').style.display='';$('#lgErr').textContent='';}
+async function sair(){if(!confirm('Sair da conta neste aparelho?'))return;await sb.auth.signOut();}
+// --- falar ou escrever ---
+function sheetFalar(){openSheet(`<h3>Falar ou escrever</h3><div class="t-mut" style="margin:-8px 0 12px">Escreva como falaria. No iPhone, toque no microfone do teclado para ditar. Eu interpreto e você só confere.</div>
+  <div class="field"><textarea id="flTxt" rows="4" placeholder="Ex.: dei antipulgas Simparic no Jorge hoje, 60 reais · a Stout pesou 5,8 kg na consulta · banho dos dois ontem, 90 reais"></textarea></div>
+  <div class="t-mut" style="margin-bottom:10px">Cão selecionado: <b>${esc((caoAtual()||{}).nome||'')}</b> (se não citar o nome, uso este).</div>
+  <button class="btn btn-p" id="flBtn" onclick="interpretar()">Interpretar</button><div class="err" id="flErr" style="color:var(--rosa);font-size:13px;margin-top:10px"></div>`);setTimeout(()=>$('#flTxt').focus(),80);}
+async function interpretar(){const t=val('flTxt');if(!t)return;const b=$('#flBtn');b.disabled=true;b.textContent='Interpretando…';$('#flErr').textContent='';
+  try{const {data,error}=await sb.functions.invoke('fofinhos-parse',{body:{texto:t,cao_id:cao}});if(error)throw error;if(data.erro)throw new Error(data.erro);mostrarEntrada(t,data);}
+  catch(e){$('#flErr').textContent='Não consegui interpretar: '+(e.message||e);b.disabled=false;b.textContent='Interpretar';}}
+const caoIdPorNome=n=>{const c=CAES.find(x=>x.nome.toLowerCase()===String(n||'').toLowerCase());return c?c.id:cao;};
+function entradaEv(e){return{cao_id:caoIdPorNome(e.cao),tipo:TIPOS[e.tipo]?e.tipo:'outro',data:e.data||hojeISO(),titulo:e.titulo||TIPOS[e.tipo]?.n||'Registro',produto:e.produto||null,lote:e.lote||null,dose:e.dose||null,veterinario:e.veterinario||null,clinica:e.clinica||null,peso_kg:e.peso_kg??null,valor:e.valor??null,proxima_data:e.proxima_data||null,observacao:e.observacao||null};}
+let ENTRADA=null;
+function mostrarEntrada(texto,res){ENTRADA={texto,res};const evs=(res.eventos||[]).map(entradaEv),prods=res.produtos||[];
+  if(evs.length===1&&!prods.length&&!res.duvida){const p=evs[0];editEv(null,p);return;}
+  openSheet(`<h3>Entendi assim</h3>${res.resumo?`<div class="t-mut" style="margin:-8px 0 12px">${esc(res.resumo)}</div>`:''}${res.duvida?`<div class="note" style="background:var(--ambar-cl);color:var(--ambar)">${esc(res.duvida)}</div>`:''}
+    ${evs.map((e,i)=>`<div class="ent" onclick="editarEntrada(${i})"><i class="ti ${(TIPOS[e.tipo]||TIPOS.outro).ic}" style="color:${(TIPOS[e.tipo]||TIPOS.outro).c};font-size:20px;margin-top:2px"></i><div style="flex:1"><div class="et">${esc(e.titulo)} <span class="tag b">${esc((CAES.find(c=>c.id===e.cao_id)||{}).nome||'')}</span></div><div class="es">${dBR(e.data)}${e.produto?' · '+esc(e.produto):''}${e.valor?' · '+money(e.valor):''}${e.peso_kg?' · '+e.peso_kg+' kg':''}${e.proxima_data?' · próxima '+dBR(e.proxima_data):''}</div></div><i class="ti ti-pencil" style="color:var(--ink3)"></i></div>`).join('')}
+    ${prods.map(p=>`<div class="ent"><i class="ti ti-package" style="color:var(--ink3);font-size:20px;margin-top:2px"></i><div style="flex:1"><div class="et">${esc(p.nome)} <span class="tag b">produto</span></div><div class="es">${[CATP[p.categoria]||p.categoria,p.marca,p.dose,p.frequencia].filter(Boolean).map(esc).join(' · ')}</div></div></div>`).join('')}
+    ${evs.length||prods.length?`<button class="btn btn-p" style="margin-top:14px" onclick="salvarEntrada()">Salvar ${evs.length+prods.length>1?'tudo':''}</button>`:'<div class="empty">Nenhum registro reconhecido.</div>'}<button class="btn" style="margin-top:8px" onclick="sheetFalar()">Reescrever</button>`);}
+function editarEntrada(i){const e=entradaEv(ENTRADA.res.eventos[i]);editEv(null,e);}
+async function salvarEntrada(){const evs=(ENTRADA.res.eventos||[]).map(entradaEv).map(e=>Object.assign(e,{origem:'ia',confirmado:true,criado_por:autor+' (voz/texto)'}));const prods=(ENTRADA.res.produtos||[]).map(p=>({cao_id:p.cao?caoIdPorNome(p.cao):null,categoria:CATP[p.categoria]?p.categoria:'outro',nome:p.nome,marca:p.marca||null,dose:p.dose||null,frequencia:p.frequencia||null,em_uso:true,observacao:'Cadastrado por voz/texto'}));closeSheet();
+  if(evs.length){const r=await sb.from('pet_eventos').insert(evs).select();if(r.data)EV=r.data.concat(EV);for(const e of evs)await syncRotina(e);}
+  if(prods.length){const r=await sb.from('pet_produtos').insert(prods).select();if(r.data)PROD=PROD.concat(r.data);}
+  render(atual);toast('Registrado');}
+async function refreshApp(){if($('#login').classList.contains('on'))return;const b=$('#btnRefresh');b.classList.add('spin');const t0=Date.now();try{await loadAll();render(atual);}catch(e){}setTimeout(()=>b.classList.remove('spin'),Math.max(0,500-(Date.now()-t0)));}
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+boot();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshApp();});
+</script>
+</body>
+</html>
