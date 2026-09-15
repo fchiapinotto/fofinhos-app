@@ -523,17 +523,17 @@ let REC={obj:null,ativo:false,final:'',manual:false,erro:''};
 let ENTRADA=null;
 function sheetFalar(texto){ENTRADA={historico:[],res:null,acoes:[],perg:[],ultimo:''};
   openSheet(falarHTML(texto||''));recUI();
-  if(SR)startRec();else setTimeout(()=>{const t=$('#flTxt');if(t)t.focus();},80);}
+  setTimeout(()=>{const t=$('#flTxt');if(t){t.focus();try{t.setSelectionRange(t.value.length,t.value.length);}catch(_){}}},80);}
 function falarHTML(texto){return`<h3>Falar ou escrever</h3><div id="flOuv"></div>
   <div class="field"><textarea id="flTxt" rows="4" oninput="pararRec(true)" placeholder="Ex.: dei antipulgas Simparic no Jorge hoje, 60 reais · a Stout pesou 5,8 kg · remarca a consulta para quinta">${esc(texto)}</textarea></div>
   <div class="t-mut" style="margin-bottom:10px">Cão selecionado: <b>${esc((caoAtual()||{}).nome||'')}</b> (se não citar o nome, uso este).</div>
   <div id="flBtns"></div><div class="err" id="flErr" style="color:var(--rosa);font-size:13px;margin-top:10px"></div>`;}
 function recUI(){const o=$('#flOuv'),b=$('#flBtns');if(!o||!b)return;
   if(REC.ativo){o.innerHTML='<div class="ouv"><span class="pulso"></span>Ouvindo… pode falar</div>';
-    b.innerHTML='<button class="btn" onclick="pararRec()">Parar</button><button class="btn btn-p" style="margin-top:8px" id="flBtn" onclick="interpretar()">Interpretar</button>';}
-  else{const dica=REC.erro?'Não consegui usar o microfone aqui — escreva, ou toque no microfone do teclado para ditar.':(SR?'Toque em Ouvir para ditar de novo, ou escreva.':'Escreva como falaria — no iPhone, toque no microfone do teclado para ditar.');
+    b.innerHTML='<button class="btn" style="margin-bottom:8px" onclick="pararRec()"><i class="ti ti-player-stop"></i> Parar</button><button class="btn btn-p" id="flBtn" onclick="interpretar()">Interpretar</button>';}
+  else{const dica=REC.erro?'Não consegui usar o microfone aqui — escreva, ou toque no microfone do teclado para ditar.':(SR?'Toque em Gravar para ditar, ou escreva. Você pode editar o texto antes de interpretar.':'Escreva como falaria — no iPhone, toque no microfone do teclado para ditar.');
     o.innerHTML=`<div class="t-mut" style="margin:-8px 0 12px">${dica} Eu interpreto e você só confere.</div>`;
-    b.innerHTML=`${SR&&!REC.erro?'<button class="btn" style="margin-bottom:8px" onclick="startRec()"><i class="ti ti-microphone"></i> Ouvir</button>':''}<button class="btn btn-p" id="flBtn" onclick="interpretar()">Interpretar</button>`;}}
+    b.innerHTML=`${SR&&!REC.erro?'<button class="btn" style="margin-bottom:8px" onclick="startRec()"><i class="ti ti-microphone"></i> Gravar</button>':''}<button class="btn btn-p" id="flBtn" onclick="interpretar()">Interpretar</button>`;}}
 function startRec(){if(!SR){recUI();return;}
   try{if(REC.obj){try{REC.obj.abort();}catch(_){}}
     const r=new SR();REC={obj:r,ativo:false,final:(val('flTxt')||''),manual:false,erro:''};
@@ -544,11 +544,10 @@ function startRec(){if(!SR){recUI();return;}
       if(fin)REC.final=(REC.final+' '+fin).trim();
       const ta=$('#flTxt');if(ta)ta.value=(REC.final+' '+int).trim();};
     r.onerror=ev=>{REC.erro=(ev&&ev.error)||'erro';};
-    r.onend=()=>{const manual=REC.manual,erro=REC.erro,fin=REC.final;REC.ativo=false;REC.obj=null;recUI();
+    r.onend=()=>{const fin=REC.final;REC.ativo=false;REC.obj=null;recUI();
       const ta=$('#flTxt');if(!ta)return;
       if(fin&&!ta.value.trim())ta.value=fin;
-      if(erro){setTimeout(()=>{try{ta.focus();}catch(_){}},60);return;}
-      if(!manual&&ta.value.trim())interpretar();};
+      setTimeout(()=>{try{ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);}catch(_){}},60);};
     r.start();
   }catch(e){REC.ativo=false;REC.erro='falhou';recUI();}}
 function pararRec(silencioso){if(REC.obj){REC.manual=true;try{REC.obj.stop();}catch(_){try{REC.obj.abort();}catch(__){}}}
@@ -629,14 +628,14 @@ function mostrarEntrada(texto,res){if(!ENTRADA)ENTRADA={historico:[]};
   openSheet(`<h3>Entendi assim</h3>${res.resumo?`<div class="t-mut" style="margin:-8px 0 12px">${esc(res.resumo)}</div>`:''}
     ${linhasA}
     ${acoes.length?`<button class="btn btn-p" style="margin-top:14px" onclick="salvarEntrada()">Salvar${acoes.length>1?' tudo ('+acoes.length+')':''}</button>`:'<div class="empty">Nada para registrar.</div>'}
-    <button class="btn" style="margin-top:8px" onclick="sheetFalar()">Reescrever</button>`);}
+    <button class="btn" style="margin-top:8px" onclick="sheetFalar(ENTRADA&&ENTRADA.ultimo)">Reescrever</button>`);}
 function sheetPerguntas(res,perg){const qs=perg.slice(0,2);ENTRADA.perg=qs;
   openSheet(`<h3>Me ajuda com isso</h3>${res.resumo?`<div class="t-mut" style="margin:-8px 0 12px">${esc(res.resumo)}</div>`:''}
     ${qs.map((q,i)=>`<div class="perg"><div class="pq">${esc(q.texto)}</div>
       ${(q.opcoes||[]).length?`<div class="chips">${q.opcoes.map(o=>`<span class="chip" onclick="chip(this,${i})">${esc(o)}</span>`).join('')}</div>`:''}
       <input id="rq${i}" placeholder="ou escreva a resposta"></div>`).join('')}
     <button class="btn btn-p" style="margin-top:4px" onclick="responder()">Responder</button>
-    <button class="btn" style="margin-top:8px" onclick="sheetFalar()">Reescrever</button>`);}
+    <button class="btn" style="margin-top:8px" onclick="sheetFalar(ENTRADA&&ENTRADA.ultimo)">Reescrever</button>`);}
 function chip(el,i){const inp=$('#rq'+i);if(inp)inp.value=(el.textContent||'').trim();
   const box=el.parentNode;if(box)[].forEach.call(box.children,c=>c.classList.remove('on'));
   el.classList.add('on');
