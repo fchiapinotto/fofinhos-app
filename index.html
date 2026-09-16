@@ -39,6 +39,10 @@
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;margin-bottom:9px;display:flex;align-items:center;gap:12px}
   .ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0}
   .cb{flex:1;min-width:0}.cb .tt{font-size:15px;font-weight:600;line-height:1.3}.cb .ts{font-size:12.5px;color:var(--ink2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cb .tl{display:flex;align-items:center;gap:6px;min-width:0}.cb .tl .tt{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.cb .tl .tag{margin-left:0;flex-shrink:0}
+  .cb .st{font-size:12.5px;color:var(--ink2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cb .tl+.ts,.cb .st+.ts{font-size:12px;color:var(--ink3)}
+  .card.pend{background:transparent;border-style:dashed}
   .cr{text-align:right;flex-shrink:0}.cr .d{font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums}
   .cr .d.late{color:var(--rosa)}.cr .d.soon{color:var(--ambar)}.cr .d.ok{color:var(--verde)}
   .tag{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:99px;vertical-align:1px;margin-left:5px}
@@ -174,17 +178,25 @@ function idade(iso){if(!iso)return'';const b=new Date(iso+'T00:00:00'),h=new Dat
 function prazo(iso){if(!iso)return{t:'sem data',cls:'',tag:'b',lbl:'sem registro'};const n=diasAte(iso);if(n<0)return{t:`${-n} d atrás`,cls:'late',tag:'late',lbl:'vencida'};if(n===0)return{t:'hoje',cls:'late',tag:'late',lbl:'vence hoje'};if(n<=30)return{t:`em ${n} d`,cls:'soon',tag:'soon',lbl:'vence em breve'};return{t:dBR(iso),cls:'ok',tag:'ok',lbl:'em dia'};}
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),1800);}
 const meu=x=>x.cao_id===cao||x.cao_id==null;
-const pesoAtual=id=>EV.filter(e=>e.cao_id===id&&e.peso_kg&&e.status!=='agendado').sort((a,b)=>b.data.localeCompare(a.data))[0]||null;
+const pesoAtual=id=>EV.filter(e=>e.cao_id===id&&e.peso_kg&&e.data&&e.status==='realizado').sort((a,b)=>b.data.localeCompare(a.data))[0]||null;
 const docById=id=>DOCS.find(d=>d.id===id);
 const agendado=e=>e.status==='agendado';
+const aAgendar=e=>e.status==='a_agendar';
 const hBR=t=>t?String(t).slice(0,5):'';
-function famDe(e){const s=(e.titulo||'')+' '+(e.produto||'');return FAM.find(f=>f.re.test(s));}
+function famDe(e){const s=(e.titulo||'')+' '+(e.subtitulo||'')+' '+(e.produto||'');return FAM.find(f=>f.re.test(s));}
+// título curto + subtítulo: usa a coluna subtitulo; em registros antigos, quebra pelo "(...)" final ou por " — " / ": " em títulos longos
+function titSub(e){const t=String(e.titulo||'').trim();if(e.subtitulo)return{t,s:e.subtitulo};
+  let m=t.match(/^(.{3,}?)\s*\(([^()]+)\)\s*$/);if(m)return{t:m[1].trim(),s:m[2].trim()};
+  if(t.length>40){m=t.match(/^(.{3,}?)\s+[—–-]\s+(.+)$/)||t.match(/^(.{3,}?):\s+(.+)$/);if(m)return{t:m[1].trim(),s:m[2].trim()};}
+  return{t,s:''};}
+function stTag(e){return agendado(e)?'<span class="tag soon">agendado</span>':aAgendar(e)?'<span class="tag b">a agendar</span>':e.status==='cancelado'?'<span class="tag b">cancelado</span>':'';}
+const porData=(a,b)=>(b.data||'9999').localeCompare(a.data||'9999')||b.id-a.id;
 
 // ===== carregar =====
 async function loadAll(){
   const [c,e,r,p,d,k]=await Promise.all([
     sb.from('pet_caes').select('*').eq('ativo',true).order('ordem'),
-    sb.from('pet_eventos').select('*').order('data',{ascending:false}).order('id',{ascending:false}),
+    sb.from('pet_eventos').select('*').order('data',{ascending:false,nullsFirst:false}).order('id',{ascending:false}),
     sb.from('pet_rotinas').select('*').order('ordem'),
     sb.from('pet_produtos').select('*').order('categoria').order('nome'),
     sb.from('pet_documentos').select('*').order('data_doc',{ascending:false,nullsFirst:true}).order('criado_em',{ascending:false}),
@@ -203,12 +215,16 @@ function rotCard(r){const t=TIPOS[r.tipo]||TIPOS.outro;const p=prazo(r.proxima_d
   return`<div class="card"><div class="ic" style="background:${t.bg};color:${t.c}"><i class="ti ${t.ic}"></i></div>
     <div class="cb" onclick="editRot(${r.id})"><div class="tt">${esc(r.titulo)}</div><div class="ts">${r.produto?esc(r.produto)+' · ':''}${r.ultima_data?'última '+dBR(r.ultima_data):'sem registro'}${r.ativo?'':' · pausada'}</div></div>
     <div class="cr"><div class="d ${p.cls}">${p.t}</div><button class="done-btn" onclick="event.stopPropagation();sheetFeito(${r.id})">Feito</button></div></div>`;}
-function evCard(e){const t=TIPOS[e.tipo]||TIPOS.outro;const doc=docById(e.documento_id);const sub=[e.produto,e.lote?'lote '+e.lote:'',e.veterinario||e.clinica,e.peso_kg?e.peso_kg+' kg':'',e.valor?money(e.valor):''].filter(Boolean).join(' · ');
-  return`<div class="card" style="${e.confirmado?'':'border-color:#cdbfe8'}"><div class="ic" style="background:${t.bg};color:${t.c}"><i class="ti ${t.ic}"></i></div>
-    <div class="cb" onclick="editEv(${e.id})"><div class="tt">${esc(e.titulo)}${agendado(e)?'<span class="tag soon">agendado</span>':''}${e.confirmado?'':'<span class="tag ia">a confirmar</span>'}</div><div class="ts">${dBR(e.data)}${e.hora?' '+hBR(e.hora):''}${sub?' · '+esc(sub):''}</div>${e.observacao&&['exame','consulta','medicacao','cirurgia'].includes(e.tipo)?`<div class="obs" style="white-space:normal;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">${esc(e.observacao)}</div>`:''}</div>
+function evCard(e,op){op=op||{};const t=TIPOS[e.tipo]||TIPOS.outro;const doc=docById(e.documento_id);const ts=titSub(e);
+  const meta=[aAgendar(e)?(e.data?'até '+dBR(e.data):'sem data'):dBR(e.data)+(e.hora?' '+hBR(e.hora):''),e.produto&&!ts.s.includes(e.produto)&&!ts.t.includes(e.produto)?e.produto:'',e.lote?'lote '+e.lote:'',(e.veterinario||'').split('(')[0].trim()||e.clinica,e.peso_kg?e.peso_kg+' kg':'',e.valor?money(e.valor):''].filter(Boolean).join(' · ');
+  const acao=agendado(e)?`<button class="done-btn" onclick="event.stopPropagation();aconteceu(${e.id})">Aconteceu</button>`
+    :aAgendar(e)?`<button class="done-btn" onclick="event.stopPropagation();sheetMarquei(${e.id})">Marquei</button>`
+    :(e.confirmado?'':`<button class="mini ok" title="Confirmar" onclick="event.stopPropagation();confirmar(${e.id})"><i class="ti ti-circle-check"></i></button>`);
+  return`<div class="card${aAgendar(e)?' pend':''}" style="${e.confirmado?'':'border-color:#cdbfe8'}"><div class="ic" style="background:${t.bg};color:${t.c}"><i class="ti ${t.ic}"></i></div>
+    <div class="cb" onclick="editEv(${e.id})"><div class="tl"><div class="tt">${esc(ts.t)}</div>${aAgendar(e)||op.semTag?'':stTag(e)}${e.confirmado?'':'<span class="tag ia">a confirmar</span>'}</div>${ts.s?`<div class="st">${esc(ts.s)}</div>`:''}<div class="ts">${esc(meta)}</div>${e.observacao&&!aAgendar(e)&&['exame','consulta','medicacao','cirurgia'].includes(e.tipo)?`<div class="obs" style="white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(e.observacao)}</div>`:''}</div>
     ${doc?`<button class="mini doc" title="Abrir documento" onclick="event.stopPropagation();abrirDoc('${esc(doc.path)}')"><i class="ti ti-file-text"></i></button>`:''}
-    ${agendado(e)?`<button class="done-btn" onclick="event.stopPropagation();aconteceu(${e.id})">Aconteceu</button>`:(e.confirmado?'':`<button class="mini ok" title="Confirmar" onclick="event.stopPropagation();confirmar(${e.id})"><i class="ti ti-circle-check"></i></button>`)}</div>`;}
-function hrow(e){const doc=docById(e.documento_id);return`<div class="hrow"><div class="hd">${dBR(e.data)}</div><div class="hb" onclick="editEv(${e.id})"><b>${esc(e.produto||e.titulo)}</b>${e.lote?' · lote '+esc(e.lote):''}${e.veterinario?' · '+esc(e.veterinario.split('(')[0].trim()):''}${agendado(e)?' <span class="tag soon">agendado</span>':''}${e.confirmado?'':' <span class="tag ia">a confirmar</span>'}</div>${doc?`<i class="ti ti-file-text" style="color:var(--azul);cursor:pointer" onclick="abrirDoc('${esc(doc.path)}')"></i>`:''}</div>`;}
+    ${acao}</div>`;}
+function hrow(e){const doc=docById(e.documento_id);return`<div class="hrow"><div class="hd">${e.data?dBR(e.data):'—'}</div><div class="hb" onclick="editEv(${e.id})"><b>${esc(e.produto||titSub(e).t)}</b>${!e.produto&&titSub(e).s?' · '+esc(titSub(e).s):''}${e.lote?' · lote '+esc(e.lote):''}${e.veterinario?' · '+esc(e.veterinario.split('(')[0].trim()):''}${stTag(e)?' '+stTag(e):''}${e.confirmado?'':' <span class="tag ia">a confirmar</span>'}</div>${doc?`<i class="ti ti-file-text" style="color:var(--azul);cursor:pointer" onclick="abrirDoc('${esc(doc.path)}')"></i>`:''}</div>`;}
 function toggle(k){aberto[k]=!aberto[k];render(atual);}
 
 // ===== views =====
@@ -222,17 +238,19 @@ V.hoje=()=>{const c=caoAtual();if(!c)return'<div class="empty">Cadastre um cão.
   h+=`<div class="falar" onclick="sheetFalar()"><i class="ti ti-microphone"></i><div>Falar ou escrever um registro<span>“dei Bravecto na Stout hoje, 95 reais” · “banho dos dois ontem”</span></div></div>`;
   if(novos)h+=`<div class="note" onclick="go('docs')" style="cursor:pointer;margin-top:10px"><b>${novos} documento${novos>1?'s':''} na caixa de entrada</b> — o Claude lê e registra à noite (ou peça "processa a caixa").</div>`;
   const ags=EV.filter(e=>agendado(e)&&e.cao_id===cao).sort((a,b)=>a.data.localeCompare(b.data)||String(a.hora||'').localeCompare(String(b.hora||'')));
-  if(ags.length)h+=`<div class="sec">Agendado</div>`+ags.map(evCard).join('');
+  if(ags.length)h+=`<div class="sec">Agendado</div>`+ags.map(e=>evCard(e,{semTag:1})).join('');
+  const pend=EV.filter(e=>aAgendar(e)&&e.cao_id===cao).sort((a,b)=>(a.data||'9999').localeCompare(b.data||'9999')||a.id-b.id);
+  if(pend.length)h+=`<div class="sec">A agendar</div>`+pend.map(evCard).join('');
   if(late.length)h+=`<div class="sec">Atrasado</div>`+late.map(rotCard).join('');
   if(soon.length)h+=`<div class="sec">Vence em 30 dias</div>`+soon.map(rotCard).join('');
   if(next.length)h+=`<div class="sec">Próximos</div>`+next.map(rotCard).join('');
-  if(!late.length&&!soon.length&&!next.length)h+=`<div class="empty">Nada agendado. Cadastre rotinas na Carteirinha.</div>`;
+  if(!late.length&&!soon.length&&!next.length&&!ags.length&&!pend.length)h+=`<div class="empty">Nada agendado. Cadastre rotinas na Carteirinha.</div>`;
   if(aconf.length)h+=`<div class="sec">A confirmar (${aconf.length}) <span onclick="confirmarTodos()">confirmar todos</span></div>`+aconf.slice(0,aberto.aconf?999:4).map(evCard).join('')+(aconf.length>4&&!aberto.aconf?`<button class="lnk" onclick="toggle('aconf')">ver os ${aconf.length}</button>`:'');
   return h;};
 V.cart=()=>{const vac=EV.filter(e=>e.tipo==='vacina'&&e.cao_id===cao);let h=`<div class="sec" style="margin-top:12px">Vacinas <span onclick="editEv(null,{tipo:'vacina'})">+ dose</span></div>`;
   const usadas=new Set();
-  for(const f of FAM){const evs=vac.filter(e=>famDe(e)===f);if(!evs.length)continue;evs.forEach(e=>usadas.add(e.id));const last=evs[0];const rot=ROT.find(r=>r.tipo==='vacina'&&meu(r)&&r.ativo&&f.re.test((r.titulo||'')+' '+(r.produto||'')));const prox=(rot&&rot.proxima_data)||last.proxima_data||addDays(last.data,365);const p=prazo(prox);const k='f'+f.k;
-    h+=`<div class="fam"><div class="fh" onclick="toggle('${k}')"><div class="ic" style="background:${TIPOS.vacina.bg};color:${TIPOS.vacina.c}"><i class="ti ti-vaccine"></i></div><div class="cb"><div class="tt">${f.n}<span class="tag ${p.tag}">${p.lbl}</span></div><div class="ts">última ${dBR(last.data)}${last.produto?' · '+esc(last.produto):''} · próxima ${dBR(prox)}</div></div><div class="cr"><button class="done-btn" onclick="event.stopPropagation();${rot?`sheetFeito(${rot.id})`:`editEv(null,{tipo:'vacina',titulo:'${f.n}'})`}">Dose</button></div></div>
+  for(const f of FAM){const evs=vac.filter(e=>famDe(e)===f);if(!evs.length)continue;evs.forEach(e=>usadas.add(e.id));const last=evs.find(e=>e.status==='realizado'&&e.data)||evs.find(e=>e.status==='agendado'&&e.data)||{data:null};const rot=ROT.find(r=>r.tipo==='vacina'&&meu(r)&&r.ativo&&f.re.test((r.titulo||'')+' '+(r.produto||'')));const prox=(rot&&rot.proxima_data)||last.proxima_data||(last.data?addDays(last.data,365):null);const p=prazo(prox);const k='f'+f.k;
+    h+=`<div class="fam"><div class="fh" onclick="toggle('${k}')"><div class="ic" style="background:${TIPOS.vacina.bg};color:${TIPOS.vacina.c}"><i class="ti ti-vaccine"></i></div><div class="cb"><div class="tt">${f.n}<span class="tag ${p.tag}">${p.lbl}</span></div><div class="ts">${last.data?'última '+dBR(last.data):'sem dose registrada'}${last.produto?' · '+esc(last.produto):''}${prox?' · próxima '+dBR(prox):''}</div></div><div class="cr"><button class="done-btn" onclick="event.stopPropagation();${rot?`sheetFeito(${rot.id})`:`editEv(null,{tipo:'vacina',titulo:'${f.n}'})`}">Dose</button></div></div>
       ${aberto[k]?`<div class="fb">${evs.map(hrow).join('')}</div>`:''}</div>`;}
   const outras=vac.filter(e=>!usadas.has(e.id));if(outras.length)h+=`<div class="fam"><div class="fh" onclick="toggle('fout')"><div class="ic" style="background:${TIPOS.vacina.bg};color:${TIPOS.vacina.c}"><i class="ti ti-vaccine"></i></div><div class="cb"><div class="tt">Outras vacinas</div><div class="ts">${outras.length} registro${outras.length>1?'s':''}</div></div></div>${aberto.fout?`<div class="fb">${outras.map(hrow).join('')}</div>`:''}</div>`;
   if(!vac.length)h+='<div class="empty">Nenhuma vacina registrada.</div>';
@@ -247,10 +265,10 @@ V.vet=()=>{const c=caoAtual();let h=pesoChart(c);
   const ex=EV.filter(e=>e.tipo==='exame'&&e.cao_id===cao),co=EV.filter(e=>['consulta','medicacao','cirurgia','outro'].includes(e.tipo)&&e.cao_id===cao);
   h+=`<div class="sec">Exames <span onclick="editEv(null,{tipo:'exame'})">+ exame</span></div>`+(ex.length?ex.map(evCard).join(''):'<div class="t-mut" style="margin:0 2px">Nenhum exame registrado.</div>');
   h+=`<div class="sec">Consultas e orientações <span onclick="editEv(null,{tipo:'consulta'})">+ consulta</span></div>`+(co.length?co.map(evCard).join(''):'<div class="t-mut" style="margin:0 2px">Nada registrado.</div>');
-  const ps=EV.filter(e=>e.peso_kg&&e.cao_id===cao);
+  const ps=EV.filter(e=>e.peso_kg&&e.data&&e.cao_id===cao);
   h+=`<div class="sec">Pesagens <span onclick="editEv(null,{tipo:'peso',titulo:'Pesagem'})">+ peso</span></div><div class="fam"><div class="fb" style="border-top:none;background:var(--card)">${ps.length?ps.map(e=>`<div class="hrow"><div class="hd">${dBR(e.data)}</div><div class="hb" onclick="editEv(${e.id})"><b>${e.peso_kg} kg</b>${e.tipo!=='peso'?' · '+esc(e.titulo):''}${e.clinica?' · '+esc(e.clinica):''}</div></div>`).join(''):'<div class="t-mut">Sem pesagens.</div>'}</div></div>`;
   return h;};
-function pesoChart(c){const ps=EV.filter(e=>e.cao_id===c.id&&e.peso_kg).sort((a,b)=>a.data.localeCompare(b.data));if(ps.length<2)return'';
+function pesoChart(c){const ps=EV.filter(e=>e.cao_id===c.id&&e.peso_kg&&e.data).sort((a,b)=>a.data.localeCompare(b.data));if(ps.length<2)return'';
   const W=440,H=120,P=28;const xs=ps.map(p=>new Date(p.data).getTime()),ys=ps.map(p=>+p.peso_kg);const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys)-.4,y1=Math.max(...ys)+.4;
   const X=t=>P+(t-x0)/(x1-x0||1)*(W-2*P),Y=v=>H-P+6-(v-y0)/(y1-y0||1)*(H-2*P);const pts=ps.map((p,i)=>`${X(xs[i]).toFixed(1)},${Y(ys[i]).toFixed(1)}`).join(' ');
   return`<div class="pet" style="padding:12px 14px;margin-top:10px"><div style="display:flex;justify-content:space-between;font-size:13px;align-items:baseline"><b>Peso</b><span class="t-mut">${ps[0].peso_kg} kg (${dBR(ps[0].data)}) → ${ps[ps.length-1].peso_kg} kg (${dBR(ps[ps.length-1].data)})</span></div>
@@ -330,33 +348,39 @@ function linhas(hs){let h='',b=[];
 function anexoUI(e,doc){if(!e||!e.id)return'';
   if(doc)return`<div class="t-mut" style="margin:-2px 0 12px;line-height:1.7"><i class="ti ti-file-text" style="color:var(--azul)"></i> ${esc(doc.nome||doc.path.split('/').pop())}<br><button class="lnk" onclick="abrirDoc('${esc(doc.path)}')">abrir</button> · <button class="lnk" onclick="anexarEv(${e.id})">trocar anexo</button> · <button class="lnk" style="color:var(--rosa)" onclick="removerAnexo(${e.id})">remover anexo</button></div>`;
   return`<div class="anexo" onclick="anexarEv(${e.id})"><i class="ti ti-paperclip"></i> Anexar foto ou PDF</div>`;}
-function editEv(id,preset,mais){
+const TIPOS_PROD=['vacina','vermifugo','antipulga','medicacao'];
+function editEv(id,preset,mais,keep){
+  if(!keep)window._evPrev=null;
   const base=id?EV.find(x=>x.id===id):{cao_id:cao,tipo:'vacina',data:hojeISO(),status:'realizado',confirmado:true};
   if(!base)return;
   const e=Object.assign({},base,preset||{});
-  const tipo=TIPOS[e.tipo]?e.tipo:'vacina',st=e.status||'realizado',doc=docById(e.documento_id),sug=titSug(tipo);
+  const tipo=TIPOS[e.tipo]?e.tipo:'vacina',st=e.status||'realizado',doc=docById(e.documento_id),sug=titSug(tipo),pend=st==='a_agendar';
   const F={hora:{h:`<div class="field"><label>Hora</label><input type="time" id="eH" value="${hBR(e.hora)}"></div>`},
     produto:{h:`<div class="field"><label>Produto</label><input id="ePr" value="${esc(e.produto)}"></div>`},
     lote:{h:`<div class="field"><label>Lote</label><input id="eL" value="${esc(e.lote)}"></div>`},
     vet:{h:`<div class="field"><label>Veterinário</label><input id="eV" value="${esc(e.veterinario)}"></div>`},
     clinica:{h:`<div class="field"><label>Clínica</label><input id="eCl" value="${esc(e.clinica)}"></div>`},
-    peso:{h:`<div class="field"><label>Peso (kg)</label><input type="number" step="0.01" inputmode="decimal" id="eK" value="${e.peso_kg||''}"></div>`},
-    valor:{h:`<div class="field"><label>Valor (R$)</label><input type="number" step="0.01" inputmode="decimal" id="eR" value="${e.valor||''}"></div>`},
+    peso:{h:`<div class="field"><label>Peso (kg)</label><input type="text" inputmode="decimal" autocomplete="off" id="eK" value="${e.peso_kg||''}"></div>`},
+    valor:{h:`<div class="field"><label>Valor (R$)</label><input type="text" inputmode="decimal" autocomplete="off" id="eR" value="${e.valor||''}"></div>`},
     prox:{h:`<div class="field"><label>Próxima (se houver)</label><input type="date" id="eP" value="${e.proxima_data||''}"></div>`},
     obs:{full:1,h:`<div class="field"><label>Observação</label><textarea id="eO" rows="3">${esc(e.observacao)}</textarea></div>`}};
+  // campos que dependem do tipo: produto/lote só p/ vacina, vermífugo, antipulgas, medicação; peso só p/ pesagem e consulta (ou se já tiver valor)
+  const temProd=TIPOS_PROD.includes(tipo)||!!e.produto,temLote=TIPOS_PROD.includes(tipo)||!!e.lote,temPeso=['peso','consulta'].includes(tipo)||!!e.peso_kg;
   const pri=[];
-  if(st==='agendado')pri.push('hora');
   if(tipo==='peso')pri.push('peso');
-  if(tipo==='vacina')pri.push('produto','lote');
-  if(['banho','tosa','consulta','exame','cirurgia'].includes(tipo))pri.push('valor');
-  const ordem=['hora','produto','lote','vet','clinica','peso','valor','prox','obs'];
+  if(temProd&&tipo!=='peso')pri.push('produto');
+  const ordem=['hora','lote','vet','clinica','peso','valor','prox','obs'].filter(k=>!(k==='hora'&&(pend||st==='agendado'))&&!(k==='lote'&&!temLote)&&!(k==='peso'&&!temPeso)&&!(k==='prox'&&pend));
   const ext=ordem.filter(k=>pri.indexOf(k)<0);
-  const val_={hora:hBR(e.hora),produto:e.produto,lote:e.lote,vet:e.veterinario,clinica:e.clinica,peso:e.peso_kg,valor:e.valor,prox:e.proxima_data,obs:e.observacao};
+  const val_={hora:hBR(e.hora),lote:e.lote,vet:e.veterinario,clinica:e.clinica,peso:e.peso_kg,valor:e.valor,prox:e.proxima_data,obs:e.observacao};
   const ab=(mais===undefined)?ext.some(k=>!!val_[k]):!!mais;
+  const dataH=pend?`<div class="field"><label>Prazo (opcional)</label><input type="date" id="eD" value="${e.data||''}"></div>`:`<div class="field"><label>Data</label><input type="date" id="eD" value="${e.data||''}"></div>`;
   openSheet(`<h3>${id?'Editar registro':'Novo registro'}</h3>
   <div class="row2"><div class="field"><label>Cão</label>${selCao('eC',e.cao_id)}</div><div class="field"><label>Tipo</label><select id="eT" onchange="evRefresh(${id||'null'})">${TIPOS_EV.map(t=>`<option value="${t}" ${tipo===t?'selected':''}>${TIPOS[t].n}</option>`).join('')}</select></div></div>
-  <div class="row2"><div class="field"><label>Situação</label><select id="eS" onchange="evRefresh(${id||'null'})"><option value="realizado" ${st==='realizado'?'selected':''}>Aconteceu</option><option value="agendado" ${st==='agendado'?'selected':''}>Agendado</option><option value="cancelado" ${st==='cancelado'?'selected':''}>Cancelado</option></select></div><div class="field"><label>Data</label><input type="date" id="eD" value="${e.data||''}"></div></div>
-  <div class="field"><label>Título</label><input id="eTi" data-sug="${esc(sug)}" value="${esc(e.titulo||sug)}" placeholder="${esc(sug)}"></div>
+  <div class="field"><label>Título</label><input id="eTi" data-sug="${esc(sug)}" value="${esc(e.titulo||sug)}" placeholder="${esc(sug)}" maxlength="60"></div>
+  <div class="field"><label>Detalhe <span style="color:var(--ink3);font-weight:400">(opcional)</span></label><input id="eSu" value="${esc(e.subtitulo)}" placeholder="Ex.: marca, dose, o que inclui"></div>
+  <div class="row2"><div class="field"><label>Situação</label><select id="eS" onchange="evRefresh(${id||'null'})"><option value="realizado" ${st==='realizado'?'selected':''}>Aconteceu</option><option value="agendado" ${st==='agendado'?'selected':''}>Agendado</option><option value="a_agendar" ${pend?'selected':''}>A agendar</option><option value="cancelado" ${st==='cancelado'?'selected':''}>Cancelado</option></select></div>${dataH}</div>
+  ${st==='agendado'?F.hora.h:''}
+  ${pend?'<div class="t-mut" style="margin:-4px 0 12px">Ainda precisa ser marcado. Não mexe nas rotinas; aparece em Hoje → A agendar.</div>':''}
   ${linhas(pri.map(k=>F[k]))}
   <div class="mais" onclick="evMais()"><i class="ti ti-chevron-${ab?'up':'down'}" id="eMaisIc"></i><span id="eMaisTx">${ab?'Menos detalhes':'Mais detalhes'}</span></div>
   <div id="eMais" style="display:${ab?'block':'none'}">${linhas(ext.map(k=>F[k]))}</div>
@@ -364,16 +388,20 @@ function editEv(id,preset,mais){
   <button class="btn btn-p" onclick="saveEv(${id||'null'})">Salvar</button>
   ${id?`<div style="display:flex;gap:8px;margin-top:8px">${e.confirmado?'':`<button class="btn" onclick="confirmar(${id});closeSheet()">Confirmar</button>`}<button class="btn btn-danger" onclick="delEv(${id})">Apagar</button></div>${e.pagina_origem?`<div class="t-mut" style="margin-top:10px">Origem: ${esc(e.origem)} · ${esc(e.pagina_origem)}${e.confianca?' · confiança '+e.confianca:''}</div>`:''}`:''}`);}
 function evMais(){const d=$('#eMais');if(!d)return;const on=d.style.display==='none';d.style.display=on?'block':'none';$('#eMaisTx').textContent=on?'Menos detalhes':'Mais detalhes';$('#eMaisIc').className='ti ti-chevron-'+(on?'up':'down');}
-function evForm(){const t=$('#eTi'),sug=t?t.dataset.sug:'';let tit=val('eTi');if(tit===sug)tit='';
-  return{cao_id:+val('eC'),tipo:val('eT'),status:val('eS'),hora:val('eH')||null,data:val('eD'),proxima_data:val('eP')||null,titulo:tit,produto:val('ePr')||null,lote:val('eL')||null,veterinario:val('eV')||null,clinica:val('eCl')||null,peso_kg:num('eK'),valor:num('eR'),observacao:val('eO')||null};}
-function evRefresh(id){const d=$('#eMais');editEv(id,evForm(),!!(d&&d.style.display!=='none'));}
-async function saveEv(id){const t=val('eTi');if(!t||!val('eD')){toast('Título e data são obrigatórios');return;}
-  const row={cao_id:+val('eC'),tipo:val('eT'),status:val('eS')||'realizado',hora:val('eH')||null,data:val('eD'),proxima_data:val('eP')||null,titulo:t,produto:val('ePr')||null,lote:val('eL')||null,veterinario:val('eV')||null,clinica:val('eCl')||null,peso_kg:num('eK'),valor:num('eR'),observacao:val('eO')||null};
+function evRow(){return{cao_id:+val('eC'),tipo:val('eT'),status:val('eS')||'realizado',hora:val('eH')||null,data:val('eD')||null,proxima_data:val('eP')||null,titulo:val('eTi'),subtitulo:val('eSu')||null,produto:val('ePr')||null,lote:val('eL')||null,veterinario:val('eV')||null,clinica:val('eCl')||null,peso_kg:num('eK'),valor:num('eR'),observacao:val('eO')||null};}
+function evForm(){const t=$('#eTi'),sug=t?t.dataset.sug:'';const o=evRow();if(o.titulo===sug)o.titulo='';
+  // campos que somem do formulário ao trocar tipo/situação continuam guardados
+  const cur=window._evPrev||{};for(const k of ['hora','produto','lote','peso_kg','proxima_data'])if(!$('#'+{hora:'eH',produto:'ePr',lote:'eL',peso_kg:'eK',proxima_data:'eP'}[k])&&cur[k]!=null)o[k]=cur[k];return o;}
+function evRefresh(id){const d=$('#eMais');const f=evForm();window._evPrev=f;editEv(id,f,!!(d&&d.style.display!=='none'),true);}
+async function saveEv(id){const row=evRow();const prev=window._evPrev||{};window._evPrev=null;
+  for(const [k,el] of Object.entries({hora:'eH',produto:'ePr',lote:'eL',peso_kg:'eK',proxima_data:'eP'}))if(!$('#'+el)){if(prev[k]!=null)row[k]=prev[k];else delete row[k];}
+  if(row.status==='a_agendar'){row.hora=null;}
+  if(!row.titulo||(!row.data&&row.status!=='a_agendar')){toast(row.titulo?'Informe a data':'Informe o título');return;}
   closeSheet();
   if(id){const r=await sb.from('pet_eventos').update(row).eq('id',id).select().single();if(r.data)Object.assign(EV.find(x=>x.id===id),r.data);}
-  else{row.origem='manual';row.confirmado=true;row.criado_por=autor;const r=await sb.from('pet_eventos').insert(row).select().single();if(r.data)EV.unshift(r.data);EV.sort((a,b)=>b.data.localeCompare(a.data)||b.id-a.id);}
+  else{row.origem='manual';row.confirmado=true;row.criado_por=autor;const r=await sb.from('pet_eventos').insert(row).select().single();if(r.data)EV.unshift(r.data);EV.sort(porData);}
   await syncRotina(row);render(atual);toast('Salvo');}
-async function syncRotina(ev){if(ev.status==='cancelado')return;const rs=ROT.filter(r=>r.tipo===ev.tipo&&(r.cao_id===ev.cao_id||r.cao_id==null)&&r.ativo);if(!rs.length)return;
+async function syncRotina(ev){if(!ev.data||ev.status==='cancelado'||ev.status==='a_agendar')return;const rs=ROT.filter(r=>r.tipo===ev.tipo&&(r.cao_id===ev.cao_id||r.cao_id==null)&&r.ativo);if(!rs.length)return;
   let r=null;if(ev.tipo==='vacina'){const f=famDe(ev);r=f?rs.find(x=>f.re.test((x.titulo||'')+' '+(x.produto||''))):null;}
   if(!r)r=rs.find(x=>x.produto&&ev.produto&&x.produto.toLowerCase()===ev.produto.toLowerCase())||(rs.length===1?rs[0]:null);if(!r)return;
   if(ev.status==='agendado'||ev.data>hojeISO()){const upd={proxima_data:ev.data};Object.assign(r,upd);await sb.from('pet_rotinas').update(upd).eq('id',r.id);return;}
@@ -381,6 +409,18 @@ async function syncRotina(ev){if(ev.status==='cancelado')return;const rs=ROT.fil
   const upd={ultima_data:ev.data,proxima_data:ev.proxima_data||addDays(ev.data,r.intervalo_dias)};Object.assign(r,upd);await sb.from('pet_rotinas').update(upd).eq('id',r.id);}
 async function confirmar(id){const e=EV.find(x=>x.id===id);if(!e)return;e.confirmado=true;render(atual);await sb.from('pet_eventos').update({confirmado:true}).eq('id',id);toast('Confirmado');}
 async function aconteceu(id){const e=EV.find(x=>x.id===id);if(!e)return;if(!confirm(`Confirmar que "${e.titulo}" aconteceu em ${dBR(e.data)}?`))return;e.status='realizado';e.confirmado=true;await sb.from('pet_eventos').update({status:'realizado',confirmado:true}).eq('id',id);await syncRotina(e);render(atual);toast('Registrado como realizado');}
+function sheetMarquei(id){const e=EV.find(x=>x.id===id);if(!e)return;const ts=titSub(e);
+  openSheet(`<h3>Marquei</h3><div class="t-mut" style="margin:-8px 0 14px">${esc(ts.t)}${ts.s?' · '+esc(ts.s):''} — ${esc(nomeCao(e.cao_id))}</div>
+  <div class="row2"><div class="field"><label>Data</label><input type="date" id="mD" value="${e.data&&e.data>=hojeISO()?e.data:''}"></div><div class="field"><label>Hora</label><input type="time" id="mH"></div></div>
+  <div class="field"><label>Clínica <span style="color:var(--ink3);font-weight:400">(opcional)</span></label><input id="mC" value="${esc(e.clinica)}"></div>
+  <button class="btn btn-p" onclick="saveMarquei(${id})">Salvar como agendado</button>
+  <div style="display:flex;gap:8px;margin-top:8px"><button class="btn" onclick="editEv(${id})">Editar</button><button class="btn btn-danger" onclick="cancelarEv(${id})">Cancelar</button></div>`);}
+async function saveMarquei(id){const d=val('mD');if(!d){toast('Informe a data');return;}const upd={status:'agendado',data:d,hora:val('mH')||null,clinica:val('mC')||null};closeSheet();
+  const r=await sb.from('pet_eventos').update(upd).eq('id',id).select().single();if(r.error){toast('Não salvou: '+r.error.message);return;}
+  const e=EV.find(x=>x.id===id);Object.assign(e,r.data);EV.sort(porData);await syncRotina(e);render(atual);toast('Agendado · '+dBR(d));}
+async function cancelarEv(id){const e=EV.find(x=>x.id===id);if(!e||!confirm('Cancelar "'+titSub(e).t+'"? Fica só no histórico.'))return;closeSheet();
+  const r=await sb.from('pet_eventos').update({status:'cancelado',data:e.data||hojeISO()}).eq('id',id).select().single();if(r.error){toast('Não salvou: '+r.error.message);return;}
+  Object.assign(e,r.data);EV.sort(porData);render(atual);toast('Cancelado');}
 async function confirmarTodos(){const l=EV.filter(e=>!e.confirmado&&e.cao_id===cao);if(!l.length||!confirm(`Confirmar os ${l.length} registros de ${caoAtual().nome}?`))return;l.forEach(e=>e.confirmado=true);render(atual);await sb.from('pet_eventos').update({confirmado:true}).in('id',l.map(e=>e.id));toast('Confirmados');}
 async function delEv(id){if(!confirm('Apagar este registro?'))return;await sb.from('pet_eventos').delete().eq('id',id);EV=EV.filter(x=>x.id!==id);closeSheet();render(atual);}
 
@@ -412,9 +452,9 @@ async function delRot(id){if(!confirm('Apagar esta rotina?'))return;await sb.fro
 function sheetFeito(id){const r=ROT.find(x=>x.id===id);
   openSheet(`<h3>${esc(r.titulo)} — feito</h3>
   ${r.cao_id?'':`<div class="field"><label>Para</label>${CAES.map(c=>`<label style="display:inline-flex;align-items:center;gap:6px;margin-right:14px;font-size:15px"><input type="checkbox" class="fC" value="${c.id}" ${c.id===cao?'checked':''} style="width:auto">${c.nome}</label>`).join('')}</div>`}
-  <div class="row2"><div class="field"><label>Data</label><input type="date" id="fD" value="${hojeISO()}"></div><div class="field"><label>Valor (R$)</label><input type="number" step="0.01" inputmode="decimal" id="fR"></div></div>
+  <div class="row2"><div class="field"><label>Data</label><input type="date" id="fD" value="${hojeISO()}"></div><div class="field"><label>Valor (R$)</label><input type="text" inputmode="decimal" autocomplete="off" id="fR"></div></div>
   <div class="row2"><div class="field"><label>Produto</label><input id="fP" value="${esc(r.produto)}"></div><div class="field"><label>Lote</label><input id="fL"></div></div>
-  ${['vacina','consulta','exame'].includes(r.tipo)?`<div class="row2"><div class="field"><label>Veterinário</label><input id="fV"></div><div class="field"><label>Peso (kg)</label><input type="number" step="0.01" inputmode="decimal" id="fK"></div></div>`:''}
+  ${['vacina','consulta','exame'].includes(r.tipo)?`<div class="row2"><div class="field"><label>Veterinário</label><input id="fV"></div><div class="field"><label>Peso (kg)</label><input type="text" inputmode="decimal" autocomplete="off" id="fK"></div></div>`:''}
   <div class="field"><label>Observação</label><input id="fO"></div>
   <div class="t-mut" style="margin-bottom:12px">Próxima ficará em <b>${dBR(addDays(hojeISO(),r.intervalo_dias))}</b> (a cada ${r.intervalo_dias} dias).</div>
   <button class="btn btn-p" onclick="saveFeito(${id})">Registrar</button>`);}
@@ -430,7 +470,7 @@ function sheetProd(id,preset){const b0=id?PROD.find(x=>x.id===id):{cao_id:cao,ca
   <div class="field"><label>Nome</label><input id="pN" value="${esc(p.nome)}" placeholder="Ex.: Ração Premier Raças Pequenas"></div>
   <div class="row2"><div class="field"><label>Marca</label><input id="pM" value="${esc(p.marca)}"></div><div class="field"><label>Apresentação</label><input id="pA" value="${esc(p.apresentacao)}" placeholder="10,1 kg / 1 cp / 1 ml"></div></div>
   <div class="row2"><div class="field"><label>Dose / quantidade</label><input id="pD" value="${esc(p.dose)}" placeholder="80 g/dia"></div><div class="field"><label>Frequência</label><input id="pF" value="${esc(p.frequencia)}" placeholder="2x/dia · mensal"></div></div>
-  <div class="row2"><div class="field"><label>Valor (R$)</label><input type="number" step="0.01" inputmode="decimal" id="pV" value="${p.valor||''}"></div><div class="field"><label>Onde compra</label><input id="pW" value="${esc(p.onde_compra)}"></div></div>
+  <div class="row2"><div class="field"><label>Valor (R$)</label><input type="text" inputmode="decimal" autocomplete="off" id="pV" value="${p.valor||''}"></div><div class="field"><label>Onde compra</label><input id="pW" value="${esc(p.onde_compra)}"></div></div>
   <div class="field"><label>Observação</label><input id="pO" value="${esc(p.observacao)}"></div>
   <div class="field"><label><input type="checkbox" id="pU" ${p.em_uso?'checked':''} style="width:auto;margin-right:8px">Em uso</label></div>
   <button class="btn btn-p" onclick="saveProd(${id||'null'})">Salvar</button>${id?`<button class="btn btn-danger" style="margin-top:8px" onclick="delProd(${id})">Apagar</button>`:''}`);}
@@ -572,21 +612,21 @@ async function chamarParse(texto){if(!ENTRADA)ENTRADA={historico:[],acoes:[],per
 const caoIdPorNome=n=>{const c=CAES.find(x=>x.nome.toLowerCase()===String(n||'').toLowerCase());return c?c.id:cao;};
 const nomeCao=id=>(CAES.find(c=>c.id===id)||{}).nome||'';
 const temCao=v=>!!v&&String(v).toLowerCase()!=='null'&&String(v).toLowerCase()!=='ambos';
-function entradaEv(e){e=e||{};const d=e.data||hojeISO();
-  return{cao_id:caoIdPorNome(e.cao),tipo:TIPOS[e.tipo]?e.tipo:'outro',status:(e.status==='agendado'||d>hojeISO())?'agendado':(e.status==='cancelado'?'cancelado':'realizado'),hora:e.hora||null,data:d,titulo:e.titulo||titSug(TIPOS[e.tipo]?e.tipo:'outro'),produto:e.produto||null,lote:e.lote||null,dose:e.dose||null,veterinario:e.veterinario||null,clinica:e.clinica||null,peso_kg:e.peso_kg??null,valor:e.valor??null,proxima_data:e.proxima_data||null,observacao:e.observacao||null};}
+function entradaEv(e){e=e||{};const pend=e.status==='a_agendar';const d=e.data||(pend?null:hojeISO());
+  return{cao_id:caoIdPorNome(e.cao),tipo:TIPOS[e.tipo]?e.tipo:'outro',status:pend?'a_agendar':(e.status==='agendado'||d>hojeISO())?'agendado':(e.status==='cancelado'?'cancelado':'realizado'),hora:pend?null:(e.hora||null),data:d,titulo:e.titulo||titSug(TIPOS[e.tipo]?e.tipo:'outro'),subtitulo:e.subtitulo||null,produto:e.produto||null,lote:e.lote||null,dose:e.dose||null,veterinario:e.veterinario||null,clinica:e.clinica||null,peso_kg:e.peso_kg??null,valor:e.valor??null,proxima_data:e.proxima_data||null,observacao:e.observacao||null};}
 function rotRow(r){r=r||{};const t=TIPOS_ROT.indexOf(r.tipo)>=0?r.tipo:'outro',i=+r.intervalo_dias||365;
   return{cao_id:temCao(r.cao)?caoIdPorNome(r.cao):null,tipo:t,titulo:r.titulo||titSug(t),produto:r.produto||null,intervalo_dias:i,ultima_data:r.ultima_data||null,proxima_data:r.proxima_data||(r.ultima_data?addDays(r.ultima_data,i):null),ativo:true,observacao:r.observacao||null};}
 function prodRowIA(p){p=p||{};
   return{cao_id:temCao(p.cao)?caoIdPorNome(p.cao):null,categoria:CATP[p.categoria]?p.categoria:'outro',nome:p.nome||'Produto',marca:p.marca||null,apresentacao:p.apresentacao||null,dose:p.dose||null,frequencia:p.frequencia||null,valor:p.valor??null,em_uso:true,observacao:p.observacao||'Cadastrado por voz/texto'};}
-const K_EV=['cao_id','tipo','status','data','hora','titulo','produto','lote','dose','veterinario','clinica','peso_kg','valor','proxima_data','observacao'];
+const K_EV=['cao_id','tipo','status','data','hora','titulo','subtitulo','produto','lote','dose','veterinario','clinica','peso_kg','valor','proxima_data','observacao'];
 const K_ROT=['cao_id','tipo','titulo','produto','intervalo_dias','ultima_data','proxima_data','ativo','observacao'];
 const K_PROD=['cao_id','categoria','nome','marca','apresentacao','dose','frequencia','em_uso','valor','onde_compra','observacao'];
 function soCampos(c,keys){const o={};if(!c)return o;for(const k of keys)if(c[k]!==undefined)o[k]=c[k];
   if(o.cao_id===undefined&&c.cao!==undefined&&keys.indexOf('cao_id')>=0)o.cao_id=temCao(c.cao)?caoIdPorNome(c.cao):null;return o;}
-function camposEv(c){const o=soCampos(c,K_EV);if(o.tipo&&!TIPOS[o.tipo])delete o.tipo;if(o.status&&['realizado','agendado','cancelado'].indexOf(o.status)<0)delete o.status;if(o.hora==='')o.hora=null;if(o.proxima_data==='')o.proxima_data=null;return o;}
+function camposEv(c){const o=soCampos(c,K_EV);if(o.tipo&&!TIPOS[o.tipo])delete o.tipo;if(o.status&&['realizado','agendado','a_agendar','cancelado'].indexOf(o.status)<0)delete o.status;if(o.hora==='')o.hora=null;if(o.proxima_data==='')o.proxima_data=null;return o;}
 function camposRot(c){const o=soCampos(c,K_ROT);if(o.tipo&&TIPOS_ROT.indexOf(o.tipo)<0)delete o.tipo;if(o.intervalo_dias)o.intervalo_dias=+o.intervalo_dias;return o;}
 function camposProd(c){const o=soCampos(c,K_PROD);if(o.categoria&&!CATP[o.categoria])delete o.categoria;return o;}
-const LBL={cao_id:'cão',tipo:'tipo',status:'situação',data:'data',hora:'hora',titulo:'título',produto:'produto',lote:'lote',dose:'dose',veterinario:'vet',clinica:'clínica',peso_kg:'peso',valor:'valor',proxima_data:'próxima',observacao:'obs',intervalo_dias:'a cada',ultima_data:'última',ativo:'ativa',nome:'nome',marca:'marca',categoria:'categoria',frequencia:'frequência',apresentacao:'apresentação',em_uso:'em uso'};
+const LBL={cao_id:'cão',tipo:'tipo',status:'situação',data:'data',hora:'hora',titulo:'título',subtitulo:'detalhe',produto:'produto',lote:'lote',dose:'dose',veterinario:'vet',clinica:'clínica',peso_kg:'peso',valor:'valor',proxima_data:'próxima',observacao:'obs',intervalo_dias:'a cada',ultima_data:'última',ativo:'ativa',nome:'nome',marca:'marca',categoria:'categoria',frequencia:'frequência',apresentacao:'apresentação',em_uso:'em uso'};
 function descCampos(c){return Object.keys(c||{}).map(k=>{let v=c[k];
   if(k==='cao_id')v=nomeCao(v);
   else if(v===null||v==='')v='—';
@@ -596,10 +636,10 @@ function descCampos(c){return Object.keys(c||{}).map(k=>{let v=c[k];
   return (LBL[k]||k)+': '+esc(v);}).join(' · ')||'sem alterações';}
 function acaoLinha(a,i){let ic='ti-pencil',cor='var(--ink2)',pre='',et='',es='';
   if(a.tipo==='evento_novo'){const e=entradaEv(a.evento);const T=TIPOS[e.tipo]||TIPOS.outro;ic=T.ic;cor=T.c;pre='Novo';
-    et=esc(e.titulo)+` <span class="tag b">${esc(nomeCao(e.cao_id))}</span>`;
-    es=`${e.status==='agendado'?'agendado · ':''}${dBR(e.data)}${e.hora?' '+hBR(e.hora):''}${e.produto?' · '+esc(e.produto):''}${e.valor?' · '+money(e.valor):''}${e.peso_kg?' · '+e.peso_kg+' kg':''}${e.proxima_data?' · próxima '+dBR(e.proxima_data):''}`;}
+    et=esc(e.titulo)+` <span class="tag b">${esc(nomeCao(e.cao_id))}</span>`+(e.subtitulo?`<div class="es">${esc(e.subtitulo)}</div>`:'');
+    es=`${e.status==='agendado'?'agendado · ':''}${e.status==='a_agendar'?'a agendar'+(e.data?' · até ':''):''}${dBR(e.data)}${e.hora?' '+hBR(e.hora):''}${e.produto?' · '+esc(e.produto):''}${e.valor?' · '+money(e.valor):''}${e.peso_kg?' · '+e.peso_kg+' kg':''}${e.proxima_data?' · próxima '+dBR(e.proxima_data):''}`;}
   else if(a.tipo==='evento_atualizar'){const o=EV.find(x=>x.id===a.id)||{};const T=TIPOS[o.tipo]||TIPOS.outro;ic=T.ic;cor=T.c;pre='Atualizar';
-    et=esc(o.titulo||'registro')+(o.data?` <span class="tag b">${dBR(o.data)}</span>`:'');
+    et=esc(o.titulo?titSub(o).t:'registro')+(o.data?` <span class="tag b">${dBR(o.data)}</span>`:'');
     es=descCampos(camposEv(a.campos));}
   else if(a.tipo==='rotina_nova'){const r=rotRow(a.rotina);const T=TIPOS[r.tipo]||TIPOS.outro;ic=T.ic;cor=T.c;pre='Nova rotina';
     et=esc(r.titulo)+` <span class="tag b">${r.cao_id?esc(nomeCao(r.cao_id)):'os dois'}</span>`;
@@ -677,7 +717,7 @@ async function salvarEntrada(){const acoes=(ENTRADA&&ENTRADA.acoes)||[];if(!acoe
       }
     }catch(err){falhas++;}
   }
-  EV.sort((x,y)=>y.data.localeCompare(x.data)||y.id-x.id);
+  EV.sort(porData);
   try{const u=await sb.from('pet_entradas').select('id').order('id',{ascending:false}).limit(1).single();
     if(u.data)await sb.from('pet_entradas').update({aplicado:true}).eq('id',u.data.id);}catch(_){}
   render(atual);toast(falhas?(n+' salvo(s), '+falhas+' com erro'):(n===1?'Registrado':n+' registros salvos'));}
