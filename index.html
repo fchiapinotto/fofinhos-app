@@ -556,10 +556,13 @@ async function interpretar(){pararRec(true);const t=val('flTxt');if(!t){toast('E
   const b=$('#flBtn');if(b){b.disabled=true;b.textContent='Interpretando…';}
   await chamarParse(t);}
 function pensando(){openSheet(`<h3>Pensando…</h3><div class="t-mut" style="margin:-8px 0 12px">Um instante — estou olhando as rotinas e os registros.</div><div class="ouv"><span class="pulso"></span>Interpretando</div>`);}
+async function msgErroInvoke(error){try{const c=error&&error.context;if(c){const r=(typeof c.clone==='function')?c.clone():c;let j=null;try{j=await r.json();}catch(_){try{const t=await r.text();j=JSON.parse(t);}catch(__){}}
+  const m=j&&(j.erro||j.error||j.message);if(m)return String(m);}}catch(_){}
+  return (error&&error.message)||'Não consegui interpretar';}
 async function chamarParse(texto){if(!ENTRADA)ENTRADA={historico:[],acoes:[],perg:[]};
   pensando();
   try{const {data,error}=await sb.functions.invoke('fofinhos-parse',{body:{texto,cao_id:cao,historico:ENTRADA.historico||[]}});
-    if(error)throw error;if(!data)throw new Error('sem resposta');if(data.erro)throw new Error(data.erro);
+    if(error)throw new Error(await msgErroInvoke(error));if(!data)throw new Error('sem resposta');if(data.erro)throw new Error(data.erro);
     ENTRADA.historico=(ENTRADA.historico||[]).concat([{role:'user',content:texto},{role:'assistant',content:JSON.stringify(data)}]).slice(-20);
     mostrarEntrada(texto,data);
   }catch(e){ENTRADA.ultimo=texto;
