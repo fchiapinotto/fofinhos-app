@@ -8,30 +8,39 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Fofinhos">
 <meta name="theme-color" content="#f28c1e">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{--verde:#4a6b3a;--verde-d:#33502a;--verde-cl:#e9f0e4;--rosa:#c8506a;--rosa-cl:#fbe8ed;--azul:#2f5da3;--azul-cl:#e9f0fa;--ambar:#b8860b;--ambar-cl:#f8f1dc;--roxo:#6b4fa0;--roxo-cl:#ece7f7;
-    --ink:#1b2330;--ink2:#5f6673;--ink3:#9aa1ad;--bg:#f5f4f0;--card:#fff;--line:#e8e6e0;--r:16px;--rl:20px;--hero-img:none;
+  :root{--verde:#4a6b3a;--verde-d:#33502a;--verde-cl:#e9f0e4;--rosa:#b03a55;--rosa-cl:#fbe8ed;--azul:#2f5da3;--azul-cl:#e9f0fa;--ambar:#8a6508;--ambar-cl:#f8f1dc;--roxo:#6b4fa0;--roxo-cl:#ece7f7;
+    --ink:#1b2330;--ink2:#4f5663;--ink3:#686e7b;--bg:#f5f4f0;--card:#fff;--line:#e8e6e0;--r:16px;--rl:20px;--hero-img:none;
     --c-jorge:#b5652a;--c-jorge-cl:#f8ebe0;--c-stout:#2f4858;--c-stout-cl:#e4ebef;}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   body{margin:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
-  .app{max-width:480px;margin:0 auto;min-height:100vh;padding:0 0 94px}
-  header{position:sticky;top:0;z-index:20;background:rgba(245,244,240,.88);backdrop-filter:blur(12px);padding:12px 16px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-  .h-title{font-size:15px;font-weight:700;letter-spacing:-.2px;white-space:nowrap}
+  .app{max-width:480px;margin:0 auto;min-height:100vh;padding:0 0 calc(96px + env(safe-area-inset-bottom))}
+  button{font-family:inherit}
+  :focus-visible{outline:2px solid var(--verde);outline-offset:2px}
+  header{position:sticky;top:0;z-index:20;background:rgba(245,244,240,.88);backdrop-filter:blur(12px);padding:calc(8px + env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 8px max(16px,env(safe-area-inset-left));display:flex;align-items:center;justify-content:space-between;gap:6px}
+  @media (max-width:400px){.h-title .hl{display:none}}
+  .h-acts{display:flex;align-items:center;gap:2px;flex-shrink:0}
+  .ibtn{width:40px;height:44px;border:none;background:none;padding:0;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink2);font-size:21px;flex-shrink:0}.ibtn.v{color:var(--verde)}
+  .h-title{font-size:15px;font-weight:700;letter-spacing:-.2px;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
   .seg{display:flex;background:#e9e7e1;border-radius:12px;padding:3px}
-  .seg div{display:flex;align-items:center;gap:6px;padding:5px 10px 5px 6px;border-radius:9px;font-size:12.5px;font-weight:600;color:var(--ink2);cursor:pointer;white-space:nowrap}
+  .seg div{display:flex;align-items:center;gap:6px;min-height:38px;padding:4px 10px 4px 6px;border-radius:9px;font-size:12.5px;font-weight:600;color:var(--ink2);cursor:pointer;white-space:nowrap}
   .seg div img{width:22px;height:22px;border-radius:50%;object-fit:cover}
   .seg div.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
   .seg div.on.j{color:var(--c-jorge)}.seg div.on.s{color:var(--c-stout)}
-  main{padding:6px 16px}
+  main{padding:6px max(16px,env(safe-area-inset-right)) 6px max(16px,env(safe-area-inset-left))}
   .sec{font-size:12px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.7px;margin:22px 2px 10px;display:flex;justify-content:space-between;align-items:baseline}
-  .sec span{text-transform:none;letter-spacing:0;font-weight:600;color:var(--verde);font-size:12.5px;cursor:pointer}
+  .sec span{text-transform:none;letter-spacing:0;font-weight:600;color:var(--verde);font-size:12.5px;cursor:pointer;padding:12px 0 12px 14px;margin:-12px 0;white-space:nowrap;flex-shrink:0}
   .t-mut{font-size:13px;color:var(--ink2)}
-  .empty{text-align:center;color:var(--ink3);font-size:14px;padding:26px 12px}
+  .empty{text-align:center;color:var(--ink2);font-size:14px;padding:26px 12px;line-height:1.55}.empty b{display:block;color:var(--ink);font-size:15px;margin-bottom:2px}
+  .empty .btn{width:auto;margin-top:14px;padding:11px 18px}
+  .vazio{font-size:13px;color:var(--ink2);margin:0 2px 8px}
   .hero{border-radius:var(--rl);padding:210px 18px 16px;margin:8px 0 4px;color:#fff;background:linear-gradient(180deg,rgba(20,35,18,0) 0%,rgba(20,35,18,.25) 50%,rgba(20,35,18,.85) 100%),var(--hero-img) center 30%/cover;text-shadow:0 1px 8px rgba(0,0,0,.45)}
   .hero.nofoto{padding-top:18px;background:linear-gradient(150deg,#4f7440,#2f4a28)}
   .hero .hn{font-size:26px;font-weight:700;letter-spacing:-.4px}.hero .hs{font-size:13.5px;opacity:.95;margin-top:2px}
@@ -39,7 +48,7 @@
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;margin-bottom:9px;display:flex;align-items:center;gap:12px}
   .ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0}
   .cb{flex:1;min-width:0}.cb .tt{font-size:15px;font-weight:600;line-height:1.3}.cb .ts{font-size:12.5px;color:var(--ink2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .cb .tl{display:flex;align-items:center;gap:6px;min-width:0}.cb .tl .tt{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.cb .tl .tag{margin-left:0;flex-shrink:0}
+  .cb .tl{display:flex;align-items:center;flex-wrap:wrap;gap:2px 6px;min-width:0}.cb .tl .tt{font-size:14.5px;min-width:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}.cb .tl .tag{margin-left:0;flex-shrink:0}
   .cb .st{font-size:12.5px;color:var(--ink2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .cb .tl+.ts,.cb .st+.ts{font-size:12px;color:var(--ink3)}
   .card.pend{background:transparent;border-style:dashed}
@@ -47,9 +56,9 @@
   .cr .d.late{color:var(--rosa)}.cr .d.soon{color:var(--ambar)}.cr .d.ok{color:var(--verde)}
   .tag{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:99px;vertical-align:1px;margin-left:5px}
   .tag.ia{background:var(--roxo-cl);color:var(--roxo)}.tag.late{background:var(--rosa-cl);color:var(--rosa)}.tag.ok{background:var(--verde-cl);color:var(--verde)}.tag.novo{background:var(--azul-cl);color:var(--azul)}.tag.b{background:#e9e7e1;color:var(--ink2)}.tag.soon{background:var(--ambar-cl);color:var(--ambar)}
-  .done-btn{border:1px solid var(--verde);color:var(--verde);background:var(--verde-cl);border-radius:10px;padding:7px 10px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}
-  .mini{border:none;background:none;color:var(--ink3);font-size:19px;cursor:pointer;padding:4px}.mini.ok{color:var(--verde)}.mini.del{color:var(--rosa)}.mini.doc{color:var(--azul)}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--line);background:var(--card);border-radius:13px;padding:13px 15px;font-size:15px;font-weight:500;color:var(--ink);cursor:pointer;width:100%}
+  .done-btn{position:relative;min-height:34px;border:1px solid var(--verde);color:var(--verde);background:var(--verde-cl);border-radius:10px;padding:7px 10px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}.done-btn::after{content:"";position:absolute;inset:-6px -4px}.done-btn:disabled{opacity:.55}
+  .mini{border:none;background:none;color:var(--ink3);font-size:20px;cursor:pointer;padding:0;min-width:40px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}.mini.ok{color:var(--verde)}.mini.del{color:var(--rosa)}.mini.doc{color:var(--azul)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--line);background:var(--card);border-radius:13px;padding:13px 15px;font-size:15px;font-weight:500;color:var(--ink);cursor:pointer;width:100%;min-height:48px}.btn:disabled{opacity:.6;cursor:default}
   .btn-p{background:var(--verde);color:#fff;border-color:var(--verde)}.btn-danger{color:var(--rosa);border-color:var(--rosa-cl);background:var(--rosa-cl)}
   textarea,input,select{width:100%;font-family:inherit;font-size:16px;border:1px solid var(--line);border-radius:13px;padding:12px;background:var(--card);color:var(--ink)}
   textarea:focus,input:focus,select:focus{outline:none;border-color:var(--verde)}
@@ -58,7 +67,7 @@
   .fam{background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin-bottom:9px;overflow:hidden}
   .fam .fh{display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer}
   .fam .fb{border-top:1px solid var(--line);background:#fbfaf7;padding:6px 14px 8px}
-  .hrow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}.hrow:last-child{border-bottom:none}
+  .hrow{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}.hrow:last-child{border-bottom:none}
   .hrow .hd{font-weight:600;font-variant-numeric:tabular-nums;width:64px;flex-shrink:0}.hrow .hb{flex:1;min-width:0;color:var(--ink2)}.hrow .hb b{color:var(--ink);font-weight:600}
   .obs{font-size:12.5px;color:var(--ink2);margin-top:6px;line-height:1.45;white-space:pre-wrap}
   .pet{background:var(--card);border:1px solid var(--line);border-radius:var(--rl);padding:16px;margin-bottom:14px}
@@ -70,21 +79,22 @@
   .prod .pn{font-size:14px;font-weight:600}.prod .pd{font-size:12.5px;color:var(--ink2)}
   .ct{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}.ct:last-child{border-bottom:none}
   .ct .cp{font-size:11px;color:var(--ink3);font-weight:600;text-transform:uppercase;letter-spacing:.4px}.ct .cn{font-size:14px;font-weight:600}.ct .cs{font-size:12.5px;color:var(--ink2)}
-  .ct a.call{width:38px;height:38px;border-radius:50%;background:var(--verde-cl);color:var(--verde);display:flex;align-items:center;justify-content:center;font-size:18px;text-decoration:none;flex-shrink:0}
+  .ct a.call{width:44px;height:44px;border-radius:50%;background:var(--verde-cl);color:var(--verde);display:flex;align-items:center;justify-content:center;font-size:18px;text-decoration:none;flex-shrink:0}
   .up-btn{display:flex;align-items:center;justify-content:center;gap:8px;border:1.5px dashed var(--verde);color:var(--verde);border-radius:14px;padding:18px;font-size:15px;font-weight:600;cursor:pointer;background:var(--verde-cl);margin:8px 0 6px}
   .note{font-size:12.5px;color:var(--ink2);background:#efeee8;border-radius:12px;padding:10px 12px;margin-bottom:14px;line-height:1.5}
   .doc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:9px}
   .doc .dh{display:flex;align-items:center;gap:10px}.doc .dn{flex:1;min-width:0;font-size:14px;font-weight:600;line-height:1.3}
   .doc .dm{font-size:12px;color:var(--ink3);margin-top:2px}
-  .lnk{color:var(--verde);font-size:13px;font-weight:600;cursor:pointer;background:none;border:none;padding:0}
+  .lnk{color:var(--verde);font-size:13.5px;font-weight:600;cursor:pointer;background:none;border:none;padding:11px 2px;font-family:inherit}
   nav{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;padding:8px 0 calc(8px + env(safe-area-inset-bottom))}
-  nav a{flex:1;text-align:center;color:var(--ink3);font-size:10.5px;font-weight:500;text-decoration:none;cursor:pointer}nav a i{display:block;font-size:22px;margin-bottom:2px}nav a.on{color:var(--verde)}
-  .fab{position:fixed;bottom:84px;right:max(16px,calc(50% - 240px + 16px));z-index:25;width:54px;height:54px;border-radius:50%;background:var(--verde);color:#fff;border:none;font-size:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 22px rgba(51,80,42,.35)}.fab:active{transform:scale(.94)}
+  nav a{flex:1;min-height:48px;text-align:center;color:var(--ink3);font-size:10.5px;font-weight:500;text-decoration:none;cursor:pointer}nav a i{display:block;font-size:22px;margin-bottom:2px}nav a.on{color:var(--verde)}
+  .fab{position:fixed;bottom:calc(76px + env(safe-area-inset-bottom));right:max(16px,calc(50% - 240px + 16px));z-index:25;width:54px;height:54px;border-radius:50%;background:var(--verde);color:#fff;border:none;font-size:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 22px rgba(51,80,42,.35)}.fab:active{transform:scale(.94)}
   .sheet{position:fixed;inset:0;background:rgba(15,22,35,.45);display:none;align-items:flex-end;justify-content:center;z-index:40}.sheet.on{display:flex}
-  .sheet-in{background:var(--card);width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));animation:up .22s ease;max-height:90vh;overflow:auto}
+  .sheet-in{position:relative;background:var(--card);width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));animation:up .22s ease;max-height:90vh;max-height:90dvh;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+  .sh-x{position:absolute;top:8px;right:8px;width:44px;height:44px;border:none;background:none;color:var(--ink3);font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer}
   @keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:translateY(0);opacity:1}}
-  .sheet h3{margin:2px 0 14px;font-size:18px;font-weight:600}
-  .toast{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:13.5px;padding:10px 16px;border-radius:99px;z-index:50;opacity:0;transition:opacity .2s;pointer-events:none}.toast.on{opacity:1}
+  .sheet h3{margin:2px 40px 14px 0;font-size:18px;font-weight:600;line-height:1.3}
+  .toast{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;font-size:13.5px;padding:10px 16px;border-radius:18px;width:max-content;max-width:calc(100% - 40px);text-align:center;z-index:50;opacity:0;transition:opacity .2s;pointer-events:none}.toast.on{opacity:1}
   .login{position:fixed;inset:0;background:var(--bg);z-index:60;display:none;align-items:center;justify-content:center;padding:24px}.login.on{display:flex}
   .login-in{width:100%;max-width:380px;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:26px 22px;text-align:center}
   .login-in img{width:96px;height:96px;border-radius:24px;object-fit:cover;margin-bottom:10px}
@@ -97,44 +107,48 @@
   .pulso{width:10px;height:10px;border-radius:50%;background:var(--verde);animation:pul 1s ease-in-out infinite;flex-shrink:0}
   @keyframes pul{0%,100%{transform:scale(.7);opacity:.45}50%{transform:scale(1.25);opacity:1}}
   .chips{display:flex;flex-wrap:wrap;gap:7px;margin:9px 0 9px}
-  .chip{border:1px solid var(--line);background:var(--card);border-radius:99px;padding:8px 13px;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer}
+  .chip{display:inline-flex;align-items:center;min-height:40px;font-family:inherit;border:1px solid var(--line);background:var(--card);border-radius:99px;padding:8px 14px;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer}
   .chip.on{background:var(--verde);border-color:var(--verde);color:#fff}
   .perg{background:#fbfaf7;border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin-bottom:10px}
   .perg .pq{font-size:14.5px;font-weight:600;line-height:1.35}
-  .mais{display:inline-flex;align-items:center;gap:6px;color:var(--verde);font-size:13.5px;font-weight:600;cursor:pointer;margin:0 0 14px;padding:2px 0}
+  .mais{display:inline-flex;align-items:center;gap:6px;color:var(--verde);font-size:13.5px;font-weight:600;cursor:pointer;margin:-8px 0 6px;padding:10px 0;min-height:44px}
   .anexo{display:flex;align-items:center;justify-content:center;gap:8px;border:1.5px dashed var(--azul);color:var(--azul);background:var(--azul-cl);border-radius:13px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;margin:0 0 12px}
-  #btnRefresh.spin{animation:sp .7s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+  #btnRefresh.spin i{animation:sp .7s linear infinite;display:inline-block}
+  .upd{position:fixed;left:50%;top:calc(10px + env(safe-area-inset-top));transform:translateX(-50%);z-index:70;background:var(--ink);color:#fff;border:none;border-radius:99px;padding:10px 16px;min-height:44px;font-size:13.5px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.18);display:none;align-items:center;gap:8px;cursor:pointer;white-space:nowrap}.upd.on{display:inline-flex}
+  .off{background:var(--ambar-cl);color:var(--ambar);font-size:12.5px;font-weight:600;text-align:center;padding:7px 12px;border-radius:10px;margin:6px 0 0;display:none}.off.on{display:block}@keyframes sp{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 <div class="app">
   <header>
-    <div class="h-title">Nossos Fofinhos</div>
-    <div style="display:flex;align-items:center;gap:10px">
-      <div class="seg" id="segCao"></div>
-      <i class="ti ti-microphone" onclick="sheetFalar()" title="Falar ou escrever" style="font-size:21px;color:var(--verde);cursor:pointer"></i>
-      <i class="ti ti-refresh" id="btnRefresh" onclick="refreshApp()" style="font-size:20px;color:var(--ink2);cursor:pointer"></i>
+    <div class="h-title"><span class="hl">Nossos </span>Fofinhos</div>
+    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+      <div class="seg" id="segCao" role="tablist" aria-label="Escolher o cão"></div>
+      <div class="h-acts"><button class="ibtn v" type="button" onclick="sheetFalar()" aria-label="Falar ou escrever um registro"><i class="ti ti-microphone" aria-hidden="true"></i></button>
+      <button class="ibtn" type="button" id="btnRefresh" onclick="refreshApp()" aria-label="Atualizar"><i class="ti ti-refresh" aria-hidden="true" style="font-size:20px"></i></button></div>
     </div>
   </header>
-  <main id="view"><div class="empty">Carregando… 🐾</div></main>
+  <div class="off" id="offline" role="status">Sem internet — mostrando o que já estava carregado.</div>
+  <main id="view"><div class="empty">Carregando…</div></main>
 </div>
-<button class="fab" id="fab" onclick="fabAction()" aria-label="Criar">+</button>
-<nav>
-  <a data-go="hoje" class="on" onclick="go('hoje')"><i class="ti ti-sun"></i>Hoje</a>
-  <a data-go="cart" onclick="go('cart')"><i class="ti ti-vaccine"></i>Carteirinha</a>
-  <a data-go="vet" onclick="go('vet')"><i class="ti ti-stethoscope"></i>Vet</a>
-  <a data-go="docs" onclick="go('docs')"><i class="ti ti-files"></i>Documentos</a>
-  <a data-go="ficha" onclick="go('ficha')"><i class="ti ti-paw"></i>Ficha</a>
+<button class="fab" id="fab" type="button" onclick="fabAction()" aria-label="Novo registro">+</button>
+<button class="upd" id="upd" type="button" onclick="location.reload()"><i class="ti ti-refresh" aria-hidden="true"></i>Nova versão — tocar para atualizar</button>
+<nav aria-label="Abas">
+  <a role="button" tabindex="0" data-go="hoje" class="on" aria-current="page" onclick="go('hoje')"><i class="ti ti-sun" aria-hidden="true"></i>Hoje</a>
+  <a role="button" tabindex="0" data-go="cart" onclick="go('cart')"><i class="ti ti-vaccine" aria-hidden="true"></i>Carteirinha</a>
+  <a role="button" tabindex="0" data-go="vet" onclick="go('vet')"><i class="ti ti-stethoscope" aria-hidden="true"></i>Vet</a>
+  <a role="button" tabindex="0" data-go="docs" onclick="go('docs')"><i class="ti ti-files" aria-hidden="true"></i>Documentos</a>
+  <a role="button" tabindex="0" data-go="ficha" onclick="go('ficha')"><i class="ti ti-paw" aria-hidden="true"></i>Ficha</a>
 </nav>
 <div class="login" id="login"><div class="login-in"><img src="icon-180.png" alt=""><h2>Nossos Fofinhos</h2><p>Entre com o e-mail da família. Você recebe um código de 6 dígitos.</p>
-  <div id="lg1"><div class="field"><label>E-mail</label><input type="email" id="lgEmail" autocomplete="email" inputmode="email" placeholder="seu@gmail.com"></div><button class="btn btn-p" onclick="enviarCodigo()">Enviar código</button></div>
-  <div id="lg2" style="display:none"><div class="field"><label>Código recebido por e-mail</label><input id="lgCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="123456" style="text-align:center;font-size:22px;letter-spacing:6px"></div><button class="btn btn-p" onclick="entrarCodigo()">Entrar</button><button class="lnk" style="margin-top:12px" onclick="lgVoltar()">usar outro e-mail</button></div>
-  <div class="err" id="lgErr"></div></div></div>
-<div class="sheet" id="sheet"><div class="sheet-in" id="sheetIn"></div></div>
-<div class="toast" id="toast"></div>
-<input type="file" id="filein" accept="image/*,application/pdf" style="display:none" multiple>
+  <div id="lg1"><div class="field"><label for="lgEmail">E-mail</label><input type="email" id="lgEmail" autocomplete="email" inputmode="email" autocapitalize="off" placeholder="seu@gmail.com" onkeydown="if(event.key==='Enter')enviarCodigo()"></div><button class="btn btn-p" id="lgBtn1" type="button" onclick="enviarCodigo()">Enviar código</button></div>
+  <div id="lg2" style="display:none"><div class="field"><label for="lgCode">Código recebido por e-mail</label><input id="lgCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="123456" style="text-align:center;font-size:22px;letter-spacing:6px" onkeydown="if(event.key==='Enter')entrarCodigo()"></div><button class="btn btn-p" id="lgBtn2" type="button" onclick="entrarCodigo()">Entrar</button><button class="lnk" type="button" style="margin-top:6px" onclick="enviarCodigo(true)">reenviar código</button> · <button class="lnk" type="button" onclick="lgVoltar()">usar outro e-mail</button></div>
+  <div class="err" id="lgErr" role="alert"></div></div></div>
+<div class="sheet" id="sheet"><div class="sheet-in" id="sheetBox" role="dialog" aria-modal="true"><button class="sh-x" type="button" onclick="closeSheet()" aria-label="Fechar"><i class="ti ti-x" aria-hidden="true"></i></button><div id="sheetIn"></div></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="filein" accept="image/*,application/pdf" style="display:none" multiple aria-hidden="true" tabindex="-1">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0"></script>
 <script>
 const $=(s,e=document)=>e.querySelector(s);
 const SB_URL="https://fctyjollnxthppfjtilq.supabase.co";
@@ -169,14 +183,26 @@ const dBR=iso=>{if(!iso)return'';const p=iso.split('-');return p[2]+'/'+p[1]+'/'
 const dLong=iso=>{if(!iso)return'';const d=new Date(iso+'T00:00:00');return d.getDate()+' '+MES[d.getMonth()]+' '+d.getFullYear();};
 const addDays=(iso,n)=>{const d=new Date(iso+'T00:00:00');d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
 const diasAte=iso=>Math.round((new Date(iso+'T00:00:00')-new Date(hojeISO()+'T00:00:00'))/864e5);
+const kg=n=>String(n).replace('.',',')+' kg';
 const money=n=>'R$ '+Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc=s=>(s==null?'':(''+s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
 const caoAtual=()=>CAES.find(c=>c.id===cao);
 const caoCor=c=>c.nome==='Jorge'?'var(--c-jorge)':'var(--c-stout)';
 const fotoUrl=c=>(c&&c.foto_path&&FOTOS[c.foto_path])||null;
 function idade(iso){if(!iso)return'';const b=new Date(iso+'T00:00:00'),h=new Date();let a=h.getFullYear()-b.getFullYear(),m=h.getMonth()-b.getMonth();if(h.getDate()<b.getDate())m--;if(m<0){a--;m+=12;}return a>0?`${a} ano${a>1?'s':''}${m?` e ${m} m`:''}`:`${m} meses`;}
-function prazo(iso){if(!iso)return{t:'sem data',cls:'',tag:'b',lbl:'sem registro'};const n=diasAte(iso);if(n<0)return{t:`${-n} d atrás`,cls:'late',tag:'late',lbl:'vencida'};if(n===0)return{t:'hoje',cls:'late',tag:'late',lbl:'vence hoje'};if(n<=30)return{t:`em ${n} d`,cls:'soon',tag:'soon',lbl:'vence em breve'};return{t:dBR(iso),cls:'ok',tag:'ok',lbl:'em dia'};}
-function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),1800);}
+function prazo(iso){if(!iso)return{t:'sem data',cls:'',tag:'b',lbl:'sem registro'};const n=diasAte(iso);if(n<0)return{t:-n>=365?`há ${Math.floor(-n/365)} ano${-n>=730?'s':''}`:-n>=60?`há ${Math.floor(-n/30)} meses`:`${-n} d atrás`,cls:'late',tag:'late',lbl:'vencida'};if(n===0)return{t:'hoje',cls:'late',tag:'late',lbl:'vence hoje'};if(n<=30)return{t:`em ${n} d`,cls:'soon',tag:'soon',lbl:'vence em breve'};return{t:dBR(iso),cls:'ok',tag:'ok',lbl:'em dia'};}
+function toast(t,ms){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast._t);toast._t=setTimeout(()=>e.classList.remove('on'),ms||(String(t).length>40?3400:1900));}
+// erros: sempre em português, sem termo técnico
+function msgErro(e,oque){const m=String((e&&(e.message||e.error_description||e.msg))||e||'');
+  if(!navigator.onLine||/failed to fetch|failed to send|networkerror|load failed|network request failed|relay error/i.test(m))return'Sem internet. Tente de novo quando a conexão voltar.';
+  if(/jwt|not authenticated|n[aã]o autorizado|refresh token|invalid claim|401/i.test(m)){sessaoExpirada();return'Sua sessão expirou. Entre de novo.';}
+  if(/row-level|permission denied|42501|403/i.test(m))return'Sem permissão para isso.';
+  if(/rate limit|too many|429/i.test(m))return'Muitas tentativas seguidas. Espere um minuto.';
+  return(oque||'Não consegui salvar')+'. Tente de novo.';}
+const ok=r=>{if(r&&r.error)throw r.error;return r;};
+// trava o botão enquanto salva (evita salvar duas vezes); em erro, destrava e mantém o formulário aberto
+async function comBotao(btn,fn,txt){if(btn){if(btn.disabled)return false;btn.disabled=true;btn.dataset.t=btn.textContent;btn.textContent=txt||'Salvando…';}
+  try{await fn();return true;}catch(e){console.warn(e);toast(msgErro(e));if(btn&&btn.isConnected){btn.disabled=false;btn.textContent=btn.dataset.t;}return false;}}
 const meu=x=>x.cao_id===cao||x.cao_id==null;
 const pesoAtual=id=>EV.filter(e=>e.cao_id===id&&e.peso_kg&&e.data&&e.status==='realizado').sort((a,b)=>b.data.localeCompare(a.data))[0]||null;
 const docById=id=>DOCS.find(d=>d.id===id);
@@ -204,98 +230,101 @@ async function loadAll(){
   for(const x of [c,e,r,p,d,k]) if(x.error) throw x.error;
   CAES=c.data;EV=e.data;ROT=r.data;PROD=p.data;DOCS=d.data;CONT=k.data;
   if(!CAES.some(x=>x.id===cao)){let s=null;try{s=+localStorage.getItem('fof_cao');}catch(_){}cao=CAES.some(x=>x.id===s)?s:(CAES[0]||{}).id;}
-  await signFotos();renderSeg();
+  await signFotos();renderSeg();signDocs();
 }
+async function signDocs(){const lim=Date.now()+600e3;const paths=[...new Set(DOCS.map(d=>d.path).filter(p=>p&&!(SIGNED[p]&&SIGNED[p].t>lim)))];if(!paths.length)return;
+  try{const r=await sb.storage.from('pet-docs').createSignedUrls(paths,3600);(r.data||[]).forEach(x=>{if(x.signedUrl&&!x.error)SIGNED[x.path]={url:x.signedUrl,t:Date.now()+3000e3};});}catch(_){}}
 async function signFotos(){const paths=CAES.map(c=>c.foto_path).filter(Boolean);if(!paths.length)return;try{const r=await sb.storage.from('pet-docs').createSignedUrls(paths,604800);(r.data||[]).forEach(x=>{if(x.signedUrl&&!x.error)FOTOS[x.path]=x.signedUrl;});}catch(e){}}
-function renderSeg(){$('#segCao').innerHTML=CAES.map(c=>`<div class="${cao===c.id?'on '+(c.nome==='Jorge'?'j':'s'):''}" onclick="setCao(${c.id})">${fotoUrl(c)?`<img src="${fotoUrl(c)}" alt="">`:''}${c.nome}</div>`).join('');}
-function setCao(v){cao=v;try{localStorage.setItem('fof_cao',v);}catch(_){}renderSeg();render(atual);}
+function renderSeg(){$('#segCao').innerHTML=CAES.map(c=>`<div role="tab" tabindex="0" aria-selected="${cao===c.id}" class="${cao===c.id?'on '+(c.nome==='Jorge'?'j':'s'):''}" onclick="setCao(${c.id})">${fotoUrl(c)?`<img src="${fotoUrl(c)}" alt="" onerror="this.remove()">`:''}${esc(c.nome)}</div>`).join('');}
+function setCao(v){if(cao===v)return;cao=v;aberto={};try{localStorage.setItem('fof_cao',v);}catch(_){}renderSeg();render(atual);}
 
 // ===== cards =====
 function rotCard(r){const t=TIPOS[r.tipo]||TIPOS.outro;const p=prazo(r.proxima_data);
   return`<div class="card"><div class="ic" style="background:${t.bg};color:${t.c}"><i class="ti ${t.ic}"></i></div>
-    <div class="cb" onclick="editRot(${r.id})"><div class="tt">${esc(r.titulo)}</div><div class="ts">${r.produto?esc(r.produto)+' · ':''}${r.ultima_data?'última '+dBR(r.ultima_data):'sem registro'}${r.ativo?'':' · pausada'}</div></div>
-    <div class="cr"><div class="d ${p.cls}">${p.t}</div><button class="done-btn" onclick="event.stopPropagation();sheetFeito(${r.id})">Feito</button></div></div>`;}
+    <div class="cb" role="button" tabindex="0" onclick="editRot(${r.id})"><div class="tt">${esc(r.titulo)}</div><div class="ts">${r.produto?esc(r.produto)+' · ':''}${r.ultima_data?'última '+dBR(r.ultima_data):'sem registro'}${r.ativo?'':' · pausado'}</div></div>
+    <div class="cr"><div class="d ${p.cls}">${p.t}</div><button class="done-btn" type="button" aria-label="Feito: ${esc(r.titulo)}" onclick="event.stopPropagation();sheetFeito(${r.id})">Feito</button></div></div>`;}
 function evCard(e,op){op=op||{};const t=TIPOS[e.tipo]||TIPOS.outro;const doc=docById(e.documento_id);const ts=titSub(e);
-  const meta=[aAgendar(e)?(e.data?'até '+dBR(e.data):'sem data'):dBR(e.data)+(e.hora?' '+hBR(e.hora):''),e.produto&&!ts.s.includes(e.produto)&&!ts.t.includes(e.produto)?e.produto:'',e.lote?'lote '+e.lote:'',(e.veterinario||'').split('(')[0].trim()||e.clinica,e.peso_kg?e.peso_kg+' kg':'',e.valor?money(e.valor):''].filter(Boolean).join(' · ');
+  const meta=[aAgendar(e)?(e.data?'até '+dBR(e.data):'sem data'):dBR(e.data)+(e.hora?' '+hBR(e.hora):''),e.produto&&!ts.s.includes(e.produto)&&!ts.t.includes(e.produto)?e.produto:'',e.lote?'lote '+e.lote:'',(e.veterinario||'').split('(')[0].trim()||e.clinica,e.peso_kg?kg(e.peso_kg):'',e.valor?money(e.valor):''].filter(Boolean).join(' · ');
   const acao=agendado(e)?`<button class="done-btn" onclick="event.stopPropagation();aconteceu(${e.id})">Aconteceu</button>`
     :aAgendar(e)?`<button class="done-btn" onclick="event.stopPropagation();sheetMarquei(${e.id})">Marquei</button>`
-    :(e.confirmado?'':`<button class="mini ok" title="Confirmar" onclick="event.stopPropagation();confirmar(${e.id})"><i class="ti ti-circle-check"></i></button>`);
+    :(e.confirmado?'':`<button class="mini ok" type="button" aria-label="Confirmar registro" onclick="event.stopPropagation();confirmar(${e.id})"><i class="ti ti-circle-check"></i></button>`);
   return`<div class="card${aAgendar(e)?' pend':''}" style="${e.confirmado?'':'border-color:#cdbfe8'}"><div class="ic" style="background:${t.bg};color:${t.c}"><i class="ti ${t.ic}"></i></div>
-    <div class="cb" onclick="editEv(${e.id})"><div class="tl"><div class="tt">${esc(ts.t)}</div>${aAgendar(e)||op.semTag?'':stTag(e)}${e.confirmado?'':'<span class="tag ia">a confirmar</span>'}</div>${ts.s?`<div class="st">${esc(ts.s)}</div>`:''}<div class="ts">${esc(meta)}</div>${e.observacao&&!aAgendar(e)&&['exame','consulta','medicacao','cirurgia'].includes(e.tipo)?`<div class="obs" style="white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(e.observacao)}</div>`:''}</div>
-    ${doc?`<button class="mini doc" title="Abrir documento" onclick="event.stopPropagation();abrirDoc('${esc(doc.path)}')"><i class="ti ti-file-text"></i></button>`:''}
+    <div class="cb" role="button" tabindex="0" onclick="editEv(${e.id})"><div class="tl"><div class="tt">${esc(ts.t)}</div>${aAgendar(e)||op.semTag?'':stTag(e)}${e.confirmado?'':'<span class="tag ia">a confirmar</span>'}</div>${ts.s?`<div class="st">${esc(ts.s)}</div>`:''}<div class="ts">${esc(meta)}</div>${e.observacao&&!aAgendar(e)&&['exame','consulta','medicacao','cirurgia'].includes(e.tipo)?`<div class="obs" style="white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(e.observacao)}</div>`:''}</div>
+    ${doc?`<button class="mini doc" type="button" aria-label="Abrir documento" onclick="event.stopPropagation();abrirDoc('${esc(doc.path)}')"><i class="ti ti-file-text"></i></button>`:''}
     ${acao}</div>`;}
-function hrow(e){const doc=docById(e.documento_id);return`<div class="hrow"><div class="hd">${e.data?dBR(e.data):'—'}</div><div class="hb" onclick="editEv(${e.id})"><b>${esc(e.produto||titSub(e).t)}</b>${!e.produto&&titSub(e).s?' · '+esc(titSub(e).s):''}${e.lote?' · lote '+esc(e.lote):''}${e.veterinario?' · '+esc(e.veterinario.split('(')[0].trim()):''}${stTag(e)?' '+stTag(e):''}${e.confirmado?'':' <span class="tag ia">a confirmar</span>'}</div>${doc?`<i class="ti ti-file-text" style="color:var(--azul);cursor:pointer" onclick="abrirDoc('${esc(doc.path)}')"></i>`:''}</div>`;}
+function hrow(e){const doc=docById(e.documento_id);return`<div class="hrow"><div class="hd">${e.data?dBR(e.data):'—'}</div><div class="hb" role="button" tabindex="0" onclick="editEv(${e.id})"><b>${esc(e.produto||titSub(e).t)}</b>${!e.produto&&titSub(e).s?' · '+esc(titSub(e).s):''}${e.lote?' · lote '+esc(e.lote):''}${e.veterinario?' · '+esc(e.veterinario.split('(')[0].trim()):''}${stTag(e)?' '+stTag(e):''}${e.confirmado?'':' <span class="tag ia">a confirmar</span>'}</div>${doc?`<button class="mini doc" type="button" aria-label="Abrir documento" style="min-height:36px" onclick="abrirDoc('${esc(doc.path)}')"><i class="ti ti-file-text"></i></button>`:''}</div>`;}
 function toggle(k){aberto[k]=!aberto[k];render(atual);}
 
 // ===== views =====
 const V={};
-V.hoje=()=>{const c=caoAtual();if(!c)return'<div class="empty">Cadastre um cão.</div>';
+const SEM_CAO='<div class="empty"><b>Nenhum cão cadastrado</b>Peça no chat para cadastrar.</div>';
+V.hoje=()=>{const c=caoAtual();if(!c)return SEM_CAO;
   const rots=ROT.filter(r=>r.ativo&&meu(r)&&r.proxima_data).sort((a,b)=>a.proxima_data.localeCompare(b.proxima_data));
   const agsD=new Set(EV.filter(e=>agendado(e)&&e.cao_id===cao).map(e=>e.tipo+'|'+e.data));const late=rots.filter(r=>diasAte(r.proxima_data)<=0&&!agsD.has(r.tipo+'|'+r.proxima_data)),soon=rots.filter(r=>{const n=diasAte(r.proxima_data);return n>0&&n<=30;}),next=rots.filter(r=>diasAte(r.proxima_data)>30).slice(0,3);
   const aconf=EV.filter(e=>!e.confirmado&&e.cao_id===cao),novos=DOCS.filter(d=>d.status==='novo').length,pa=pesoAtual(c.id);
-  let h=`<div class="hero ${fotoUrl(c)?'':'nofoto'}" style="${fotoUrl(c)?`--hero-img:url('${fotoUrl(c)}')`:''}"><div class="hn">${esc(c.nome)}</div><div class="hs">${idade(c.nascimento)}${c.raca?' · '+esc(c.raca):''}${pa?' · '+pa.peso_kg+' kg':''}</div>
+  let h=`<div class="hero ${fotoUrl(c)?'':'nofoto'}" style="${fotoUrl(c)?`--hero-img:url('${fotoUrl(c)}')`:''}"><div class="hn">${esc(c.nome)}</div><div class="hs">${[idade(c.nascimento),c.raca,pa?String(pa.peso_kg).replace('.',',')+' kg':''].filter(Boolean).map(esc).join(' · ')}</div>
     <div class="kpis"><div class="kpi"><b>${late.length}</b><span>atrasado${late.length===1?'':'s'}</span></div><div class="kpi"><b>${soon.length}</b><span>em 30 dias</span></div>${aconf.length?`<div class="kpi"><b>${aconf.length}</b><span>a confirmar</span></div>`:''}</div></div>`;
-  h+=`<div class="falar" onclick="sheetFalar()"><i class="ti ti-microphone"></i><div>Falar ou escrever um registro<span>“dei Bravecto na Stout hoje, 95 reais” · “banho dos dois ontem”</span></div></div>`;
-  if(novos)h+=`<div class="note" onclick="go('docs')" style="cursor:pointer;margin-top:10px"><b>${novos} documento${novos>1?'s':''} na caixa de entrada</b> — o Claude lê e registra à noite (ou peça "processa a caixa").</div>`;
-  const ags=EV.filter(e=>agendado(e)&&e.cao_id===cao).sort((a,b)=>a.data.localeCompare(b.data)||String(a.hora||'').localeCompare(String(b.hora||'')));
+  h+=`<div class="falar" role="button" tabindex="0" onclick="sheetFalar()"><i class="ti ti-microphone"></i><div>Falar ou escrever um registro<span>“dei Bravecto na Stout hoje, 95 reais” · “banho dos dois ontem”</span></div></div>`;
+  if(novos)h+=`<div class="note" role="button" tabindex="0" onclick="go('docs')" style="cursor:pointer;margin-top:10px"><b>${novos} documento${novos>1?'s':''} na caixa de entrada</b> — o Claude lê e registra à noite (ou peça "processa a caixa").</div>`;
+  const ags=EV.filter(e=>agendado(e)&&e.cao_id===cao).sort((a,b)=>(a.data||'9999').localeCompare(b.data||'9999')||String(a.hora||'').localeCompare(String(b.hora||'')));
   if(ags.length)h+=`<div class="sec">Agendado</div>`+ags.map(e=>evCard(e,{semTag:1})).join('');
   const pend=EV.filter(e=>aAgendar(e)&&e.cao_id===cao).sort((a,b)=>(a.data||'9999').localeCompare(b.data||'9999')||a.id-b.id);
   if(pend.length)h+=`<div class="sec">A agendar</div>`+pend.map(evCard).join('');
   if(late.length)h+=`<div class="sec">Atrasado</div>`+late.map(rotCard).join('');
   if(soon.length)h+=`<div class="sec">Vence em 30 dias</div>`+soon.map(rotCard).join('');
   if(next.length)h+=`<div class="sec">Próximos</div>`+next.map(rotCard).join('');
-  if(!late.length&&!soon.length&&!next.length&&!ags.length&&!pend.length)h+=`<div class="empty">Nada agendado. Cadastre rotinas na Carteirinha.</div>`;
-  if(aconf.length)h+=`<div class="sec">A confirmar (${aconf.length}) <span onclick="confirmarTodos()">confirmar todos</span></div>`+aconf.slice(0,aberto.aconf?999:4).map(evCard).join('')+(aconf.length>4&&!aberto.aconf?`<button class="lnk" onclick="toggle('aconf')">ver os ${aconf.length}</button>`:'');
+  if(!late.length&&!soon.length&&!next.length&&!ags.length&&!pend.length)h+=`<div class="empty"><b>Nada pendente</b>Crie lembretes na Carteirinha (vacinas, antipulgas, banho) e eles aparecem aqui quando estiverem perto de vencer.</div>`;
+  if(aconf.length)h+=`<div class="sec">A confirmar (${aconf.length}) <span role="button" tabindex="0" onclick="confirmarTodos()">confirmar todos</span></div>`+aconf.slice(0,aberto.aconf?999:4).map(evCard).join('')+(aconf.length>4&&!aberto.aconf?`<button class="lnk" type="button" onclick="toggle('aconf')">ver os ${aconf.length}</button>`:'');
   return h;};
-V.cart=()=>{const vac=EV.filter(e=>e.tipo==='vacina'&&e.cao_id===cao);let h=`<div class="sec" style="margin-top:12px">Vacinas <span onclick="editEv(null,{tipo:'vacina'})">+ dose</span></div>`;
+V.cart=()=>{const vac=EV.filter(e=>e.tipo==='vacina'&&e.cao_id===cao);let h=`<div class="sec" style="margin-top:12px">Vacinas <span role="button" tabindex="0" onclick="editEv(null,{tipo:'vacina'})">+ vacina</span></div>`;
   const usadas=new Set();
   for(const f of FAM){const evs=vac.filter(e=>famDe(e)===f);if(!evs.length)continue;evs.forEach(e=>usadas.add(e.id));const last=evs.find(e=>e.status==='realizado'&&e.data)||evs.find(e=>e.status==='agendado'&&e.data)||{data:null};const rot=ROT.find(r=>r.tipo==='vacina'&&meu(r)&&r.ativo&&f.re.test((r.titulo||'')+' '+(r.produto||'')));const prox=(rot&&rot.proxima_data)||last.proxima_data||(last.data?addDays(last.data,365):null);const p=prazo(prox);const k='f'+f.k;
-    h+=`<div class="fam"><div class="fh" onclick="toggle('${k}')"><div class="ic" style="background:${TIPOS.vacina.bg};color:${TIPOS.vacina.c}"><i class="ti ti-vaccine"></i></div><div class="cb"><div class="tt">${f.n}<span class="tag ${p.tag}">${p.lbl}</span></div><div class="ts">${last.data?'última '+dBR(last.data):'sem dose registrada'}${last.produto?' · '+esc(last.produto):''}${prox?' · próxima '+dBR(prox):''}</div></div><div class="cr"><button class="done-btn" onclick="event.stopPropagation();${rot?`sheetFeito(${rot.id})`:`editEv(null,{tipo:'vacina',titulo:'${f.n}'})`}">Dose</button></div></div>
+    h+=`<div class="fam"><div class="fh" role="button" tabindex="0" aria-expanded="${!!aberto[k]}" onclick="toggle('${k}')"><div class="ic" style="background:${TIPOS.vacina.bg};color:${TIPOS.vacina.c}"><i class="ti ti-vaccine"></i></div><div class="cb"><div class="tt">${f.n}<span class="tag ${p.tag}">${p.lbl}</span></div><div class="ts">${last.data?'última '+dBR(last.data):'sem dose registrada'}${last.produto?' · '+esc(last.produto):''}${prox?' · próxima '+dBR(prox):''}</div></div><div class="cr"><button class="done-btn" onclick="event.stopPropagation();${rot?`sheetFeito(${rot.id})`:`editEv(null,{tipo:'vacina',titulo:'${f.n}'})`}" aria-label="Registrar dose: ${f.n}">Feito</button></div></div>
       ${aberto[k]?`<div class="fb">${evs.map(hrow).join('')}</div>`:''}</div>`;}
-  const outras=vac.filter(e=>!usadas.has(e.id));if(outras.length)h+=`<div class="fam"><div class="fh" onclick="toggle('fout')"><div class="ic" style="background:${TIPOS.vacina.bg};color:${TIPOS.vacina.c}"><i class="ti ti-vaccine"></i></div><div class="cb"><div class="tt">Outras vacinas</div><div class="ts">${outras.length} registro${outras.length>1?'s':''}</div></div></div>${aberto.fout?`<div class="fb">${outras.map(hrow).join('')}</div>`:''}</div>`;
-  if(!vac.length)h+='<div class="empty">Nenhuma vacina registrada.</div>';
-  const bloco=(titulo,tipos,k)=>{const rs=ROT.filter(r=>tipos.includes(r.tipo)&&meu(r));const evs=EV.filter(e=>tipos.includes(e.tipo)&&e.cao_id===cao);let s=`<div class="sec">${titulo} <span onclick="editRot(null,'${tipos[0]}')">+ rotina</span></div>`;
-    if(!rs.length&&!evs.length)return s+'<div class="t-mut" style="margin:0 2px 8px">Nada cadastrado.</div>';
+  const outras=vac.filter(e=>!usadas.has(e.id));if(outras.length)h+=`<div class="fam"><div class="fh" role="button" tabindex="0" aria-expanded="${!!aberto.fout}" onclick="toggle('fout')"><div class="ic" style="background:${TIPOS.vacina.bg};color:${TIPOS.vacina.c}"><i class="ti ti-vaccine"></i></div><div class="cb"><div class="tt">Outras vacinas</div><div class="ts">${outras.length} registro${outras.length>1?'s':''}</div></div></div>${aberto.fout?`<div class="fb">${outras.map(hrow).join('')}</div>`:''}</div>`;
+  if(!vac.length)h+='<div class="vazio">Nenhuma vacina registrada.</div>';
+  const bloco=(titulo,tipos,k)=>{const rs=ROT.filter(r=>tipos.includes(r.tipo)&&meu(r));const evs=EV.filter(e=>tipos.includes(e.tipo)&&e.cao_id===cao);let s=`<div class="sec">${titulo} <span role="button" tabindex="0" onclick="editRot(null,'${tipos[0]}')">+ lembrete</span></div>`;
+    if(!rs.length&&!evs.length)return s+'<div class="vazio">Nada registrado ainda.</div>';
     s+=rs.map(rotCard).join('');
-    if(evs.length)s+=`<div class="fam"><div class="fh" onclick="toggle('${k}')"><div class="cb"><div class="tt" style="font-size:13.5px;color:var(--ink2)">Histórico · ${evs.length} registro${evs.length>1?'s':''}</div></div><i class="ti ti-chevron-${aberto[k]?'up':'down'}" style="color:var(--ink3)"></i></div>${aberto[k]?`<div class="fb">${evs.map(hrow).join('')}</div>`:''}</div>`;return s;};
-  h+=bloco('Proteção — antipulgas e vermífugo',['antipulga','vermifugo'],'hprot');
+    if(evs.length)s+=`<div class="fam"><div class="fh" role="button" tabindex="0" aria-expanded="${!!aberto[k]}" onclick="toggle('${k}')"><div class="cb"><div class="tt" style="font-size:13.5px;color:var(--ink2)">Histórico · ${evs.length} registro${evs.length>1?'s':''}</div></div><i class="ti ti-chevron-${aberto[k]?'up':'down'}" style="color:var(--ink3)"></i></div>${aberto[k]?`<div class="fb">${evs.map(hrow).join('')}</div>`:''}</div>`;return s;};
+  h+=bloco('Antipulgas e vermífugo',['antipulga','vermifugo'],'hprot');
   h+=bloco('Banho e tosa',['banho','tosa'],'hbanho');
   return h;};
-V.vet=()=>{const c=caoAtual();let h=pesoChart(c);
+V.vet=()=>{const c=caoAtual();if(!c)return SEM_CAO;let h=pesoChart(c);
   const ex=EV.filter(e=>e.tipo==='exame'&&e.cao_id===cao),co=EV.filter(e=>['consulta','medicacao','cirurgia','outro'].includes(e.tipo)&&e.cao_id===cao);
-  h+=`<div class="sec">Exames <span onclick="editEv(null,{tipo:'exame'})">+ exame</span></div>`+(ex.length?ex.map(evCard).join(''):'<div class="t-mut" style="margin:0 2px">Nenhum exame registrado.</div>');
-  h+=`<div class="sec">Consultas e orientações <span onclick="editEv(null,{tipo:'consulta'})">+ consulta</span></div>`+(co.length?co.map(evCard).join(''):'<div class="t-mut" style="margin:0 2px">Nada registrado.</div>');
-  const ps=EV.filter(e=>e.peso_kg&&e.data&&e.cao_id===cao);
-  h+=`<div class="sec">Pesagens <span onclick="editEv(null,{tipo:'peso',titulo:'Pesagem'})">+ peso</span></div><div class="fam"><div class="fb" style="border-top:none;background:var(--card)">${ps.length?ps.map(e=>`<div class="hrow"><div class="hd">${dBR(e.data)}</div><div class="hb" onclick="editEv(${e.id})"><b>${e.peso_kg} kg</b>${e.tipo!=='peso'?' · '+esc(e.titulo):''}${e.clinica?' · '+esc(e.clinica):''}</div></div>`).join(''):'<div class="t-mut">Sem pesagens.</div>'}</div></div>`;
+  h+=`<div class="sec">Exames <span role="button" tabindex="0" onclick="editEv(null,{tipo:'exame'})">+ exame</span></div>`+(ex.length?ex.map(e=>evCard(e)).join(''):'<div class="vazio">Nenhum exame registrado.</div>');
+  h+=`<div class="sec">Consultas e orientações <span role="button" tabindex="0" onclick="editEv(null,{tipo:'consulta'})">+ consulta</span></div>`+(co.length?co.map(e=>evCard(e)).join(''):'<div class="vazio">Nenhuma consulta registrada.</div>');
+  const ps=EV.filter(e=>e.peso_kg&&e.data&&e.cao_id===cao&&e.status==='realizado');
+  h+=`<div class="sec">Pesagens <span role="button" tabindex="0" onclick="editEv(null,{tipo:'peso',titulo:'Pesagem'})">+ peso</span></div><div class="fam"><div class="fb" style="border-top:none;background:var(--card)">${ps.length?ps.map(e=>`<div class="hrow"><div class="hd">${dBR(e.data)}</div><div class="hb" role="button" tabindex="0" onclick="editEv(${e.id})"><b>${String(e.peso_kg).replace('.',',')} kg</b>${e.tipo!=='peso'?' · '+esc(e.titulo):''}${e.clinica?' · '+esc(e.clinica):''}</div></div>`).join(''):'<div class="t-mut" style="padding:6px 0">Nenhuma pesagem registrada.</div>'}</div></div>`;
   return h;};
-function pesoChart(c){const ps=EV.filter(e=>e.cao_id===c.id&&e.peso_kg&&e.data).sort((a,b)=>a.data.localeCompare(b.data));if(ps.length<2)return'';
-  const W=440,H=120,P=28;const xs=ps.map(p=>new Date(p.data).getTime()),ys=ps.map(p=>+p.peso_kg);const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys)-.4,y1=Math.max(...ys)+.4;
+function pesoChart(c){const ps=EV.filter(e=>e.cao_id===c.id&&e.peso_kg&&e.data&&e.status==='realizado').sort((a,b)=>a.data.localeCompare(b.data));if(ps.length<2)return'';
+  const W=440,H=120,P=28;const xs=ps.map(p=>new Date(p.data+'T12:00:00').getTime()),ys=ps.map(p=>+p.peso_kg);const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys)-.4,y1=Math.max(...ys)+.4;
   const X=t=>P+(t-x0)/(x1-x0||1)*(W-2*P),Y=v=>H-P+6-(v-y0)/(y1-y0||1)*(H-2*P);const pts=ps.map((p,i)=>`${X(xs[i]).toFixed(1)},${Y(ys[i]).toFixed(1)}`).join(' ');
-  return`<div class="pet" style="padding:12px 14px;margin-top:10px"><div style="display:flex;justify-content:space-between;font-size:13px;align-items:baseline"><b>Peso</b><span class="t-mut">${ps[0].peso_kg} kg (${dBR(ps[0].data)}) → ${ps[ps.length-1].peso_kg} kg (${dBR(ps[ps.length-1].data)})</span></div>
-    <div class="chart" style="margin-top:10px"><svg viewBox="0 0 ${W} ${H}"><polyline fill="none" stroke="${caoCor(c)}" stroke-width="2.5" stroke-linejoin="round" points="${pts}"/>${ps.map((p,i)=>`<circle cx="${X(xs[i]).toFixed(1)}" cy="${Y(ys[i]).toFixed(1)}" r="3.5" fill="${caoCor(c)}"/><text x="${X(xs[i]).toFixed(1)}" y="${(Y(ys[i])-9).toFixed(1)}" font-size="10" text-anchor="middle" fill="#5f6673">${p.peso_kg}</text>`).join('')}</svg></div></div>`;}
-V.docs=()=>{const st={novo:['na caixa','novo'],processando:['lendo…','novo'],processado:['registrado','ok'],erro:['erro','late'],ignorado:['ignorado','b']};
-  let h=`<div class="up-btn" onclick="pickDocs()"><i class="ti ti-camera-plus"></i> Foto ou PDF de exame, receita, carteira…</div><div class="note">Sobe para a caixa de entrada. O Claude lê, traduz se preciso e cria os registros como <b>"a confirmar"</b>.</div>`;
+  return`<div class="pet" style="padding:12px 14px;margin-top:10px"><div style="display:flex;justify-content:space-between;font-size:13px;align-items:baseline"><b>Peso</b><span class="t-mut">${kg(ps[0].peso_kg)} (${dBR(ps[0].data)}) → ${kg(ps[ps.length-1].peso_kg)} (${dBR(ps[ps.length-1].data)})</span></div>
+    <div class="chart" style="margin-top:10px"><svg role="img" aria-label="Gráfico do peso ao longo do tempo" viewBox="0 0 ${W} ${H}"><polyline fill="none" stroke="${caoCor(c)}" stroke-width="2.5" stroke-linejoin="round" points="${pts}"/>${ps.map((p,i)=>`<circle cx="${X(xs[i]).toFixed(1)}" cy="${Y(ys[i]).toFixed(1)}" r="3.5" fill="${caoCor(c)}"/><text x="${X(xs[i]).toFixed(1)}" y="${(Y(ys[i])-9).toFixed(1)}" font-size="10" text-anchor="middle" fill="#4f5663">${String(p.peso_kg).replace('.',',')}</text>`).join('')}</svg></div></div>`;}
+V.docs=()=>{const st={novo:['na caixa','novo'],processando:['lendo…','novo'],processado:['registrado','ok'],erro:['não consegui ler','late'],ignorado:['ignorado','b']};
+  let h=`<div class="up-btn" role="button" tabindex="0" onclick="pickDocs()"><i class="ti ti-camera-plus" aria-hidden="true"></i> Enviar foto ou PDF</div><div class="note">Exame, receita, carteira de vacina ou nota. Vai para a caixa de entrada: o Claude lê, traduz se preciso e cria os registros como <b>"a confirmar"</b>.</div>`;
   const docCard=d=>{const s=st[d.status]||st.novo;const n=EV.filter(e=>e.documento_id===d.id).length;const k='d'+d.id;
     return`<div class="doc"><div class="dh"><i class="ti ${d.tipo_mime==='application/pdf'?'ti-file-type-pdf':'ti-photo'}" style="font-size:22px;color:var(--ink3)"></i>
-      <div style="flex:1;min-width:0" onclick="toggle('${k}')"><div class="dn">${esc(d.nome||d.path.split('/').pop())}</div><div class="dm">${d.data_doc?dLong(d.data_doc)+' · ':''}${d.paginas?d.paginas.split(',').length+' pág · ':''}${n?n+' registro'+(n>1?'s':'')+' · ':''}<span class="tag ${s[1]}" style="margin-left:0">${s[0]}</span></div></div>
-      <button class="mini doc" onclick="abrirDoc('${esc(d.path)}')"><i class="ti ti-external-link"></i></button></div>
-      ${aberto[k]?`${d.resumo?`<div class="obs">${esc(d.resumo)}</div>`:''}${d.erro?`<div class="obs" style="color:var(--rosa)">${esc(d.erro)}</div>`:''}<div style="display:flex;gap:14px;margin-top:8px">${d.status!=='novo'?`<button class="lnk" onclick="reprocessar(${d.id})">reprocessar</button>`:''}<button class="lnk" style="color:var(--rosa)" onclick="delDoc(${d.id})">apagar</button></div>`:''}</div>`;};
+      <div style="flex:1;min-width:0;cursor:pointer" role="button" tabindex="0" aria-expanded="${!!aberto[k]}" onclick="toggle('${k}')"><div class="dn">${esc(d.nome||d.path.split('/').pop())}</div><div class="dm">${d.data_doc?dLong(d.data_doc)+' · ':''}${d.paginas?d.paginas.split(',').length+' pág · ':''}${n?n+' registro'+(n>1?'s':'')+' · ':''}<span class="tag ${s[1]}" style="margin-left:0">${s[0]}</span></div></div>
+      <button class="mini doc" type="button" aria-label="Abrir documento" onclick="abrirDoc('${esc(d.path)}')"><i class="ti ti-external-link"></i></button></div>
+      ${aberto[k]?`${d.resumo?`<div class="obs">${esc(d.resumo)}</div>`:''}${d.erro?`<div class="obs" style="color:var(--rosa)">${esc(d.erro)}</div>`:''}<div style="display:flex;gap:14px;margin-top:8px">${d.status!=='novo'?`<button class="lnk" type="button" onclick="reprocessar(${d.id})">ler de novo</button>`:''}<button class="lnk" type="button" style="color:var(--rosa)" onclick="delDoc(${d.id})">apagar</button></div>`:''}</div>`;};
   const inbox=DOCS.filter(d=>['novo','processando','erro'].includes(d.status));if(inbox.length)h+=`<div class="sec">Caixa de entrada</div>`+inbox.map(docCard).join('');
   const arq=DOCS.filter(d=>!['novo','processando','erro'].includes(d.status)&&meu(d));
   for(const [k,n] of Object.entries(CATD)){const l=arq.filter(d=>(d.categoria||'outro')===k);if(l.length)h+=`<div class="sec">${n}</div>`+l.map(docCard).join('');}
-  if(!arq.length&&!inbox.length)h+='<div class="empty">Nenhum documento ainda.</div>';
+  if(!arq.length&&!inbox.length)h+='<div class="empty"><b>Nenhum documento ainda</b>Tire foto de uma receita, exame ou carteira de vacina e envie pelo botão acima.</div>';
   return h;};
-V.ficha=()=>{const c=caoAtual();const pa=pesoAtual(c.id);const prods=PROD.filter(p=>meu(p)&&p.em_uso);const rots=ROT.filter(meu);
-  let h=`<div class="pet" style="margin-top:10px"><div class="ph" onclick="editCao(${c.id})"><div class="av" style="background:${caoCor(c)}">${fotoUrl(c)?`<img src="${fotoUrl(c)}" alt="${c.nome}">`:c.nome[0]}</div><div><h3>${esc(c.nome)}${c.apelido_antigo?` <span class="t-mut" style="font-weight:500;font-size:14px">ex-${esc(c.apelido_antigo)}</span>`:''}</h3><div class="sub">${esc(c.raca||'')} · ${c.sexo==='F'?'fêmea':'macho'} · ${idade(c.nascimento)}</div></div></div>
-    <div class="grid"><div><b>Nascimento</b>${dLong(c.nascimento)||'—'}</div><div><b>Adoção</b>${dLong(c.adocao)||'<span style="color:var(--rosa)">informar</span>'}</div><div><b>Peso atual</b>${pa?pa.peso_kg+' kg <span class="t-mut">('+dBR(pa.data)+')</span>':'—'}</div><div><b>Microchip</b>${esc(c.microchip||'—')}</div><div><b>Castração</b>${c.castrado==null?'—':(c.castrado?'sim':'não')}</div><div><b>Alergias</b>${esc(c.alergias||'—')}</div></div>
-    ${c.observacao?`<div class="obs">${esc(c.observacao)}</div>`:''}<div class="t-mut" style="margin-top:10px">Tocar no nome para editar.</div></div>`;
-  h+=`<div class="sec">Em uso — ração, remédios, produtos <span onclick="sheetProd(null)">+ produto</span></div><div class="pet">${prods.length?prods.map(prodRow).join(''):'<div class="t-mut">Nenhum produto cadastrado.</div>'}</div>`;
-  h+=`<div class="sec">Rotinas e lembretes <span onclick="editRot(null)">+ rotina</span></div><div class="pet">${rots.length?rots.map(r=>`<div class="prod" onclick="editRot(${r.id})"><i class="ti ${(TIPOS[r.tipo]||TIPOS.outro).ic}" style="color:var(--ink3);font-size:18px;margin-top:2px"></i><div style="flex:1"><div class="pn">${esc(r.titulo)}${r.ativo?'':'<span class="tag b">pausada</span>'}${r.cao_id==null?'<span class="tag b">os dois</span>':''}</div><div class="pd">a cada ${r.intervalo_dias} dias${r.produto?' · '+esc(r.produto):''}${r.proxima_data?' · próxima '+dBR(r.proxima_data):''}</div></div></div>`).join(''):'<div class="t-mut">Nenhuma rotina.</div>'}</div>`;
+V.ficha=()=>{const c=caoAtual();if(!c)return SEM_CAO;const pa=pesoAtual(c.id);const prods=PROD.filter(p=>meu(p)&&p.em_uso);const rots=ROT.filter(meu);
+  let h=`<div class="pet" style="margin-top:10px"><div class="ph" role="button" tabindex="0" onclick="editCao(${c.id})"><div class="av" style="background:${caoCor(c)}">${fotoUrl(c)?`<img src="${fotoUrl(c)}" alt="">`:esc((c.nome||'?')[0])}</div><div><h3>${esc(c.nome)}${c.apelido_antigo?` <span class="t-mut" style="font-weight:500;font-size:14px">ex-${esc(c.apelido_antigo)}</span>`:''}</h3><div class="sub">${[c.raca,c.sexo==='F'?'fêmea':c.sexo==='M'?'macho':'',idade(c.nascimento)].filter(Boolean).map(esc).join(' · ')}</div></div></div>
+    <div class="grid"><div><b>Nascimento</b>${dLong(c.nascimento)||'—'}</div><div><b>Adoção</b>${dLong(c.adocao)||'<span style="color:var(--rosa)">informar</span>'}</div><div><b>Peso atual</b>${pa?kg(pa.peso_kg)+' <span class="t-mut">('+dBR(pa.data)+')</span>':'—'}</div><div><b>Microchip</b>${esc(c.microchip||'—')}</div><div><b>Castração</b>${c.castrado==null?'—':(c.castrado?'sim':'não')}</div><div><b>Alergias</b>${esc(c.alergias||'—')}</div></div>
+    ${c.observacao?`<div class="obs">${esc(c.observacao)}</div>`:''}<div class="t-mut" style="margin-top:10px">Toque no nome para editar.</div></div>`;
+  h+=`<div class="sec">Em uso <span role="button" tabindex="0" onclick="sheetProd(null)">+ produto</span></div><div class="pet">${prods.length?prods.map(prodRow).join(''):'<div class="t-mut">Nenhum produto cadastrado.</div>'}</div>`;
+  h+=`<div class="sec">Lembretes <span role="button" tabindex="0" onclick="editRot(null)">+ lembrete</span></div><div class="pet">${rots.length?rots.map(r=>`<div class="prod" role="button" tabindex="0" onclick="editRot(${r.id})"><i class="ti ${(TIPOS[r.tipo]||TIPOS.outro).ic}" style="color:var(--ink3);font-size:18px;margin-top:2px"></i><div style="flex:1"><div class="pn">${esc(r.titulo)}${r.ativo?'':'<span class="tag b">pausado</span>'}${r.cao_id==null?'<span class="tag b">os dois</span>':''}</div><div class="pd">a cada ${r.intervalo_dias} dias${r.produto?' · '+esc(r.produto):''}${r.proxima_data?' · próxima '+dBR(r.proxima_data):''}</div></div></div>`).join(''):'<div class="t-mut">Nenhum lembrete. Crie um para vacina, antipulgas ou banho.</div>'}</div>`;
   h+=pushSec();
-  h+=`<div class="sec">Contatos <span onclick="sheetCont(null)">+ contato</span></div><div class="pet">`+(CONT.length?CONT.map(k=>`<div class="ct"><div style="flex:1;min-width:0" onclick="sheetCont(${k.id})"><div class="cp">${esc(k.papel)}</div><div class="cn">${esc(k.nome)||'<span style=\"color:var(--ink3)\">preencher</span>'}</div>${k.telefone||k.endereco?`<div class="cs">${esc(k.telefone||'')}${k.telefone&&k.endereco?' · ':''}${esc(k.endereco||'')}</div>`:''}${k.observacao?`<div class="cs">${esc(k.observacao)}</div>`:''}</div>${k.telefone?`<a class="call" href="tel:${esc(k.telefone.replace(/[^0-9+]/g,''))}"><i class="ti ti-phone"></i></a>`:''}</div>`).join(''):'<div class="t-mut">Nenhum contato.</div>')+`</div>`;
-  h+=`<div style="text-align:center;margin:18px 0 6px"><button class="lnk" style="color:var(--ink3)" onclick="sair()">Sair da conta (${esc(autor==='Carol'?'Carol':'Fernando')})</button></div>`;
+  h+=`<div class="sec">Contatos <span role="button" tabindex="0" onclick="sheetCont(null)">+ contato</span></div><div class="pet">`+(CONT.length?CONT.map(k=>`<div class="ct"><div style="flex:1;min-width:0" role="button" tabindex="0" onclick="sheetCont(${k.id})"><div class="cp">${esc(k.papel)}</div><div class="cn">${esc(k.nome)||'<span style=\"color:var(--ink3)\">preencher</span>'}</div>${k.telefone||k.endereco?`<div class="cs">${esc(k.telefone||'')}${k.telefone&&k.endereco?' · ':''}${esc(k.endereco||'')}</div>`:''}${k.observacao?`<div class="cs">${esc(k.observacao)}</div>`:''}</div>${k.telefone?`<a class="call" aria-label="Ligar para ${esc(k.nome||k.papel)}" href="tel:${esc(k.telefone.replace(/[^0-9+]/g,''))}"><i class="ti ti-phone"></i></a>`:''}</div>`).join(''):'<div class="t-mut">Nenhum contato.</div>')+`</div>`;
+  h+=`<div style="text-align:center;margin:18px 0 6px"><button class="lnk" type="button" style="color:var(--ink2)" onclick="sair()">Sair da conta (${esc(autor==='Carol'?'Carol':'Fernando')})</button></div>`;
   return h;};
-function prodRow(p){return`<div class="prod" onclick="sheetProd(${p.id})"><i class="ti ti-package" style="color:var(--ink3);font-size:18px;margin-top:2px"></i><div style="flex:1;min-width:0"><div class="pn">${esc(p.nome)}${p.cao_id==null?'<span class="tag b">os dois</span>':''}</div><div class="pd">${[CATP[p.categoria],p.marca,p.apresentacao,p.dose,p.frequencia,p.valor?money(p.valor):''].filter(Boolean).map(esc).join(' · ')}</div>${p.observacao?`<div class="pd" style="margin-top:2px">${esc(p.observacao)}</div>`:''}</div></div>`;}
+function prodRow(p){return`<div class="prod" role="button" tabindex="0" onclick="sheetProd(${p.id})"><i class="ti ti-package" style="color:var(--ink3);font-size:18px;margin-top:2px"></i><div style="flex:1;min-width:0"><div class="pn">${esc(p.nome)}${p.cao_id==null?'<span class="tag b">os dois</span>':''}</div><div class="pd">${[CATP[p.categoria],p.marca,p.apresentacao,p.dose,p.frequencia,p.valor?money(p.valor):''].filter(Boolean).map(esc).join(' · ')}</div>${p.observacao?`<div class="pd" style="margin-top:2px">${esc(p.observacao)}</div>`:''}</div></div>`;}
 
 // ===== notificações push =====
 let PUSH={sup:('serviceWorker' in navigator)&&('PushManager' in window)&&('Notification' in window),sub:null,pronto:false};
@@ -303,18 +332,19 @@ const naTela=()=>!!(navigator.standalone||(window.matchMedia&&window.matchMedia(
 const ehIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 function urlBase64ToUint8Array(b){const pad='='.repeat((4-b.length%4)%4);const s=(b+pad).replace(/-/g,'+').replace(/_/g,'/');const raw=atob(s);const a=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
 async function pushCheck(){if(!PUSH.sup){PUSH.pronto=true;return;}
+  if(pushCheck._r)return;pushCheck._r=1;
   try{const reg=await navigator.serviceWorker.ready;PUSH.sub=await reg.pushManager.getSubscription();}catch(e){PUSH.sub=null;}
   PUSH.pronto=true;if(atual==='ficha')render('ficha');}
 function pushSec(){const t=`<div class="sec">Notificações</div>`;
   if(!PUSH.sup||(ehIOS()&&!naTela()))return t+`<div class="pet"><div class="t-mut">No iPhone, adicione o app à Tela de Início pelo Safari e ative aqui dentro.</div></div>`;
   if(!PUSH.pronto)return t+`<div class="pet"><div class="t-mut">Verificando…</div></div>`;
-  if(PUSH.sub)return t+`<div class="pet"><div style="font-size:14px;font-weight:600;margin-bottom:3px">Ativas neste aparelho</div><div class="t-mut">Lembretes de vacinas e rotinas e avisos da caixa de entrada chegam aqui.</div><button class="btn" style="margin-top:12px" onclick="desativarPush()">Desativar</button></div>`;
+  if(PUSH.sub)return t+`<div class="pet"><div style="font-size:14px;font-weight:600;margin-bottom:3px">Ativas neste aparelho</div><div class="t-mut">Os lembretes (vacinas, remédios, banho) e os avisos da caixa de entrada chegam aqui.</div><button class="btn" type="button" style="margin-top:12px" onclick="desativarPush(this)">Desativar</button></div>`;
   if(Notification.permission==='denied')return t+`<div class="pet"><div style="font-size:14px;font-weight:600;margin-bottom:3px">Bloqueadas neste aparelho</div><div class="t-mut">Libere nos Ajustes do celular (Notificações → Nossos Fofinhos) e volte aqui.</div></div>`;
-  return t+`<div class="pet"><div style="font-size:14px;font-weight:600;margin-bottom:3px">Não ativadas neste aparelho</div><div class="t-mut">Ative para receber os lembretes e os avisos da caixa de entrada.</div><button class="btn btn-p" style="margin-top:12px" id="btnPush" onclick="ativarPush()">Ativar notificações</button></div>`;}
-async function ativarPush(){const b=$('#btnPush');if(b){b.disabled=true;b.textContent='Ativando…';}
+  return t+`<div class="pet"><div style="font-size:14px;font-weight:600;margin-bottom:3px">Não ativadas neste aparelho</div><div class="t-mut">Ative para receber os lembretes e os avisos da caixa de entrada.</div><button class="btn btn-p" type="button" style="margin-top:12px" id="btnPush" onclick="ativarPush()">Ativar notificações</button></div>`;}
+async function ativarPush(){const b=$('#btnPush');if(b){if(b.disabled)return;b.disabled=true;b.textContent='Ativando…';}
   try{
     const perm=await Notification.requestPermission();
-    if(perm!=='granted'){toast('Permissão não concedida');PUSH.pronto=true;render('ficha');return;}
+    if(perm!=='granted'){toast('Notificações não permitidas neste aparelho');PUSH.pronto=true;render(atual);return;}
     const reg=await navigator.serviceWorker.ready;
     let s=await reg.pushManager.getSubscription();
     if(!s)s=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUB)});
@@ -322,18 +352,21 @@ async function ativarPush(){const b=$('#btnPush');if(b){b.disabled=true;b.textCo
     const {data:{session}}=await sb.auth.getSession();
     const r=await sb.from('pet_push_subs').upsert({endpoint:sub.endpoint,sub:sub,email:(session&&session.user.email)||null,aparelho:navigator.userAgent.slice(0,120),ativo:true,falhas:0},{onConflict:'endpoint'});
     if(r.error)throw r.error;
-    PUSH.sub=s;render('ficha');toast('Notificações ativas');
-  }catch(e){if(b){b.disabled=false;b.textContent='Ativar notificações';}toast('Não consegui ativar: '+((e&&e.message)||e));}}
-async function desativarPush(){try{
+    PUSH.sub=s;render(atual);toast('Notificações ativas');
+  }catch(e){if(b){b.disabled=false;b.textContent='Ativar notificações';}console.warn(e);toast(msgErro(e,'Não consegui ativar as notificações'));}}
+async function desativarPush(b){if(b){if(b.disabled)return;b.disabled=true;b.textContent='Desativando…';}try{
     const s=PUSH.sub;if(s){const ep=s.endpoint;try{await s.unsubscribe();}catch(e){}await sb.from('pet_push_subs').delete().eq('endpoint',ep);}
-    PUSH.sub=null;render('ficha');toast('Notificações desativadas');
-  }catch(e){toast('Não consegui desativar');}}
+    PUSH.sub=null;render(atual);toast('Notificações desativadas');
+  }catch(e){if(b&&b.isConnected){b.disabled=false;b.textContent='Desativar';}toast(msgErro(e,'Não consegui desativar'));}}
 
 // ===== sheets =====
-function openSheet(h){$('#sheetIn').innerHTML=h;$('#sheet').classList.add('on');}
+function openSheet(h){const box=$('#sheetIn');box.innerHTML=h;ligaLabels(box);const t=box.querySelector('h3');$('#sheetBox').setAttribute('aria-label',t?t.textContent:'Formulário');$('#sheetBox').scrollTop=0;$('#sheet').classList.add('on');}
+// liga cada <label> ao campo do mesmo bloco (leitor de tela e toque no rótulo)
+function ligaLabels(root){root.querySelectorAll('.field').forEach(f=>{const l=f.querySelector(':scope>label'),c=f.querySelector('input:not([type=checkbox]),select,textarea');if(l&&c&&c.id&&!l.htmlFor&&!l.contains(c))l.htmlFor=c.id;});}
 function closeSheet(){$('#sheet').classList.remove('on');}
 function selCao(id,sel,allowBoth){return`<select id="${id}">${allowBoth?`<option value="" ${sel==null?'selected':''}>Os dois</option>`:''}${CAES.map(c=>`<option value="${c.id}" ${sel===c.id?'selected':''}>${c.nome}</option>`).join('')}</select>`;}
 function selTipo(id,list,sel){return`<select id="${id}">${list.map(t=>`<option value="${t}" ${sel===t?'selected':''}>${TIPOS[t].n}</option>`).join('')}</select>`;}
+const FAB_LBL={hoje:'Novo registro',cart:'Novo lembrete',vet:'Nova consulta',docs:'Enviar documento',ficha:'Novo produto'};
 function fabAction(){if(atual==='cart')editRot(null);else if(atual==='docs')pickDocs();else if(atual==='ficha')sheetProd(null);else if(atual==='vet')editEv(null,{tipo:'consulta'});else editEv(null);}
 const val=id=>($('#'+id)?$('#'+id).value.trim():'');const num=id=>{const v=val(id).replace(',','.');return v===''?null:+v;};
 
@@ -346,14 +379,15 @@ function linhas(hs){let h='',b=[];
     b.push(x.h);if(b.length===2){h+=`<div class="row2">${b.join('')}</div>`;b=[];}}
   if(b.length)h+=b.length>1?`<div class="row2">${b.join('')}</div>`:b[0];return h;}
 function anexoUI(e,doc){if(!e||!e.id)return'';
-  if(doc)return`<div class="t-mut" style="margin:-2px 0 12px;line-height:1.7"><i class="ti ti-file-text" style="color:var(--azul)"></i> ${esc(doc.nome||doc.path.split('/').pop())}<br><button class="lnk" onclick="abrirDoc('${esc(doc.path)}')">abrir</button> · <button class="lnk" onclick="anexarEv(${e.id})">trocar anexo</button> · <button class="lnk" style="color:var(--rosa)" onclick="removerAnexo(${e.id})">remover anexo</button></div>`;
-  return`<div class="anexo" onclick="anexarEv(${e.id})"><i class="ti ti-paperclip"></i> Anexar foto ou PDF</div>`;}
+  if(doc)return`<div class="t-mut" style="margin:-2px 0 12px;line-height:1.7"><i class="ti ti-file-text" style="color:var(--azul)"></i> ${esc(doc.nome||doc.path.split('/').pop())}<br><button class="lnk" type="button" onclick="abrirDoc('${esc(doc.path)}')">abrir</button> · <button class="lnk" type="button" onclick="anexarEv(${e.id})">trocar anexo</button> · <button class="lnk" type="button" style="color:var(--rosa)" onclick="removerAnexo(${e.id})">tirar anexo</button></div>`;
+  return`<div class="anexo" role="button" tabindex="0" onclick="anexarEv(${e.id})"><i class="ti ti-paperclip"></i> Anexar foto ou PDF</div>`;}
 const TIPOS_PROD=['vacina','vermifugo','antipulga','medicacao'];
 function editEv(id,preset,mais,keep){
   if(!keep)window._evPrev=null;
   const base=id?EV.find(x=>x.id===id):{cao_id:cao,tipo:'vacina',data:hojeISO(),status:'realizado',confirmado:true};
   if(!base)return;
   const e=Object.assign({},base,preset||{});
+  if(!id&&!keep&&e.status==='a_agendar'&&!(preset&&preset.data))e.data=null;
   const tipo=TIPOS[e.tipo]?e.tipo:'vacina',st=e.status||'realizado',doc=docById(e.documento_id),sug=titSug(tipo),pend=st==='a_agendar';
   const F={hora:{h:`<div class="field"><label>Hora</label><input type="time" id="eH" value="${hBR(e.hora)}"></div>`},
     produto:{h:`<div class="field"><label>Produto</label><input id="ePr" value="${esc(e.produto)}"></div>`},
@@ -378,51 +412,64 @@ function editEv(id,preset,mais,keep){
   <div class="row2"><div class="field"><label>Cão</label>${selCao('eC',e.cao_id)}</div><div class="field"><label>Tipo</label><select id="eT" onchange="evRefresh(${id||'null'})">${TIPOS_EV.map(t=>`<option value="${t}" ${tipo===t?'selected':''}>${TIPOS[t].n}</option>`).join('')}</select></div></div>
   <div class="field"><label>Título</label><input id="eTi" data-sug="${esc(sug)}" value="${esc(e.titulo||sug)}" placeholder="${esc(sug)}" maxlength="60"></div>
   <div class="field"><label>Detalhe <span style="color:var(--ink3);font-weight:400">(opcional)</span></label><input id="eSu" value="${esc(e.subtitulo)}" placeholder="Ex.: marca, dose, o que inclui"></div>
-  <div class="row2"><div class="field"><label>Situação</label><select id="eS" onchange="evRefresh(${id||'null'})"><option value="realizado" ${st==='realizado'?'selected':''}>Aconteceu</option><option value="agendado" ${st==='agendado'?'selected':''}>Agendado</option><option value="a_agendar" ${pend?'selected':''}>A agendar</option><option value="cancelado" ${st==='cancelado'?'selected':''}>Cancelado</option></select></div>${dataH}</div>
+  <div class="row2"><div class="field"><label>Situação</label><select id="eS" data-prev="${st}" onchange="evRefresh(${id||'null'})"><option value="realizado" ${st==='realizado'?'selected':''}>Aconteceu</option><option value="agendado" ${st==='agendado'?'selected':''}>Agendado</option><option value="a_agendar" ${pend?'selected':''}>A agendar</option><option value="cancelado" ${st==='cancelado'?'selected':''}>Cancelado</option></select></div>${dataH}</div>
   ${st==='agendado'?F.hora.h:''}
-  ${pend?'<div class="t-mut" style="margin:-4px 0 12px">Ainda precisa ser marcado. Não mexe nas rotinas; aparece em Hoje → A agendar.</div>':''}
+  ${pend?'<div class="t-mut" style="margin:-4px 0 12px">Ainda precisa ser marcado. Não mexe nos lembretes; aparece em Hoje → A agendar.</div>':''}
   ${linhas(pri.map(k=>F[k]))}
-  <div class="mais" onclick="evMais()"><i class="ti ti-chevron-${ab?'up':'down'}" id="eMaisIc"></i><span id="eMaisTx">${ab?'Menos detalhes':'Mais detalhes'}</span></div>
+  <div class="mais" role="button" tabindex="0" onclick="evMais()"><i class="ti ti-chevron-${ab?'up':'down'}" id="eMaisIc"></i><span id="eMaisTx">${ab?'Menos detalhes':'Mais detalhes'}</span></div>
   <div id="eMais" style="display:${ab?'block':'none'}">${linhas(ext.map(k=>F[k]))}</div>
   ${id?anexoUI(e,doc):''}
-  <button class="btn btn-p" onclick="saveEv(${id||'null'})">Salvar</button>
-  ${id?`<div style="display:flex;gap:8px;margin-top:8px">${e.confirmado?'':`<button class="btn" onclick="confirmar(${id});closeSheet()">Confirmar</button>`}<button class="btn btn-danger" onclick="delEv(${id})">Apagar</button></div>${e.pagina_origem?`<div class="t-mut" style="margin-top:10px">Origem: ${esc(e.origem)} · ${esc(e.pagina_origem)}${e.confianca?' · confiança '+e.confianca:''}</div>`:''}`:''}`);}
+  <button class="btn btn-p" type="button" onclick="saveEv(${id||'null'},this)">Salvar</button>
+  ${id?`<div style="display:flex;gap:8px;margin-top:8px">${e.confirmado?'':`<button class="btn" type="button" onclick="confirmar(${id});closeSheet()">Confirmar</button>`}<button class="btn btn-danger" type="button" onclick="delEv(${id},this)">Apagar</button></div>${e.pagina_origem?`<div class="t-mut" style="margin-top:10px">Veio de: ${esc(e.pagina_origem)}</div>`:''}`:''}`);}
 function evMais(){const d=$('#eMais');if(!d)return;const on=d.style.display==='none';d.style.display=on?'block':'none';$('#eMaisTx').textContent=on?'Menos detalhes':'Mais detalhes';$('#eMaisIc').className='ti ti-chevron-'+(on?'up':'down');}
 function evRow(){return{cao_id:+val('eC'),tipo:val('eT'),status:val('eS')||'realizado',hora:val('eH')||null,data:val('eD')||null,proxima_data:val('eP')||null,titulo:val('eTi'),subtitulo:val('eSu')||null,produto:val('ePr')||null,lote:val('eL')||null,veterinario:val('eV')||null,clinica:val('eCl')||null,peso_kg:num('eK'),valor:num('eR'),observacao:val('eO')||null};}
 function evForm(){const t=$('#eTi'),sug=t?t.dataset.sug:'';const o=evRow();if(o.titulo===sug)o.titulo='';
   // campos que somem do formulário ao trocar tipo/situação continuam guardados
   const cur=window._evPrev||{};for(const k of ['hora','produto','lote','peso_kg','proxima_data'])if(!$('#'+{hora:'eH',produto:'ePr',lote:'eL',peso_kg:'eK',proxima_data:'eP'}[k])&&cur[k]!=null)o[k]=cur[k];return o;}
-function evRefresh(id){const d=$('#eMais');const f=evForm();window._evPrev=f;editEv(id,f,!!(d&&d.style.display!=='none'),true);}
-async function saveEv(id){const row=evRow();const prev=window._evPrev||{};window._evPrev=null;
+function evRefresh(id){const d=$('#eMais');const f=evForm();const s=$('#eS');
+  // trocar a situação: "a agendar" começa sem prazo; sair dele sem data volta para hoje
+  if(s&&s.value!==s.dataset.prev){if(s.value==='a_agendar'&&f.data===hojeISO())f.data=null;else if(s.value!=='a_agendar'&&!f.data&&s.value!=='agendado')f.data=hojeISO();}window._evPrev=f;editEv(id,f,!!(d&&d.style.display!=='none'),true);}
+async function saveEv(id,btn){const row=evRow();const prev=window._evPrev||{};
   for(const [k,el] of Object.entries({hora:'eH',produto:'ePr',lote:'eL',peso_kg:'eK',proxima_data:'eP'}))if(!$('#'+el)){if(prev[k]!=null)row[k]=prev[k];else delete row[k];}
   if(row.status==='a_agendar'){row.hora=null;}
   if(!row.titulo||(!row.data&&row.status!=='a_agendar')){toast(row.titulo?'Informe a data':'Informe o título');return;}
-  closeSheet();
-  if(id){const r=await sb.from('pet_eventos').update(row).eq('id',id).select().single();if(r.data)Object.assign(EV.find(x=>x.id===id),r.data);}
-  else{row.origem='manual';row.confirmado=true;row.criado_por=autor;const r=await sb.from('pet_eventos').insert(row).select().single();if(r.data)EV.unshift(r.data);EV.sort(porData);}
-  await syncRotina(row);render(atual);toast('Salvo');}
+  if(!await comBotao(btn,async()=>{
+    if(id){const r=ok(await sb.from('pet_eventos').update(row).eq('id',id).select().single());const x=EV.find(x=>x.id===id);if(x)Object.assign(x,r.data);}
+    else{row.origem='manual';row.confirmado=true;row.criado_por=autor;const r=ok(await sb.from('pet_eventos').insert(row).select().single());EV.unshift(r.data);}
+    EV.sort(porData);}))return;
+  window._evPrev=null;closeSheet();
+  try{await syncRotina(row);}catch(e){console.warn(e);}
+  render(atual);toast('Salvo');}
 async function syncRotina(ev){if(!ev.data||ev.status==='cancelado'||ev.status==='a_agendar')return;const rs=ROT.filter(r=>r.tipo===ev.tipo&&(r.cao_id===ev.cao_id||r.cao_id==null)&&r.ativo);if(!rs.length)return;
   let r=null;if(ev.tipo==='vacina'){const f=famDe(ev);r=f?rs.find(x=>f.re.test((x.titulo||'')+' '+(x.produto||''))):null;}
   if(!r)r=rs.find(x=>x.produto&&ev.produto&&x.produto.toLowerCase()===ev.produto.toLowerCase())||(rs.length===1?rs[0]:null);if(!r)return;
-  if(ev.status==='agendado'||ev.data>hojeISO()){const upd={proxima_data:ev.data};Object.assign(r,upd);await sb.from('pet_rotinas').update(upd).eq('id',r.id);return;}
+  if(ev.status==='agendado'||ev.data>hojeISO()){const upd={proxima_data:ev.data};ok(await sb.from('pet_rotinas').update(upd).eq('id',r.id));Object.assign(r,upd);return;}
   if(r.ultima_data&&r.ultima_data>ev.data)return;
-  const upd={ultima_data:ev.data,proxima_data:ev.proxima_data||addDays(ev.data,r.intervalo_dias)};Object.assign(r,upd);await sb.from('pet_rotinas').update(upd).eq('id',r.id);}
-async function confirmar(id){const e=EV.find(x=>x.id===id);if(!e)return;e.confirmado=true;render(atual);await sb.from('pet_eventos').update({confirmado:true}).eq('id',id);toast('Confirmado');}
-async function aconteceu(id){const e=EV.find(x=>x.id===id);if(!e)return;if(!confirm(`Confirmar que "${e.titulo}" aconteceu em ${dBR(e.data)}?`))return;e.status='realizado';e.confirmado=true;await sb.from('pet_eventos').update({status:'realizado',confirmado:true}).eq('id',id);await syncRotina(e);render(atual);toast('Registrado como realizado');}
+  const upd={ultima_data:ev.data,proxima_data:ev.proxima_data||addDays(ev.data,r.intervalo_dias)};ok(await sb.from('pet_rotinas').update(upd).eq('id',r.id));Object.assign(r,upd);}
+async function confirmar(id){const e=EV.find(x=>x.id===id);if(!e||e.confirmado)return;e.confirmado=true;render(atual);
+  const r=await sb.from('pet_eventos').update({confirmado:true}).eq('id',id);if(r.error){e.confirmado=false;render(atual);toast(msgErro(r.error));return;}toast('Confirmado');}
+// agendado → aconteceu. Se a data marcada ainda é futura (ou não tem), registra como hoje.
+async function aconteceu(id){const e=EV.find(x=>x.id===id);if(!e||aconteceu._b)return;const hj=hojeISO(),d=(!e.data||e.data>hj)?hj:e.data;
+  if(!confirm(`Confirmar que "${titSub(e).t}" aconteceu em ${dBR(d)}?`))return;aconteceu._b=1;
+  try{const r=ok(await sb.from('pet_eventos').update({status:'realizado',confirmado:true,data:d}).eq('id',id).select().single());Object.assign(e,r.data);EV.sort(porData);
+    try{await syncRotina(e);}catch(x){console.warn(x);}render(atual);toast('Registrado');}
+  catch(err){toast(msgErro(err));}finally{aconteceu._b=0;}}
 function sheetMarquei(id){const e=EV.find(x=>x.id===id);if(!e)return;const ts=titSub(e);
   openSheet(`<h3>Marquei</h3><div class="t-mut" style="margin:-8px 0 14px">${esc(ts.t)}${ts.s?' · '+esc(ts.s):''} — ${esc(nomeCao(e.cao_id))}</div>
   <div class="row2"><div class="field"><label>Data</label><input type="date" id="mD" value="${e.data&&e.data>=hojeISO()?e.data:''}"></div><div class="field"><label>Hora</label><input type="time" id="mH"></div></div>
   <div class="field"><label>Clínica <span style="color:var(--ink3);font-weight:400">(opcional)</span></label><input id="mC" value="${esc(e.clinica)}"></div>
-  <button class="btn btn-p" onclick="saveMarquei(${id})">Salvar como agendado</button>
-  <div style="display:flex;gap:8px;margin-top:8px"><button class="btn" onclick="editEv(${id})">Editar</button><button class="btn btn-danger" onclick="cancelarEv(${id})">Cancelar</button></div>`);}
-async function saveMarquei(id){const d=val('mD');if(!d){toast('Informe a data');return;}const upd={status:'agendado',data:d,hora:val('mH')||null,clinica:val('mC')||null};closeSheet();
-  const r=await sb.from('pet_eventos').update(upd).eq('id',id).select().single();if(r.error){toast('Não salvou: '+r.error.message);return;}
-  const e=EV.find(x=>x.id===id);Object.assign(e,r.data);EV.sort(porData);await syncRotina(e);render(atual);toast('Agendado · '+dBR(d));}
-async function cancelarEv(id){const e=EV.find(x=>x.id===id);if(!e||!confirm('Cancelar "'+titSub(e).t+'"? Fica só no histórico.'))return;closeSheet();
-  const r=await sb.from('pet_eventos').update({status:'cancelado',data:e.data||hojeISO()}).eq('id',id).select().single();if(r.error){toast('Não salvou: '+r.error.message);return;}
-  Object.assign(e,r.data);EV.sort(porData);render(atual);toast('Cancelado');}
-async function confirmarTodos(){const l=EV.filter(e=>!e.confirmado&&e.cao_id===cao);if(!l.length||!confirm(`Confirmar os ${l.length} registros de ${caoAtual().nome}?`))return;l.forEach(e=>e.confirmado=true);render(atual);await sb.from('pet_eventos').update({confirmado:true}).in('id',l.map(e=>e.id));toast('Confirmados');}
-async function delEv(id){if(!confirm('Apagar este registro?'))return;await sb.from('pet_eventos').delete().eq('id',id);EV=EV.filter(x=>x.id!==id);closeSheet();render(atual);}
+  <button class="btn btn-p" type="button" onclick="saveMarquei(${id},this)">Salvar como agendado</button>
+  <div style="display:flex;gap:8px;margin-top:8px"><button class="btn" type="button" onclick="editEv(${id})">Editar</button><button class="btn btn-danger" type="button" onclick="cancelarEv(${id},this)">Não vai mais</button></div>`);}
+async function saveMarquei(id,btn){const d=val('mD');if(!d){toast('Informe a data');return;}const upd={status:'agendado',data:d,hora:val('mH')||null,clinica:val('mC')||null};
+  let e=null;if(!await comBotao(btn,async()=>{const r=ok(await sb.from('pet_eventos').update(upd).eq('id',id).select().single());
+    e=EV.find(x=>x.id===id);if(e)Object.assign(e,r.data);else EV.unshift(e=r.data);EV.sort(porData);}))return;
+  closeSheet();try{await syncRotina(e);}catch(x){console.warn(x);}render(atual);toast('Agendado · '+dBR(d));}
+async function cancelarEv(id,btn){const e=EV.find(x=>x.id===id);if(!e||!confirm('Cancelar "'+titSub(e).t+'"? Fica só no histórico.'))return;
+  if(!await comBotao(btn,async()=>{const r=ok(await sb.from('pet_eventos').update({status:'cancelado',data:e.data||hojeISO()}).eq('id',id).select().single());Object.assign(e,r.data);EV.sort(porData);},'Cancelando…'))return;
+  closeSheet();render(atual);toast('Cancelado');}
+async function confirmarTodos(){const l=EV.filter(e=>!e.confirmado&&e.cao_id===cao);if(!l.length||!confirm(`Confirmar os ${l.length} registros de ${caoAtual().nome}?`))return;l.forEach(e=>e.confirmado=true);render(atual);
+  const r=await sb.from('pet_eventos').update({confirmado:true}).in('id',l.map(e=>e.id));if(r.error){l.forEach(e=>e.confirmado=false);render(atual);toast(msgErro(r.error));return;}toast('Confirmados');}
+async function delEv(id,btn){if(!confirm('Apagar este registro?'))return;if(!await comBotao(btn,async()=>{ok(await sb.from('pet_eventos').delete().eq('id',id));},'Apagando…'))return;EV=EV.filter(x=>x.id!==id);closeSheet();render(atual);toast('Apagado');}
 
 // --- rotina ---
 function editRot(id,tipo,preset,mais){
@@ -431,37 +478,41 @@ function editRot(id,tipo,preset,mais){
   const r=Object.assign({},base,preset||{});
   const t=TIPOS_ROT.indexOf(r.tipo)>=0?r.tipo:'outro',sug=titSug(t);
   const ab=(mais===undefined)?!!(r.produto||r.ultima_data||r.observacao||r.ativo===false):!!mais;
-  openSheet(`<h3>${id?'Editar rotina':'Nova rotina'}</h3>
+  openSheet(`<h3>${id?'Editar lembrete':'Novo lembrete'}</h3>
   <div class="row2"><div class="field"><label>Cão</label>${selCao('rC',r.cao_id,true)}</div><div class="field"><label>Tipo</label>${selTipo('rT',TIPOS_ROT,t)}</div></div>
   <div class="field"><label>Título</label><input id="rTi" value="${esc(r.titulo)}" placeholder="Ex.: ${esc(sug)} mensal"></div>
   <div class="row2"><div class="field"><label>A cada (dias)</label><input type="number" inputmode="numeric" id="rI" value="${r.intervalo_dias||''}"></div><div class="field"><label>Próxima</label><input type="date" id="rN" value="${r.proxima_data||''}"></div></div>
-  <div class="mais" onclick="rotMais()"><i class="ti ti-chevron-${ab?'up':'down'}" id="rMaisIc"></i><span id="rMaisTx">${ab?'Menos detalhes':'Mais detalhes'}</span></div>
+  <div class="mais" role="button" tabindex="0" onclick="rotMais()"><i class="ti ti-chevron-${ab?'up':'down'}" id="rMaisIc"></i><span id="rMaisTx">${ab?'Menos detalhes':'Mais detalhes'}</span></div>
   <div id="rMais" style="display:${ab?'block':'none'}">
     <div class="row2"><div class="field"><label>Produto</label><input id="rP" value="${esc(r.produto)}"></div><div class="field"><label>Última vez</label><input type="date" id="rU" value="${r.ultima_data||''}"></div></div>
     <div class="field"><label>Observação</label><textarea id="rO" rows="2">${esc(r.observacao)}</textarea></div>
-    <div class="field"><label><input type="checkbox" id="rA" ${r.ativo===false?'':'checked'} style="width:auto;margin-right:8px">Ativa (gera lembretes)</label></div></div>
-  <button class="btn btn-p" onclick="saveRot(${id||'null'})">Salvar</button>${id?`<button class="btn btn-danger" style="margin-top:8px" onclick="delRot(${id})">Apagar rotina</button>`:''}`);}
+    <div class="field"><label><input type="checkbox" id="rA" ${r.ativo===false?'':'checked'} style="width:auto;margin-right:8px">Ativo (avisa quando estiver perto de vencer)</label></div></div>
+  <button class="btn btn-p" type="button" onclick="saveRot(${id||'null'},this)">Salvar</button>${id?`<button class="btn btn-danger" type="button" style="margin-top:8px" onclick="delRot(${id},this)">Apagar lembrete</button>`:''}`);}
 function rotMais(){const d=$('#rMais');if(!d)return;const on=d.style.display==='none';d.style.display=on?'block':'none';$('#rMaisTx').textContent=on?'Menos detalhes':'Mais detalhes';$('#rMaisIc').className='ti ti-chevron-'+(on?'up':'down');}
-async function saveRot(id){const t=val('rTi'),i=+val('rI');if(!t||!i){toast('Título e intervalo são obrigatórios');return;}
+async function saveRot(id,btn){const t=val('rTi'),i=Math.round(+val('rI'));if(!t){toast('Informe o título');return;}if(!(i>0)){toast('Informe a cada quantos dias');return;}
   let prox=val('rN')||null;const ult=val('rU')||null;if(!prox&&ult)prox=addDays(ult,i);
-  const row={cao_id:val('rC')?+val('rC'):null,tipo:val('rT'),titulo:t,produto:val('rP')||null,intervalo_dias:i,ultima_data:ult,proxima_data:prox,observacao:val('rO')||null,ativo:$('#rA').checked};closeSheet();
-  if(id){const r=await sb.from('pet_rotinas').update(row).eq('id',id).select().single();if(r.data)Object.assign(ROT.find(x=>x.id===id),r.data);}
-  else{row.ordem=50;const r=await sb.from('pet_rotinas').insert(row).select().single();if(r.data)ROT.push(r.data);}
-  render(atual);toast('Salvo');}
-async function delRot(id){if(!confirm('Apagar esta rotina?'))return;await sb.from('pet_rotinas').delete().eq('id',id);ROT=ROT.filter(x=>x.id!==id);closeSheet();render(atual);}
-function sheetFeito(id){const r=ROT.find(x=>x.id===id);
+  const row={cao_id:val('rC')?+val('rC'):null,tipo:val('rT'),titulo:t,produto:val('rP')||null,intervalo_dias:i,ultima_data:ult,proxima_data:prox,observacao:val('rO')||null,ativo:$('#rA').checked};
+  if(!await comBotao(btn,async()=>{
+    if(id){const r=ok(await sb.from('pet_rotinas').update(row).eq('id',id).select().single());const x=ROT.find(x=>x.id===id);if(x)Object.assign(x,r.data);}
+    else{row.ordem=50;const r=ok(await sb.from('pet_rotinas').insert(row).select().single());ROT.push(r.data);}}))return;
+  closeSheet();render(atual);toast('Salvo');}
+async function delRot(id,btn){if(!confirm('Apagar este lembrete? Os registros já feitos continuam.'))return;if(!await comBotao(btn,async()=>{ok(await sb.from('pet_rotinas').delete().eq('id',id));},'Apagando…'))return;ROT=ROT.filter(x=>x.id!==id);closeSheet();render(atual);toast('Apagado');}
+function sheetFeito(id){const r=ROT.find(x=>x.id===id);if(!r)return;
   openSheet(`<h3>${esc(r.titulo)} — feito</h3>
-  ${r.cao_id?'':`<div class="field"><label>Para</label>${CAES.map(c=>`<label style="display:inline-flex;align-items:center;gap:6px;margin-right:14px;font-size:15px"><input type="checkbox" class="fC" value="${c.id}" ${c.id===cao?'checked':''} style="width:auto">${c.nome}</label>`).join('')}</div>`}
-  <div class="row2"><div class="field"><label>Data</label><input type="date" id="fD" value="${hojeISO()}"></div><div class="field"><label>Valor (R$)</label><input type="text" inputmode="decimal" autocomplete="off" id="fR"></div></div>
+  ${r.cao_id?'':`<div class="field"><label>Para</label>${CAES.map(c=>`<label style="display:inline-flex;align-items:center;gap:8px;margin-right:18px;min-height:44px;font-size:15px"><input type="checkbox" class="fC" value="${c.id}" ${c.id===cao?'checked':''} style="width:auto">${c.nome}</label>`).join('')}</div>`}
+  <div class="row2"><div class="field"><label>Data</label><input type="date" id="fD" value="${hojeISO()}" onchange="feitoProx(${r.intervalo_dias})"></div><div class="field"><label>Valor (R$)</label><input type="text" inputmode="decimal" autocomplete="off" id="fR"></div></div>
   <div class="row2"><div class="field"><label>Produto</label><input id="fP" value="${esc(r.produto)}"></div><div class="field"><label>Lote</label><input id="fL"></div></div>
   ${['vacina','consulta','exame'].includes(r.tipo)?`<div class="row2"><div class="field"><label>Veterinário</label><input id="fV"></div><div class="field"><label>Peso (kg)</label><input type="text" inputmode="decimal" autocomplete="off" id="fK"></div></div>`:''}
   <div class="field"><label>Observação</label><input id="fO"></div>
-  <div class="t-mut" style="margin-bottom:12px">Próxima ficará em <b>${dBR(addDays(hojeISO(),r.intervalo_dias))}</b> (a cada ${r.intervalo_dias} dias).</div>
-  <button class="btn btn-p" onclick="saveFeito(${id})">Registrar</button>`);}
-async function saveFeito(id){const r=ROT.find(x=>x.id===id);const d=val('fD')||hojeISO();const ids=r.cao_id?[r.cao_id]:[...document.querySelectorAll('.fC:checked')].map(x=>+x.value);if(!ids.length){toast('Escolha o cão');return;}closeSheet();
+  <div class="t-mut" style="margin-bottom:12px">Próxima ficará em <b id="fProx">${dBR(addDays(hojeISO(),r.intervalo_dias))}</b> (a cada ${r.intervalo_dias} dias).</div>
+  <button class="btn btn-p" type="button" onclick="saveFeito(${id},this)">Salvar</button>`);}
+function feitoProx(n){const d=val('fD'),b=$('#fProx');if(b&&d)b.textContent=dBR(addDays(d,n));}
+async function saveFeito(id,btn){const r=ROT.find(x=>x.id===id);if(!r)return;const d=val('fD')||hojeISO();if(d>hojeISO()){toast('Data no futuro: use Novo registro → Agendado');return;}const ids=r.cao_id?[r.cao_id]:[...document.querySelectorAll('.fC:checked')].map(x=>+x.value);if(!ids.length){toast('Escolha o cão');return;}
   const prox=addDays(d,r.intervalo_dias);const rows=ids.map(c=>({cao_id:c,tipo:r.tipo==='higiene'?'outro':r.tipo,data:d,titulo:r.titulo,produto:val('fP')||null,lote:val('fL')||null,veterinario:val('fV')||null,peso_kg:num('fK'),valor:num('fR'),proxima_data:prox,observacao:val('fO')||null,origem:'manual',confirmado:true,criado_por:autor}));
-  const ins=await sb.from('pet_eventos').insert(rows).select();if(ins.data){EV=ins.data.concat(EV);}
-  const upd={ultima_data:d,proxima_data:prox};Object.assign(r,upd);await sb.from('pet_rotinas').update(upd).eq('id',id);render(atual);toast('Registrado · próxima '+dBR(prox));}
+  let andou=false;
+  if(!await comBotao(btn,async()=>{const ins=ok(await sb.from('pet_eventos').insert(rows).select());EV=ins.data.concat(EV);EV.sort(porData);
+    if(!(r.ultima_data&&r.ultima_data>d)){const upd={ultima_data:d,proxima_data:prox};ok(await sb.from('pet_rotinas').update(upd).eq('id',id));Object.assign(r,upd);andou=true;}}))return;
+  closeSheet();render(atual);toast(andou?'Salvo · próxima '+dBR(prox):'Salvo');}
 
 // --- produto ---
 function sheetProd(id,preset){const b0=id?PROD.find(x=>x.id===id):{cao_id:cao,categoria:'racao',em_uso:true};if(!b0)return;const p=Object.assign({},b0,preset||{});
@@ -473,48 +524,57 @@ function sheetProd(id,preset){const b0=id?PROD.find(x=>x.id===id):{cao_id:cao,ca
   <div class="row2"><div class="field"><label>Valor (R$)</label><input type="text" inputmode="decimal" autocomplete="off" id="pV" value="${p.valor||''}"></div><div class="field"><label>Onde compra</label><input id="pW" value="${esc(p.onde_compra)}"></div></div>
   <div class="field"><label>Observação</label><input id="pO" value="${esc(p.observacao)}"></div>
   <div class="field"><label><input type="checkbox" id="pU" ${p.em_uso?'checked':''} style="width:auto;margin-right:8px">Em uso</label></div>
-  <button class="btn btn-p" onclick="saveProd(${id||'null'})">Salvar</button>${id?`<button class="btn btn-danger" style="margin-top:8px" onclick="delProd(${id})">Apagar</button>`:''}`);}
-async function saveProd(id){const n=val('pN');if(!n){toast('Informe o nome');return;}const row={cao_id:val('pC')?+val('pC'):null,categoria:val('pK'),nome:n,marca:val('pM')||null,apresentacao:val('pA')||null,dose:val('pD')||null,frequencia:val('pF')||null,valor:num('pV'),onde_compra:val('pW')||null,observacao:val('pO')||null,em_uso:$('#pU').checked};closeSheet();
-  if(id){const r=await sb.from('pet_produtos').update(row).eq('id',id).select().single();if(r.data)Object.assign(PROD.find(x=>x.id===id),r.data);}else{const r=await sb.from('pet_produtos').insert(row).select().single();if(r.data)PROD.push(r.data);}render(atual);toast('Salvo');}
-async function delProd(id){if(!confirm('Apagar produto?'))return;await sb.from('pet_produtos').delete().eq('id',id);PROD=PROD.filter(x=>x.id!==id);closeSheet();render(atual);}
+  <button class="btn btn-p" type="button" onclick="saveProd(${id||'null'},this)">Salvar</button>${id?`<button class="btn btn-danger" type="button" style="margin-top:8px" onclick="delProd(${id},this)">Apagar</button>`:''}`);}
+async function saveProd(id,btn){const n=val('pN');if(!n){toast('Informe o nome');return;}const row={cao_id:val('pC')?+val('pC'):null,categoria:val('pK'),nome:n,marca:val('pM')||null,apresentacao:val('pA')||null,dose:val('pD')||null,frequencia:val('pF')||null,valor:num('pV'),onde_compra:val('pW')||null,observacao:val('pO')||null,em_uso:$('#pU').checked};
+  if(!await comBotao(btn,async()=>{if(id){const r=ok(await sb.from('pet_produtos').update(row).eq('id',id).select().single());const x=PROD.find(x=>x.id===id);if(x)Object.assign(x,r.data);}else{const r=ok(await sb.from('pet_produtos').insert(row).select().single());PROD.push(r.data);}}))return;
+  closeSheet();render(atual);toast('Salvo');}
+async function delProd(id,btn){if(!confirm('Apagar este produto?'))return;if(!await comBotao(btn,async()=>{ok(await sb.from('pet_produtos').delete().eq('id',id));},'Apagando…'))return;PROD=PROD.filter(x=>x.id!==id);closeSheet();render(atual);toast('Apagado');}
 
 // --- cão ---
-function editCao(id){const c=CAES.find(x=>x.id===id);openSheet(`<h3>${esc(c.nome)}</h3>
+function editCao(id){const c=CAES.find(x=>x.id===id);if(!c)return;openSheet(`<h3>${esc(c.nome)}</h3>
   <div class="row2"><div class="field"><label>Nascimento</label><input type="date" id="cN" value="${c.nascimento||''}"></div><div class="field"><label>Adoção</label><input type="date" id="cA" value="${c.adocao||''}"></div></div>
   <div class="row2"><div class="field"><label>Raça</label><input id="cR" value="${esc(c.raca)}"></div><div class="field"><label>Microchip</label><input id="cM" value="${esc(c.microchip)}"></div></div>
-  <div class="row2"><div class="field"><label>Castrado</label><select id="cC"><option value="" ${c.castrado==null?'selected':''}>—</option><option value="1" ${c.castrado===true?'selected':''}>sim</option><option value="0" ${c.castrado===false?'selected':''}>não</option></select></div><div class="field"><label>Alergias</label><input id="cAl" value="${esc(c.alergias)}"></div></div>
+  <div class="row2"><div class="field"><label>Castrado</label><select id="cC"><option value="" ${c.castrado==null?'selected':''}>não informado</option><option value="1" ${c.castrado===true?'selected':''}>sim</option><option value="0" ${c.castrado===false?'selected':''}>não</option></select></div><div class="field"><label>Alergias</label><input id="cAl" value="${esc(c.alergias)}"></div></div>
   <div class="field"><label>Observações</label><textarea id="cO" rows="4">${esc(c.observacao)}</textarea></div>
-  <button class="btn btn-p" onclick="saveCao(${id})">Salvar</button>`);}
-async function saveCao(id){const row={nascimento:val('cN')||null,adocao:val('cA')||null,raca:val('cR')||null,microchip:val('cM')||null,castrado:val('cC')===''?null:val('cC')==='1',alergias:val('cAl')||null,observacao:val('cO')||null};closeSheet();const r=await sb.from('pet_caes').update(row).eq('id',id).select().single();if(r.data)Object.assign(CAES.find(x=>x.id===id),r.data);render(atual);toast('Salvo');}
+  <button class="btn btn-p" type="button" onclick="saveCao(${id},this)">Salvar</button>`);}
+async function saveCao(id,btn){const row={nascimento:val('cN')||null,adocao:val('cA')||null,raca:val('cR')||null,microchip:val('cM')||null,castrado:val('cC')===''?null:val('cC')==='1',alergias:val('cAl')||null,observacao:val('cO')||null};
+  if(!await comBotao(btn,async()=>{const r=ok(await sb.from('pet_caes').update(row).eq('id',id).select().single());const x=CAES.find(x=>x.id===id);if(x)Object.assign(x,r.data);}))return;
+  closeSheet();renderSeg();render(atual);toast('Salvo');}
 
 // --- contato ---
 function sheetCont(id){const k=id?CONT.find(x=>x.id===id):{};openSheet(`<h3>${id?'Contato':'Novo contato'}</h3>
   <div class="field"><label>Papel</label><input id="kP" value="${esc(k.papel)}" placeholder="Vet, clínica, banho e tosa…"></div><div class="field"><label>Nome</label><input id="kN" value="${esc(k.nome)}"></div>
-  <div class="row2"><div class="field"><label>Telefone</label><input id="kT" value="${esc(k.telefone)}"></div><div class="field"><label>CRMV</label><input id="kC" value="${esc(k.crmv)}"></div></div>
+  <div class="row2"><div class="field"><label>Telefone</label><input id="kT" type="tel" inputmode="tel" value="${esc(k.telefone)}"></div><div class="field"><label>CRMV</label><input id="kC" value="${esc(k.crmv)}"></div></div>
   <div class="field"><label>Endereço</label><input id="kE" value="${esc(k.endereco)}"></div><div class="field"><label>Observação</label><input id="kO" value="${esc(k.observacao)}"></div>
-  <button class="btn btn-p" onclick="saveCont(${id||'null'})">Salvar</button>${id?`<button class="btn btn-danger" style="margin-top:8px" onclick="delCont(${id})">Apagar</button>`:''}`);}
-async function saveCont(id){const row={papel:val('kP')||'Contato',nome:val('kN')||null,telefone:val('kT')||null,crmv:val('kC')||null,endereco:val('kE')||null,observacao:val('kO')||null};closeSheet();
-  if(id){const r=await sb.from('pet_contatos').update(row).eq('id',id).select().single();if(r.data)Object.assign(CONT.find(x=>x.id===id),r.data);}else{row.ordem=50;const r=await sb.from('pet_contatos').insert(row).select().single();if(r.data)CONT.push(r.data);}render(atual);toast('Salvo');}
-async function delCont(id){if(!confirm('Apagar contato?'))return;await sb.from('pet_contatos').delete().eq('id',id);CONT=CONT.filter(x=>x.id!==id);closeSheet();render(atual);}
+  <button class="btn btn-p" type="button" onclick="saveCont(${id||'null'},this)">Salvar</button>${id?`<button class="btn btn-danger" type="button" style="margin-top:8px" onclick="delCont(${id},this)">Apagar</button>`:''}`);}
+async function saveCont(id,btn){const row={papel:val('kP')||'Contato',nome:val('kN')||null,telefone:val('kT')||null,crmv:val('kC')||null,endereco:val('kE')||null,observacao:val('kO')||null};
+  if(!await comBotao(btn,async()=>{if(id){const r=ok(await sb.from('pet_contatos').update(row).eq('id',id).select().single());const x=CONT.find(x=>x.id===id);if(x)Object.assign(x,r.data);}else{row.ordem=50;const r=ok(await sb.from('pet_contatos').insert(row).select().single());CONT.push(r.data);}}))return;
+  closeSheet();render(atual);toast('Salvo');}
+async function delCont(id,btn){if(!confirm('Apagar este contato?'))return;if(!await comBotao(btn,async()=>{ok(await sb.from('pet_contatos').delete().eq('id',id));},'Apagando…'))return;CONT=CONT.filter(x=>x.id!==id);closeSheet();render(atual);toast('Apagado');}
 
 // --- documentos ---
-function pickDocs(){const fi=$('#filein');fi.value='';fi.setAttribute('multiple','');fi.onchange=async e=>{const files=[...e.target.files];if(!files.length)return;toast('Enviando '+files.length+'…');
-  for(const f of files){try{await uploadDoc(f);}catch(err){toast('Erro: '+(err.message||err));}}await loadAll();go('docs');toast('Na caixa de entrada');};fi.click();}
-function shrink(file){return new Promise(res=>{const img=new Image();img.onerror=()=>res(file);img.onload=()=>{const M=1800,sc=Math.min(1,M/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=img.width*sc;c.height=img.height*sc;c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(b=>res(b),'image/jpeg',.82);};img.src=URL.createObjectURL(file);});}
-async function uploadDoc(file){const pdf=file.type==='application/pdf';const blob=pdf?file:await shrink(file);const path='inbox/'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+(pdf?'.pdf':'.jpg');
-  const up=await sb.storage.from('pet-docs').upload(path,blob,{contentType:pdf?'application/pdf':'image/jpeg'});if(up.error)throw up.error;
-  const ins=await sb.from('pet_documentos').insert({cao_id:cao,path,nome:file.name,tipo_mime:pdf?'application/pdf':'image/jpeg',status:'novo',enviado_por:autor});if(ins.error)throw ins.error;}
-async function abrirDoc(path){let s=SIGNED[path];if(!s||s.t<Date.now()){const r=await sb.storage.from('pet-docs').createSignedUrl(path,3600);if(r.error){toast('Não abriu');return;}s=SIGNED[path]={url:r.data.signedUrl,t:Date.now()+3000e3};}window.open(s.url,'_blank');}
-async function delDoc(id){if(!confirm('Apagar documento? Os registros ligados continuam, sem o anexo.'))return;const d=DOCS.find(x=>x.id===id);await sb.from('pet_documentos').delete().eq('id',id);if(d)await sb.storage.from('pet-docs').remove([d.path]);DOCS=DOCS.filter(x=>x.id!==id);EV.forEach(e=>{if(e.documento_id===id)e.documento_id=null;});render('docs');}
+function pickDocs(){const fi=$('#filein');fi.value='';fi.setAttribute('multiple','');fi.onchange=async e=>{const files=[...e.target.files];if(!files.length)return;toast(files.length>1?'Enviando '+files.length+' arquivos…':'Enviando…',60000);
+  let n=0,err=null;for(const f of files){try{await uploadDoc(f);n++;}catch(x){console.warn(x);err=x;}}
+  try{await loadAll();}catch(_){}go('docs');
+  toast(err?(n?n+' enviado(s); '+(files.length-n)+' não foi(ram). ':'')+msgErro(err,'Não consegui enviar'):(n>1?n+' arquivos na caixa de entrada':'Na caixa de entrada'));};fi.click();}
+function shrink(file){return new Promise(res=>{const img=new Image();img.onerror=()=>res(file);img.onload=()=>{const M=1800,sc=Math.min(1,M/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=img.width*sc;c.height=img.height*sc;c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(b=>res(b||file),'image/jpeg',.82);URL.revokeObjectURL(img.src);};img.src=URL.createObjectURL(file);});}
+// tipo e extensão reais do arquivo enviado (a foto vira JPEG; se não der para converter, sobe o original)
+const mimeDe=(file,blob)=>file.type==='application/pdf'?'application/pdf':((blob&&blob.type)||file.type||'image/jpeg');
+const extDe=m=>m==='application/pdf'?'.pdf':m==='image/jpeg'?'.jpg':'.'+((m.split('/')[1]||'img').replace(/[^a-z0-9]/gi,''));
+async function uploadDoc(file){const pdf=file.type==='application/pdf';const blob=pdf?file:await shrink(file);const mime=mimeDe(file,blob);const path='inbox/'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+extDe(mime);
+  const up=await sb.storage.from('pet-docs').upload(path,blob,{contentType:mime});if(up.error)throw up.error;
+  const ins=await sb.from('pet_documentos').insert({cao_id:cao,path,nome:file.name,tipo_mime:mime,status:'novo',enviado_por:autor});if(ins.error)throw ins.error;}
+async function abrirDoc(path){let s=SIGNED[path];if(!s||s.t<Date.now()){toast('Abrindo…');const r=await sb.storage.from('pet-docs').createSignedUrl(path,3600);if(r.error){toast(msgErro(r.error,'Não consegui abrir o documento'));return;}s=SIGNED[path]={url:r.data.signedUrl,t:Date.now()+3000e3};}const w=window.open(s.url,'_blank');if(!w)location.href=s.url;}
+async function delDoc(id){if(!confirm('Apagar documento? Os registros ligados continuam, sem o anexo.'))return;const d=DOCS.find(x=>x.id===id);const rd=await sb.from('pet_documentos').delete().eq('id',id);if(rd.error){toast(msgErro(rd.error,'Não consegui apagar'));return;}if(d)await sb.storage.from('pet-docs').remove([d.path]);DOCS=DOCS.filter(x=>x.id!==id);EV.forEach(e=>{if(e.documento_id===id)e.documento_id=null;});render(atual);toast('Apagado');}
 async function anexarEv(id){const e=EV.find(x=>x.id===id);if(!e)return;const fi=$('#filein');fi.value='';fi.removeAttribute('multiple');
   fi.onchange=async ev=>{const f=(ev.target.files||[])[0];fi.setAttribute('multiple','');if(!f)return;
-    try{toast('Enviando anexo…');await anexarArquivo(id,f);}catch(err){toast('Erro: '+((err&&err.message)||err));}};
+    try{toast('Enviando anexo…',60000);await anexarArquivo(id,f);}catch(err){console.warn(err);toast(msgErro(err,'Não consegui enviar o anexo'));}};
   fi.click();}
 async function anexarArquivo(id,file){const e=EV.find(x=>x.id===id);if(!e)return;
-  const pdf=file.type==='application/pdf';const blob=pdf?file:await shrink(file);
-  const path='anexos/'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+(pdf?'.pdf':'.jpg');
-  const up=await sb.storage.from('pet-docs').upload(path,blob,{contentType:pdf?'application/pdf':'image/jpeg'});if(up.error)throw up.error;
-  const row={cao_id:e.cao_id,path,nome:(e.titulo||'Anexo')+' · '+dBR(e.data),tipo_mime:pdf?'application/pdf':'image/jpeg',status:'processado',categoria:e.tipo==='exame'?'exame':'outro',data_doc:e.data,resumo:'Anexado manualmente ao registro'};
+  const pdf=file.type==='application/pdf';const blob=pdf?file:await shrink(file);const mime=mimeDe(file,blob);
+  const path='anexos/'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+extDe(mime);
+  const up=await sb.storage.from('pet-docs').upload(path,blob,{contentType:mime});if(up.error)throw up.error;
+  const row={cao_id:e.cao_id,path,nome:(titSub(e).t||'Anexo')+(e.data?' · '+dBR(e.data):''),tipo_mime:mime,status:'processado',categoria:e.tipo==='exame'?'exame':'outro',data_doc:e.data,resumo:'Anexado manualmente ao registro'};
   const antigo=docById(e.documento_id);
   if(antigo){const velho=antigo.path;
     const r=await sb.from('pet_documentos').update(row).eq('id',antigo.id).select().single();if(r.error)throw r.error;
@@ -529,32 +589,61 @@ async function anexarArquivo(id,file){const e=EV.find(x=>x.id===id);if(!e)return
 async function removerAnexo(id){const e=EV.find(x=>x.id===id);if(!e)return;
   if(!confirm('Desligar o anexo deste registro? O documento continua na aba Documentos.'))return;
   const r=await sb.from('pet_eventos').update({documento_id:null}).eq('id',id).select().single();
-  if(r.data)Object.assign(e,r.data);else e.documento_id=null;
+  if(r.error){toast(msgErro(r.error));return;}Object.assign(e,r.data);
   render(atual);editEv(id);toast('Anexo removido');}
-async function reprocessar(id){await sb.from('pet_documentos').update({status:'novo',erro:null}).eq('id',id);const d=DOCS.find(x=>x.id===id);if(d){d.status='novo';d.erro=null;}render('docs');toast('Volta para a caixa');}
+async function reprocessar(id){const r=await sb.from('pet_documentos').update({status:'novo',erro:null}).eq('id',id);if(r.error){toast(msgErro(r.error));return;}const d=DOCS.find(x=>x.id===id);if(d){d.status='novo';d.erro=null;}render(atual);toast('Voltou para a caixa de entrada');}
 
 // ===== boot =====
-function render(v){$('#view').innerHTML=(V[v]||V.hoje)();}
-function go(v){atual=v;render(v);window.scrollTo(0,0);document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.go===v));}
+function render(v){try{$('#view').innerHTML=(V[v]||V.hoje)();}catch(e){console.error(e);$('#view').innerHTML='<div class="empty"><b>Algo deu errado nesta tela</b>Recarregue para tentar de novo.<br><button class="btn" type="button" onclick="location.reload()">Recarregar</button></div>';}}
+function go(v){atual=v;render(v);window.scrollTo(0,0);document.querySelectorAll('nav a').forEach(a=>{const on=a.dataset.go===v;a.classList.toggle('on',on);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});$('#fab').setAttribute('aria-label',FAB_LBL[v]||'Novo registro');}
 $('#sheet').addEventListener('click',e=>{if(e.target.id==='sheet')closeSheet();});
+// teclado: Esc fecha; Enter/espaço aciona o que tem role=button
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#sheet').classList.contains('on'))closeSheet();
+  const t=e.target;if((e.key==='Enter'||e.key===' ')&&t&&t.getAttribute&&t.getAttribute('role')&&/^(button|tab)$/.test(t.getAttribute('role'))&&t.tagName!=='BUTTON'){e.preventDefault();t.click();}});
+function erroCarga(e){const m=String((e&&e.message)||e||'');if(/jwt|401|token/i.test(m))sessaoExpirada();const off=!navigator.onLine||/fetch|network|load failed/i.test(m);
+  return`<div class="empty"><b>${off?'Sem internet':'Não consegui carregar'}</b>${off?'Confira a conexão e tente de novo.':'Tente de novo em instantes.'}<br><button class="btn" type="button" onclick="tentarCarregar()">Tentar de novo</button></div>`;}
+async function tentarCarregar(){$('#view').innerHTML='<div class="empty">Carregando…</div>';try{await loadAll();render(atual);}catch(e){$('#view').innerHTML=erroCarga(e);}}
+async function sessaoExpirada(){try{const {data:{session}}=await sb.auth.getSession();if(session)return;}catch(_){}BOOTED=null;$('#login').classList.add('on');}
 let _rt;function scheduleReload(p){if(p&&p.table&&!/^pet_/.test(p.table))return;clearTimeout(_rt);_rt=setTimeout(async()=>{try{await loadAll();render(atual);}catch(e){}},700);}
 const FAMILIA=['chiapinotto@gmail.com','carolinecaye@gmail.com'];
 function setAutorDe(email){autor=(email||'').toLowerCase().indexOf('caroline')>-1?'Carol':'Fernando';}
+// boot roda uma vez por login (o Supabase repete o aviso de "entrou" ao voltar para o app)
+let BOOTED=null,CANAL=null;
 async function boot(){
-  const {data:{session}}=await sb.auth.getSession();
-  if(!session||!FAMILIA.includes((session.user.email||'').toLowerCase())){if(session)await sb.auth.signOut();$('#login').classList.add('on');$('#view').innerHTML='';return;}
-  setAutorDe(session.user.email);$('#login').classList.remove('on');
-  try{await loadAll();render('hoje');}
-  catch(e){$('#view').innerHTML='<div class="empty">Erro ao carregar.<br>'+((e&&e.message)||'')+'<br>Recarregue a página. 🐾</div>';}
-  try{sb.channel('pets').on('postgres_changes',{event:'*',schema:'public'},scheduleReload).subscribe();}catch(e){}
+  let session=null;try{({data:{session}}=await sb.auth.getSession());}catch(_){}
+  const em=((session&&session.user.email)||'').toLowerCase();
+  if(!session||!FAMILIA.includes(em)){if(session)await sb.auth.signOut();BOOTED=null;$('#login').classList.add('on');$('#view').innerHTML='';return;}
+  $('#login').classList.remove('on');
+  if(BOOTED===em)return;BOOTED=em;setAutorDe(em);
+  $('#view').innerHTML='<div class="empty">Carregando…</div>';
+  try{await loadAll();render(atual);}
+  catch(e){console.warn(e);$('#view').innerHTML=erroCarga(e);}
+  if(!CANAL){try{CANAL=sb.channel('pets').on('postgres_changes',{event:'*',schema:'public'},scheduleReload).subscribe();}catch(e){}}
 }
-sb.auth.onAuthStateChange((ev,sess)=>{if(ev==='SIGNED_IN'&&sess){$('#login').classList.remove('on');boot();}if(ev==='SIGNED_OUT'){$('#login').classList.add('on');$('#view').innerHTML='';}});
+sb.auth.onAuthStateChange((ev,sess)=>{if(ev==='SIGNED_IN'&&sess){setTimeout(boot,0);}
+  if(ev==='SIGNED_OUT'){BOOTED=null;CAES=[];EV=[];ROT=[];PROD=[];DOCS=[];CONT=[];closeSheet();lgVoltar();$('#lgCode').value='';$('#login').classList.add('on');$('#view').innerHTML='';}});
 // --- login por código ---
 let lgEmail='';
-async function enviarCodigo(){const em=val('lgEmail').toLowerCase();const err=$('#lgErr');err.textContent='';if(!FAMILIA.includes(em)){err.textContent='Este e-mail não está na família.';return;}
-  const r=await sb.auth.signInWithOtp({email:em,options:{shouldCreateUser:true}});if(r.error){err.textContent=r.error.message;return;}lgEmail=em;$('#lg1').style.display='none';$('#lg2').style.display='';setTimeout(()=>$('#lgCode').focus(),50);}
+function msgLogin(e,codigo){const m=String((e&&e.message)||e||'');
+  if(!navigator.onLine||/fetch|network|load failed/i.test(m))return'Sem internet. Tente de novo.';
+  if(/rate|too many|security purposes|seconds|429/i.test(m))return'Aguarde um minuto antes de pedir outro código.';
+  if(codigo)return'Código inválido ou vencido. Peça outro.';
+  return'Não consegui enviar o código agora. Tente de novo em instantes.';}
+let _lgOcupado=false;
+async function enviarCodigo(reenviar){const em=(reenviar===true?lgEmail:val('lgEmail')).toLowerCase();const err=$('#lgErr');err.textContent='';
+  if(!em){err.textContent='Digite seu e-mail.';return;}
+  if(!FAMILIA.includes(em)){err.textContent='Este e-mail não está na família.';return;}
+  if(_lgOcupado)return;_lgOcupado=true;const b=$('#lgBtn1');if(b){b.disabled=true;b.textContent='Enviando…';}
+  try{const r=await sb.auth.signInWithOtp({email:em,options:{shouldCreateUser:true}});if(r.error)throw r.error;
+    lgEmail=em;$('#lg1').style.display='none';$('#lg2').style.display='';$('#lgCode').value='';setTimeout(()=>$('#lgCode').focus(),50);
+    if(reenviar===true)toast('Código reenviado para '+em);}
+  catch(e){err.textContent=msgLogin(e);}
+  finally{_lgOcupado=false;if(b){b.disabled=false;b.textContent='Enviar código';}}}
 async function entrarCodigo(){const t=val('lgCode').replace(/\D/g,'');const err=$('#lgErr');err.textContent='';if(t.length<6){err.textContent='Digite o código de 6 dígitos.';return;}
-  const r=await sb.auth.verifyOtp({email:lgEmail,token:t,type:'email'});if(r.error){err.textContent='Código inválido ou vencido. Peça outro.';return;}}
+  if(_lgOcupado)return;_lgOcupado=true;const b=$('#lgBtn2');if(b){b.disabled=true;b.textContent='Entrando…';}
+  try{const r=await sb.auth.verifyOtp({email:lgEmail,token:t,type:'email'});if(r.error)throw r.error;}
+  catch(e){err.textContent=msgLogin(e,true);}
+  finally{_lgOcupado=false;if(b){b.disabled=false;b.textContent='Entrar';}}}
 function lgVoltar(){$('#lg2').style.display='none';$('#lg1').style.display='';$('#lgErr').textContent='';}
 async function sair(){if(!confirm('Sair da conta neste aparelho?'))return;await sb.auth.signOut();}
 // --- falar ou escrever ---
@@ -565,15 +654,15 @@ function sheetFalar(texto){ENTRADA={historico:[],res:null,acoes:[],perg:[],ultim
   openSheet(falarHTML(texto||''));recUI();
   setTimeout(()=>{const t=$('#flTxt');if(t){t.focus();try{t.setSelectionRange(t.value.length,t.value.length);}catch(_){}}},80);}
 function falarHTML(texto){return`<h3>Falar ou escrever</h3><div id="flOuv"></div>
-  <div class="field"><textarea id="flTxt" rows="4" oninput="pararRec(true)" placeholder="Ex.: dei antipulgas Simparic no Jorge hoje, 60 reais · a Stout pesou 5,8 kg · remarca a consulta para quinta">${esc(texto)}</textarea></div>
+  <div class="field"><textarea id="flTxt" rows="4" aria-label="O que aconteceu" oninput="pararRec(true)" placeholder="Ex.: dei antipulgas Simparic no Jorge hoje, 60 reais · a Stout pesou 5,8 kg · remarca a consulta para quinta">${esc(texto)}</textarea></div>
   <div class="t-mut" style="margin-bottom:10px">Cão selecionado: <b>${esc((caoAtual()||{}).nome||'')}</b> (se não citar o nome, uso este).</div>
   <div id="flBtns"></div><div class="err" id="flErr" style="color:var(--rosa);font-size:13px;margin-top:10px"></div>`;}
 function recUI(){const o=$('#flOuv'),b=$('#flBtns');if(!o||!b)return;
   if(REC.ativo){o.innerHTML='<div class="ouv"><span class="pulso"></span>Ouvindo… pode falar</div>';
-    b.innerHTML='<button class="btn" style="margin-bottom:8px" onclick="pararRec()"><i class="ti ti-player-stop"></i> Parar</button><button class="btn btn-p" id="flBtn" onclick="interpretar()">Interpretar</button>';}
+    b.innerHTML='<button class="btn" type="button" style="margin-bottom:8px" onclick="pararRec()"><i class="ti ti-player-stop" aria-hidden="true"></i> Parar</button><button class="btn btn-p" type="button" id="flBtn" onclick="interpretar()">Interpretar</button>';}
   else{const dica=REC.erro?'Não consegui usar o microfone aqui — escreva, ou toque no microfone do teclado para ditar.':(SR?'Toque em Gravar para ditar, ou escreva. Você pode editar o texto antes de interpretar.':'Escreva como falaria — no iPhone, toque no microfone do teclado para ditar.');
     o.innerHTML=`<div class="t-mut" style="margin:-8px 0 12px">${dica} Eu interpreto e você só confere.</div>`;
-    b.innerHTML=`${SR&&!REC.erro?'<button class="btn" style="margin-bottom:8px" onclick="startRec()"><i class="ti ti-microphone"></i> Gravar</button>':''}<button class="btn btn-p" id="flBtn" onclick="interpretar()">Interpretar</button>`;}}
+    b.innerHTML=`${SR&&!REC.erro?'<button class="btn" type="button" style="margin-bottom:8px" onclick="startRec()"><i class="ti ti-microphone" aria-hidden="true"></i> Gravar</button>':''}<button class="btn btn-p" type="button" id="flBtn" onclick="interpretar()">Interpretar</button>`;}}
 function startRec(){if(!SR){recUI();return;}
   try{if(REC.obj){try{REC.obj.abort();}catch(_){}}
     const r=new SR();REC={obj:r,ativo:false,final:(val('flTxt')||''),manual:false,erro:''};
@@ -593,22 +682,24 @@ function startRec(){if(!SR){recUI();return;}
 function pararRec(silencioso){if(REC.obj){REC.manual=true;try{REC.obj.stop();}catch(_){try{REC.obj.abort();}catch(__){}}}
   if(silencioso&&REC.ativo){REC.ativo=false;recUI();}}
 async function interpretar(){pararRec(true);const t=val('flTxt');if(!t){toast('Escreva ou fale alguma coisa');return;}
-  const b=$('#flBtn');if(b){b.disabled=true;b.textContent='Interpretando…';}
+  const b=$('#flBtn');if(b){if(b.disabled)return;b.disabled=true;b.textContent='Interpretando…';}
   await chamarParse(t);}
-function pensando(){openSheet(`<h3>Pensando…</h3><div class="t-mut" style="margin:-8px 0 12px">Um instante — estou olhando as rotinas e os registros.</div><div class="ouv"><span class="pulso"></span>Interpretando</div>`);}
+function pensando(){openSheet(`<h3>Pensando…</h3><div class="t-mut" style="margin:-8px 0 12px">Um instante — estou olhando os lembretes e os registros.</div><div class="ouv"><span class="pulso"></span>Interpretando</div>`);}
 async function msgErroInvoke(error){try{const c=error&&error.context;if(c){const r=(typeof c.clone==='function')?c.clone():c;let j=null;try{j=await r.json();}catch(_){try{const t=await r.text();j=JSON.parse(t);}catch(__){}}
   const m=j&&(j.erro||j.error||j.message);if(m)return String(m);}}catch(_){}
-  return (error&&error.message)||'Não consegui interpretar';}
+  return msgErro(error,'Não consegui interpretar agora');}
 async function chamarParse(texto){if(!ENTRADA)ENTRADA={historico:[],acoes:[],perg:[]};
   pensando();
   try{const {data,error}=await sb.functions.invoke('fofinhos-parse',{body:{texto,cao_id:cao,historico:ENTRADA.historico||[]}});
     if(error)throw new Error(await msgErroInvoke(error));if(!data)throw new Error('sem resposta');if(data.erro)throw new Error(data.erro);
     ENTRADA.historico=(ENTRADA.historico||[]).concat([{role:'user',content:texto},{role:'assistant',content:JSON.stringify(data)}]).slice(-20);
     mostrarEntrada(texto,data);
-  }catch(e){ENTRADA.ultimo=texto;
-    openSheet(`<h3>Não consegui interpretar</h3><div class="t-mut" style="margin:-8px 0 14px">${esc((e&&e.message)||e)}</div>
-      <button class="btn btn-p" onclick="sheetFalar(ENTRADA&&ENTRADA.ultimo)">Tentar de novo</button>
-      <button class="btn" style="margin-top:8px" onclick="closeSheet()">Fechar</button>`);}}
+  }catch(e){ENTRADA.ultimo=texto;let m=String((e&&e.message)||e||'');
+    if(/^n[aã]o autorizado$/i.test(m)){m='Sua sessão expirou. Entre de novo.';sessaoExpirada();}
+    else if(/^sem resposta$/.test(m))m=msgErro(e,'Não consegui interpretar agora');
+    openSheet(`<h3>Não consegui interpretar</h3><div class="t-mut" style="margin:-8px 0 14px">${esc(m)}</div>
+      <button class="btn btn-p" type="button" onclick="sheetFalar(ENTRADA&&ENTRADA.ultimo)">Tentar de novo</button>
+      <button class="btn" type="button" style="margin-top:8px" onclick="closeSheet()">Fechar</button>`);}}
 const caoIdPorNome=n=>{const c=CAES.find(x=>x.nome.toLowerCase()===String(n||'').toLowerCase());return c?c.id:cao;};
 const nomeCao=id=>(CAES.find(c=>c.id===id)||{}).nome||'';
 const temCao=v=>!!v&&String(v).toLowerCase()!=='null'&&String(v).toLowerCase()!=='ambos';
@@ -626,10 +717,14 @@ function soCampos(c,keys){const o={};if(!c)return o;for(const k of keys)if(c[k]!
 function camposEv(c){const o=soCampos(c,K_EV);if(o.tipo&&!TIPOS[o.tipo])delete o.tipo;if(o.status&&['realizado','agendado','a_agendar','cancelado'].indexOf(o.status)<0)delete o.status;if(o.hora==='')o.hora=null;if(o.proxima_data==='')o.proxima_data=null;return o;}
 function camposRot(c){const o=soCampos(c,K_ROT);if(o.tipo&&TIPOS_ROT.indexOf(o.tipo)<0)delete o.tipo;if(o.intervalo_dias)o.intervalo_dias=+o.intervalo_dias;return o;}
 function camposProd(c){const o=soCampos(c,K_PROD);if(o.categoria&&!CATP[o.categoria])delete o.categoria;return o;}
-const LBL={cao_id:'cão',tipo:'tipo',status:'situação',data:'data',hora:'hora',titulo:'título',subtitulo:'detalhe',produto:'produto',lote:'lote',dose:'dose',veterinario:'vet',clinica:'clínica',peso_kg:'peso',valor:'valor',proxima_data:'próxima',observacao:'obs',intervalo_dias:'a cada',ultima_data:'última',ativo:'ativa',nome:'nome',marca:'marca',categoria:'categoria',frequencia:'frequência',apresentacao:'apresentação',em_uso:'em uso'};
+const LBL={cao_id:'cão',tipo:'tipo',status:'situação',data:'data',hora:'hora',titulo:'título',subtitulo:'detalhe',produto:'produto',lote:'lote',dose:'dose',veterinario:'veterinário',clinica:'clínica',peso_kg:'peso',valor:'valor',proxima_data:'próxima',observacao:'observação',intervalo_dias:'a cada',ultima_data:'última',ativo:'ativo',nome:'nome',marca:'marca',categoria:'categoria',frequencia:'frequência',apresentacao:'apresentação',em_uso:'em uso'};
 function descCampos(c){return Object.keys(c||{}).map(k=>{let v=c[k];
   if(k==='cao_id')v=nomeCao(v);
-  else if(v===null||v==='')v='—';
+  else if(v===null||v==='')v='em branco';
+  else if(v===true||v===false)v=v?'sim':'não';
+  else if(k==='status')v={realizado:'aconteceu',agendado:'agendado',a_agendar:'a agendar',cancelado:'cancelado'}[v]||v;
+  else if(k==='tipo')v=(TIPOS[v]||{}).n||v;
+  else if(k==='categoria')v=CATP[v]||v;
   else if(/data/.test(k)&&/^\d{4}-\d{2}-\d{2}$/.test(String(v)))v=dBR(v);
   else if(k==='valor')v=money(v);
   else if(k==='intervalo_dias')v=v+' dias';
@@ -641,18 +736,18 @@ function acaoLinha(a,i){let ic='ti-pencil',cor='var(--ink2)',pre='',et='',es='';
   else if(a.tipo==='evento_atualizar'){const o=EV.find(x=>x.id===a.id)||{};const T=TIPOS[o.tipo]||TIPOS.outro;ic=T.ic;cor=T.c;pre='Atualizar';
     et=esc(o.titulo?titSub(o).t:'registro')+(o.data?` <span class="tag b">${dBR(o.data)}</span>`:'');
     es=descCampos(camposEv(a.campos));}
-  else if(a.tipo==='rotina_nova'){const r=rotRow(a.rotina);const T=TIPOS[r.tipo]||TIPOS.outro;ic=T.ic;cor=T.c;pre='Nova rotina';
+  else if(a.tipo==='rotina_nova'){const r=rotRow(a.rotina);const T=TIPOS[r.tipo]||TIPOS.outro;ic=T.ic;cor=T.c;pre='Novo lembrete';
     et=esc(r.titulo)+` <span class="tag b">${r.cao_id?esc(nomeCao(r.cao_id)):'os dois'}</span>`;
     es='a cada '+r.intervalo_dias+' dias'+(r.produto?' · '+esc(r.produto):'')+(r.proxima_data?' · próxima '+dBR(r.proxima_data):'');}
-  else if(a.tipo==='rotina_atualizar'){const o=ROT.find(x=>x.id===a.id)||{};const T=TIPOS[o.tipo]||TIPOS.outro;ic=T.ic;cor=T.c;pre='Atualizar rotina';
-    et=esc(o.titulo||'rotina');es=descCampos(camposRot(a.campos));}
+  else if(a.tipo==='rotina_atualizar'){const o=ROT.find(x=>x.id===a.id)||{};const T=TIPOS[o.tipo]||TIPOS.outro;ic=T.ic;cor=T.c;pre='Atualizar lembrete';
+    et=esc(o.titulo||'lembrete');es=descCampos(camposRot(a.campos));}
   else if(a.tipo==='produto_novo'){const p=prodRowIA(a.produto);ic='ti-package';cor='var(--ink2)';pre='Novo produto';
     et=esc(p.nome)+` <span class="tag b">${p.cao_id?esc(nomeCao(p.cao_id)):'os dois'}</span>`;
     es=[CATP[p.categoria],p.marca,p.dose,p.frequencia].filter(Boolean).map(esc).join(' · ');}
   else if(a.tipo==='produto_atualizar'){const o=PROD.find(x=>x.id===a.id)||{};ic='ti-package';pre='Atualizar produto';
     et=esc(o.nome||'produto');es=descCampos(camposProd(a.campos));}
   else return'';
-  return`<div class="ent" onclick="abrirAcao(${i})"><i class="ti ${ic}" style="color:${cor};font-size:20px;margin-top:2px"></i>
+  return`<div class="ent" role="button" tabindex="0" onclick="abrirAcao(${i})"><i class="ti ${ic}" style="color:${cor};font-size:20px;margin-top:2px"></i>
     <div style="flex:1;min-width:0"><div class="es" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);font-weight:600">${pre}</div>
     <div class="et">${et}</div><div class="es">${es}</div></div><i class="ti ti-pencil" style="color:var(--ink3)"></i></div>`;}
 function abrirAcao(i){const a=(ENTRADA&&ENTRADA.acoes||[])[i];if(!a)return;
@@ -670,15 +765,15 @@ function mostrarEntrada(texto,res){if(!ENTRADA)ENTRADA={historico:[]};
   const linhasA=acoes.map((a,i)=>acaoLinha(a,i)).join('');
   openSheet(`<h3>Entendi assim</h3>${res.resumo?`<div class="t-mut" style="margin:-8px 0 12px">${esc(res.resumo)}</div>`:''}
     ${linhasA}
-    ${acoes.length?`<button class="btn btn-p" style="margin-top:14px" onclick="salvarEntrada()">Salvar${acoes.length>1?' tudo ('+acoes.length+')':''}</button>`:'<div class="empty">Nada para registrar.</div>'}
-    <button class="btn" style="margin-top:8px" onclick="sheetFalar(ENTRADA&&ENTRADA.ultimo)">Reescrever</button>`);}
+    ${acoes.length?`<div class="t-mut" style="margin-top:10px">Toque num item para ajustar antes.</div><button class="btn btn-p" type="button" style="margin-top:12px" onclick="salvarEntrada()">Salvar${acoes.length>1?' tudo ('+acoes.length+')':''}</button>`:'<div class="empty">Nada para registrar.</div>'}
+    <button class="btn" type="button" style="margin-top:8px" onclick="sheetFalar(ENTRADA&&ENTRADA.ultimo)">Reescrever</button>`);}
 function sheetPerguntas(res,perg){const qs=perg.slice(0,2);ENTRADA.perg=qs;
   openSheet(`<h3>Me ajuda com isso</h3>${res.resumo?`<div class="t-mut" style="margin:-8px 0 12px">${esc(res.resumo)}</div>`:''}
     ${qs.map((q,i)=>`<div class="perg"><div class="pq">${esc(q.texto)}</div>
-      ${(q.opcoes||[]).length?`<div class="chips">${q.opcoes.map(o=>`<span class="chip" onclick="chip(this,${i})">${esc(o)}</span>`).join('')}</div>`:''}
-      <input id="rq${i}" placeholder="ou escreva a resposta"></div>`).join('')}
-    <button class="btn btn-p" style="margin-top:4px" onclick="responder()">Responder</button>
-    <button class="btn" style="margin-top:8px" onclick="sheetFalar(ENTRADA&&ENTRADA.ultimo)">Reescrever</button>`);}
+      ${(q.opcoes||[]).length?`<div class="chips">${q.opcoes.map(o=>`<button type="button" class="chip" onclick="chip(this,${i})">${esc(o)}</button>`).join('')}</div>`:''}
+      <input id="rq${i}" aria-label="${esc(q.texto)}" placeholder="ou escreva a resposta"></div>`).join('')}
+    <button class="btn btn-p" type="button" style="margin-top:4px" onclick="responder()">Responder</button>
+    <button class="btn" type="button" style="margin-top:8px" onclick="sheetFalar(ENTRADA&&ENTRADA.ultimo)">Reescrever</button>`);}
 function chip(el,i){const inp=$('#rq'+i);if(inp)inp.value=(el.textContent||'').trim();
   const box=el.parentNode;if(box)[].forEach.call(box.children,c=>c.classList.remove('on'));
   el.classList.add('on');
@@ -687,8 +782,8 @@ function responder(){const qs=(ENTRADA&&ENTRADA.perg)||[],partes=[];
   qs.forEach((q,i)=>{const v=val('rq'+i);if(v)partes.push(q.texto+' -> '+v);});
   if(!partes.length){toast('Escolha ou escreva uma resposta');return;}
   chamarParse(partes.join('\n'));}
-async function salvarEntrada(){const acoes=(ENTRADA&&ENTRADA.acoes)||[];if(!acoes.length)return;closeSheet();
-  let n=0,falhas=0;
+async function salvarEntrada(){const acoes=(ENTRADA&&ENTRADA.acoes)||[];if(!acoes.length||salvarEntrada._b)return;salvarEntrada._b=1;ENTRADA.acoes=[];closeSheet();toast('Salvando…',30000);
+  let n=0,falhas=0,ultErro=null;
   for(const a of acoes){
     try{
       if(a.tipo==='evento_novo'){
@@ -715,16 +810,29 @@ async function salvarEntrada(){const acoes=(ENTRADA&&ENTRADA.acoes)||[];if(!acoe
         const r=await sb.from('pet_produtos').update(c).eq('id',a.id).select().single();if(r.error)throw r.error;
         const x=PROD.find(e=>e.id===a.id);if(x)Object.assign(x,r.data);n++;
       }
-    }catch(err){falhas++;}
+    }catch(err){falhas++;ultErro=err;console.warn(err);}
   }
-  EV.sort(porData);
+  salvarEntrada._b=0;EV.sort(porData);
   try{const u=await sb.from('pet_entradas').select('id').order('id',{ascending:false}).limit(1).single();
     if(u.data)await sb.from('pet_entradas').update({aplicado:true}).eq('id',u.data.id);}catch(_){}
-  render(atual);toast(falhas?(n+' salvo(s), '+falhas+' com erro'):(n===1?'Registrado':n+' registros salvos'));}
-async function refreshApp(){if($('#login').classList.contains('on'))return;const b=$('#btnRefresh');b.classList.add('spin');const t0=Date.now();try{await loadAll();render(atual);}catch(e){}setTimeout(()=>b.classList.remove('spin'),Math.max(0,500-(Date.now()-t0)));}
-if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').then(()=>pushCheck()).catch(()=>{PUSH.pronto=true;});}else{PUSH.pronto=true;}
+  render(atual);toast(falhas?(n?n+' salvo(s); '+falhas+' não salvou. ':'')+msgErro(ultErro):(n===1?'Salvo':n+' itens salvos'));}
+async function refreshApp(manual){if($('#login').classList.contains('on')||!BOOTED)return;const b=$('#btnRefresh');if(b.classList.contains('spin'))return;b.classList.add('spin');const t0=Date.now();
+  try{await loadAll();render(atual);}catch(e){console.warn(e);if(!CAES.length)$('#view').innerHTML=erroCarga(e);else if(manual!==false)toast(msgErro(e,'Não consegui atualizar'));}
+  setTimeout(()=>b.classList.remove('spin'),Math.max(0,500-(Date.now()-t0)));}
+// internet
+function redeUI(){$('#offline').classList.toggle('on',!navigator.onLine);}
+window.addEventListener('online',()=>{redeUI();refreshApp(false);});window.addEventListener('offline',redeUI);redeUI();
+// nova versão: avisa quando o site publicado for mais novo que esta tela (sem ficar preso em versão velha)
+let _verT=0;const _carregada=Date.parse(document.lastModified)||Date.now();
+async function checarVersao(){if(Date.now()-_verT<5*60e3||!navigator.onLine)return;_verT=Date.now();
+  try{const r=await fetch(location.pathname,{method:'HEAD',cache:'no-store'});const lm=Date.parse(r.headers.get('last-modified')||'');if(lm&&lm>_carregada+1000)$('#upd').classList.add('on');}catch(_){}}
+if('serviceWorker' in navigator){const tinhaSW=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register('sw.js').then(reg=>{pushCheck();document.addEventListener('visibilitychange',()=>{if(!document.hidden)reg.update().catch(()=>{});});}).catch(()=>{PUSH.pronto=true;});
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(tinhaSW)$('#upd').classList.add('on');});}
+else{PUSH.pronto=true;}
 boot();
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshApp();});
+setTimeout(checarVersao,4000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){refreshApp(false);checarVersao();}});
 </script>
 </body>
 </html>
