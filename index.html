@@ -206,6 +206,26 @@ async function comBotao(btn,fn,txt){if(btn){if(btn.disabled)return false;btn.dis
 const meu=x=>x.cao_id===cao||x.cao_id==null;
 const pesoAtual=id=>EV.filter(e=>e.cao_id===id&&e.peso_kg&&e.data&&e.status==='realizado').sort((a,b)=>b.data.localeCompare(a.data))[0]||null;
 const docById=id=>DOCS.find(d=>d.id===id);
+const rotById=id=>ROT.find(r=>r.id===id);
+// documentos de um registro: os ligados por evento_id + o anexo antigo (documento_id), sem repetir
+function docsDoEv(e){if(!e)return[];const l=DOCS.filter(d=>d.evento_id===e.id);
+  if(e.documento_id&&!l.some(d=>d.id===e.documento_id)){const d=docById(e.documento_id);if(d)l.unshift(d);}
+  return l.slice().sort((a,b)=>a.id-b.id);}
+const evDoDoc=d=>(d.evento_id?EV.find(e=>e.id===d.evento_id):null)||EV.find(e=>e.documento_id===d.id)||null;
+// lembretes que um registro PODE alimentar: família de vacina > mesmo produto > mesmo título > todos do tipo
+function rotCandidatos(ev){const rs=ROT.filter(r=>r.tipo===ev.tipo&&(r.cao_id===ev.cao_id||r.cao_id==null)&&r.ativo);if(rs.length<2)return rs;
+  if(ev.tipo==='vacina'){const f=famDe(ev);if(f){const m=rs.filter(x=>f.re.test((x.titulo||'')+' '+(x.produto||'')));if(m.length)return m;}}
+  const p=rs.filter(x=>x.produto&&ev.produto&&x.produto.toLowerCase()===ev.produto.toLowerCase());if(p.length)return p;
+  const t=(titSub(ev).t||'').toLowerCase().trim();if(t){const m=rs.filter(x=>String(x.titulo||'').toLowerCase().trim()===t);if(m.length)return m;}
+  return rs;}
+// lembretes do cão para o campo "Lembrete" (os do mesmo tipo primeiro)
+function listaRot(caoId,tipo){return ROT.filter(r=>r.ativo&&(r.cao_id===caoId||r.cao_id==null))
+  .sort((a,b)=>((b.tipo===tipo)-(a.tipo===tipo))||String(a.titulo||'').localeCompare(String(b.titulo||'')));}
+const optRot=(l,sel)=>`<option value="" ${sel==null?'selected':''}>Nenhum</option>`+l.map(r=>`<option value="${r.id}" ${sel===r.id?'selected':''}>${esc(r.titulo)}${r.cao_id==null?' (os dois)':''}</option>`).join('');
+// registros recentes em que há mais de um lembrete possível: o app não chuta, pede a escolha
+let SEM_VINC=[];try{SEM_VINC=JSON.parse(localStorage.getItem('fof_semvinc')||'[]');}catch(_){}
+function semVinc(id){if(SEM_VINC.indexOf(id)<0){SEM_VINC.push(id);try{localStorage.setItem('fof_semvinc',JSON.stringify(SEM_VINC.slice(-300)));}catch(_){}}}
+function precisaVinculo(e){return e&&e.rotina_id==null&&e.data&&['realizado','agendado'].includes(e.status)&&e.data>=addDays(hojeISO(),-45)&&SEM_VINC.indexOf(e.id)<0&&rotCandidatos(e).length>1;}
 const agendado=e=>e.status==='agendado';
 const aAgendar=e=>e.status==='a_agendar';
 const hBR=t=>t?String(t).slice(0,5):'';
@@ -243,16 +263,17 @@ function rotCard(r){const t=TIPOS[r.tipo]||TIPOS.outro;const p=prazo(r.proxima_d
   return`<div class="card"><div class="ic" style="background:${t.bg};color:${t.c}"><i class="ti ${t.ic}"></i></div>
     <div class="cb" role="button" tabindex="0" onclick="editRot(${r.id})"><div class="tt">${esc(r.titulo)}</div><div class="ts">${r.produto?esc(r.produto)+' · ':''}${r.ultima_data?'última '+dBR(r.ultima_data):'sem registro'}${r.ativo?'':' · pausado'}</div></div>
     <div class="cr"><div class="d ${p.cls}">${p.t}</div><button class="done-btn" type="button" aria-label="Feito: ${esc(r.titulo)}" onclick="event.stopPropagation();sheetFeito(${r.id})">Feito</button></div></div>`;}
-function evCard(e,op){op=op||{};const t=TIPOS[e.tipo]||TIPOS.outro;const doc=docById(e.documento_id);const ts=titSub(e);
-  const meta=[aAgendar(e)?(e.data?'até '+dBR(e.data):'sem data'):dBR(e.data)+(e.hora?' '+hBR(e.hora):''),e.produto&&!ts.s.includes(e.produto)&&!ts.t.includes(e.produto)?e.produto:'',e.lote?'lote '+e.lote:'',(e.veterinario||'').split('(')[0].trim()||e.clinica,e.peso_kg?kg(e.peso_kg):'',e.valor?money(e.valor):''].filter(Boolean).join(' · ');
+function evCard(e,op){op=op||{};const t=TIPOS[e.tipo]||TIPOS.outro;const ds=docsDoEv(e);const doc=ds[0];const ts=titSub(e);
+  const rot=rotById(e.rotina_id);const rotTit=rot&&String(rot.titulo||'').toLowerCase()!==ts.t.toLowerCase()?rot.titulo:'';
+  const meta=[aAgendar(e)?(e.data?'até '+dBR(e.data):'sem data'):dBR(e.data)+(e.hora?' '+hBR(e.hora):''),e.produto&&!ts.s.includes(e.produto)&&!ts.t.includes(e.produto)?e.produto:'',e.lote?'lote '+e.lote:'',(e.veterinario||'').split('(')[0].trim()||e.clinica,e.peso_kg?kg(e.peso_kg):'',e.valor?money(e.valor):'',ds.length>1?ds.length+' documentos':'',rotTit].filter(Boolean).join(' · ');
   const acao=agendado(e)?`<button class="done-btn" onclick="event.stopPropagation();aconteceu(${e.id})">Aconteceu</button>`
     :aAgendar(e)?`<button class="done-btn" onclick="event.stopPropagation();sheetMarquei(${e.id})">Marquei</button>`
     :(e.confirmado?'':`<button class="mini ok" type="button" aria-label="Confirmar registro" onclick="event.stopPropagation();confirmar(${e.id})"><i class="ti ti-circle-check"></i></button>`);
   return`<div class="card${aAgendar(e)?' pend':''}" style="${e.confirmado?'':'border-color:#cdbfe8'}"><div class="ic" style="background:${t.bg};color:${t.c}"><i class="ti ${t.ic}"></i></div>
-    <div class="cb" role="button" tabindex="0" onclick="editEv(${e.id})"><div class="tl"><div class="tt">${esc(ts.t)}</div>${aAgendar(e)||op.semTag?'':stTag(e)}${e.confirmado?'':'<span class="tag ia">a confirmar</span>'}</div>${ts.s?`<div class="st">${esc(ts.s)}</div>`:''}<div class="ts">${esc(meta)}</div>${e.observacao&&!aAgendar(e)&&['exame','consulta','medicacao','cirurgia'].includes(e.tipo)?`<div class="obs" style="white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(e.observacao)}</div>`:''}</div>
-    ${doc?`<button class="mini doc" type="button" aria-label="Abrir documento" onclick="event.stopPropagation();abrirDoc('${esc(doc.path)}')"><i class="ti ti-file-text"></i></button>`:''}
+    <div class="cb" role="button" tabindex="0" onclick="editEv(${e.id})"><div class="tl"><div class="tt">${esc(ts.t)}</div>${aAgendar(e)||op.semTag?'':stTag(e)}${e.confirmado?'':'<span class="tag ia">a confirmar</span>'}</div>${ts.s?`<div class="st">${esc(ts.s)}</div>`:''}<div class="ts">${esc(meta)}</div>${e.observacao&&!aAgendar(e)&&['exame','consulta','medicacao','cirurgia'].includes(e.tipo)?`<div class="obs" style="white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(e.observacao)}</div>`:''}${precisaVinculo(e)?`<div class="ts"><span role="button" tabindex="0" style="color:var(--azul);font-weight:600" onclick="event.stopPropagation();sheetVincular(${e.id})">escolher o lembrete</span></div>`:''}</div>
+    ${doc?`<button class="mini doc" type="button" aria-label="${ds.length>1?ds.length+' documentos':'Abrir documento'}" onclick="event.stopPropagation();abrirAnexos(${e.id})"><i class="ti ti-file-text"></i>${ds.length>1?`<span style="font-size:11px;font-weight:700;margin-left:1px">${ds.length}</span>`:''}</button>`:''}
     ${acao}</div>`;}
-function hrow(e){const doc=docById(e.documento_id);return`<div class="hrow"><div class="hd">${e.data?dBR(e.data):'—'}</div><div class="hb" role="button" tabindex="0" onclick="editEv(${e.id})"><b>${esc(e.produto||titSub(e).t)}</b>${!e.produto&&titSub(e).s?' · '+esc(titSub(e).s):''}${e.lote?' · lote '+esc(e.lote):''}${e.veterinario?' · '+esc(e.veterinario.split('(')[0].trim()):''}${stTag(e)?' '+stTag(e):''}${e.confirmado?'':' <span class="tag ia">a confirmar</span>'}</div>${doc?`<button class="mini doc" type="button" aria-label="Abrir documento" style="min-height:36px" onclick="abrirDoc('${esc(doc.path)}')"><i class="ti ti-file-text"></i></button>`:''}</div>`;}
+function hrow(e){const ds=docsDoEv(e);const doc=ds[0];return`<div class="hrow"><div class="hd">${e.data?dBR(e.data):'—'}</div><div class="hb" role="button" tabindex="0" onclick="editEv(${e.id})"><b>${esc(e.produto||titSub(e).t)}</b>${!e.produto&&titSub(e).s?' · '+esc(titSub(e).s):''}${e.lote?' · lote '+esc(e.lote):''}${e.veterinario?' · '+esc(e.veterinario.split('(')[0].trim()):''}${ds.length>1?' · '+ds.length+' documentos':''}${stTag(e)?' '+stTag(e):''}${e.confirmado?'':' <span class="tag ia">a confirmar</span>'}</div>${doc?`<button class="mini doc" type="button" aria-label="${ds.length>1?ds.length+' documentos':'Abrir documento'}" style="min-height:36px" onclick="abrirAnexos(${e.id})"><i class="ti ti-file-text"></i></button>`:''}</div>`;}
 function toggle(k){aberto[k]=!aberto[k];render(atual);}
 
 // ===== views =====
@@ -266,6 +287,8 @@ V.hoje=()=>{const c=caoAtual();if(!c)return SEM_CAO;
     <div class="kpis"><div class="kpi"><b>${late.length}</b><span>atrasado${late.length===1?'':'s'}</span></div><div class="kpi"><b>${soon.length}</b><span>em 30 dias</span></div>${aconf.length?`<div class="kpi"><b>${aconf.length}</b><span>a confirmar</span></div>`:''}</div></div>`;
   h+=`<div class="falar" role="button" tabindex="0" onclick="sheetFalar()"><i class="ti ti-microphone"></i><div>Falar ou escrever um registro<span>“dei Bravecto na Stout hoje, 95 reais” · “banho dos dois ontem”</span></div></div>`;
   if(novos)h+=`<div class="note" role="button" tabindex="0" onclick="go('docs')" style="cursor:pointer;margin-top:10px"><b>${novos} documento${novos>1?'s':''} na caixa de entrada</b> — o Claude lê e registra à noite (ou peça "processa a caixa").</div>`;
+  const amb=EV.filter(e=>e.cao_id===cao&&precisaVinculo(e));
+  if(amb.length)h+=`<div class="t-mut" style="margin:12px 2px 0;padding-left:10px;border-left:2px solid var(--azul);line-height:1.6"><b style="color:var(--ink)">${esc(titSub(amb[0]).t)}</b>${amb[0].data?' ('+dBR(amb[0].data)+')':''} pode alimentar mais de um lembrete — não atualizei nenhum. <button class="lnk" type="button" style="padding:0" onclick="sheetVincular(${amb[0].id})">escolher o lembrete</button>${amb.length>1?`<br>e mais ${amb.length-1} registro${amb.length>2?'s':''} assim.`:''}</div>`;
   const ags=EV.filter(e=>agendado(e)&&e.cao_id===cao).sort((a,b)=>(a.data||'9999').localeCompare(b.data||'9999')||String(a.hora||'').localeCompare(String(b.hora||'')));
   if(ags.length)h+=`<div class="sec">Agendado</div>`+ags.map(e=>evCard(e,{semTag:1})).join('');
   const pend=EV.filter(e=>aAgendar(e)&&e.cao_id===cao).sort((a,b)=>(a.data||'9999').localeCompare(b.data||'9999')||a.id-b.id);
@@ -304,11 +327,11 @@ function pesoChart(c){const ps=EV.filter(e=>e.cao_id===c.id&&e.peso_kg&&e.data&&
     <div class="chart" style="margin-top:10px"><svg role="img" aria-label="Gráfico do peso ao longo do tempo" viewBox="0 0 ${W} ${H}"><polyline fill="none" stroke="${caoCor(c)}" stroke-width="2.5" stroke-linejoin="round" points="${pts}"/>${ps.map((p,i)=>`<circle cx="${X(xs[i]).toFixed(1)}" cy="${Y(ys[i]).toFixed(1)}" r="3.5" fill="${caoCor(c)}"/><text x="${X(xs[i]).toFixed(1)}" y="${(Y(ys[i])-9).toFixed(1)}" font-size="10" text-anchor="middle" fill="#4f5663">${String(p.peso_kg).replace('.',',')}</text>`).join('')}</svg></div></div>`;}
 V.docs=()=>{const st={novo:['na caixa','novo'],processando:['lendo…','novo'],processado:['registrado','ok'],erro:['não consegui ler','late'],ignorado:['ignorado','b']};
   let h=`<div class="up-btn" role="button" tabindex="0" onclick="pickDocs()"><i class="ti ti-camera-plus" aria-hidden="true"></i> Enviar foto ou PDF</div><div class="note">Exame, receita, carteira de vacina ou nota. Vai para a caixa de entrada: o Claude lê, traduz se preciso e cria os registros como <b>"a confirmar"</b>.</div>`;
-  const docCard=d=>{const s=st[d.status]||st.novo;const n=EV.filter(e=>e.documento_id===d.id).length;const k='d'+d.id;
+  const docCard=d=>{const s=st[d.status]||st.novo;const ev=evDoDoc(d);const k='d'+d.id;
     return`<div class="doc"><div class="dh"><i class="ti ${d.tipo_mime==='application/pdf'?'ti-file-type-pdf':'ti-photo'}" style="font-size:22px;color:var(--ink3)"></i>
-      <div style="flex:1;min-width:0;cursor:pointer" role="button" tabindex="0" aria-expanded="${!!aberto[k]}" onclick="toggle('${k}')"><div class="dn">${esc(d.nome||d.path.split('/').pop())}</div><div class="dm">${d.data_doc?dLong(d.data_doc)+' · ':''}${d.paginas?d.paginas.split(',').length+' pág · ':''}${n?n+' registro'+(n>1?'s':'')+' · ':''}<span class="tag ${s[1]}" style="margin-left:0">${s[0]}</span></div></div>
+      <div style="flex:1;min-width:0;cursor:pointer" role="button" tabindex="0" aria-expanded="${!!aberto[k]}" onclick="toggle('${k}')"><div class="dn">${esc(d.nome||d.path.split('/').pop())}</div><div class="dm">${d.data_doc?dLong(d.data_doc)+' · ':''}${d.paginas?d.paginas.split(',').length+' pág · ':''}${ev?esc(titSub(ev).t)+' · ':''}<span class="tag ${s[1]}" style="margin-left:0">${s[0]}</span></div></div>
       <button class="mini doc" type="button" aria-label="Abrir documento" onclick="abrirDoc('${esc(d.path)}')"><i class="ti ti-external-link"></i></button></div>
-      ${aberto[k]?`${d.resumo?`<div class="obs">${esc(d.resumo)}</div>`:''}${d.erro?`<div class="obs" style="color:var(--rosa)">${esc(d.erro)}</div>`:''}<div style="display:flex;gap:14px;margin-top:8px">${d.status!=='novo'?`<button class="lnk" type="button" onclick="reprocessar(${d.id})">ler de novo</button>`:''}<button class="lnk" type="button" style="color:var(--rosa)" onclick="delDoc(${d.id})">apagar</button></div>`:''}</div>`;};
+      ${aberto[k]?`${d.resumo?`<div class="obs">${esc(d.resumo)}</div>`:''}${d.erro?`<div class="obs" style="color:var(--rosa)">${esc(d.erro)}</div>`:''}<div style="display:flex;gap:14px;margin-top:8px;flex-wrap:wrap">${ev?`<button class="lnk" type="button" onclick="editEv(${ev.id})">abrir o registro</button><button class="lnk" type="button" onclick="sheetLigar(${d.id})">trocar de registro</button>`:`<button class="lnk" type="button" onclick="sheetLigar(${d.id})">ligar a um registro</button>`}${d.status!=='novo'?`<button class="lnk" type="button" onclick="reprocessar(${d.id})">ler de novo</button>`:''}<button class="lnk" type="button" style="color:var(--rosa)" onclick="delDoc(${d.id})">apagar</button></div>`:''}</div>`;};
   const inbox=DOCS.filter(d=>['novo','processando','erro'].includes(d.status));if(inbox.length)h+=`<div class="sec">Caixa de entrada</div>`+inbox.map(docCard).join('');
   const arq=DOCS.filter(d=>!['novo','processando','erro'].includes(d.status)&&meu(d));
   for(const [k,n] of Object.entries(CATD)){const l=arq.filter(d=>(d.categoria||'outro')===k);if(l.length)h+=`<div class="sec">${n}</div>`+l.map(docCard).join('');}
@@ -378,17 +401,22 @@ function linhas(hs){let h='',b=[];
     if(x.full){if(b.length){h+=b.length>1?`<div class="row2">${b.join('')}</div>`:b[0];b=[];}h+=x.h;continue;}
     b.push(x.h);if(b.length===2){h+=`<div class="row2">${b.join('')}</div>`;b=[];}}
   if(b.length)h+=b.length>1?`<div class="row2">${b.join('')}</div>`:b[0];return h;}
-function anexoUI(e,doc){if(!e||!e.id)return'';
-  if(doc)return`<div class="t-mut" style="margin:-2px 0 12px;line-height:1.7"><i class="ti ti-file-text" style="color:var(--azul)"></i> ${esc(doc.nome||doc.path.split('/').pop())}<br><button class="lnk" type="button" onclick="abrirDoc('${esc(doc.path)}')">abrir</button> · <button class="lnk" type="button" onclick="anexarEv(${e.id})">trocar anexo</button> · <button class="lnk" type="button" style="color:var(--rosa)" onclick="removerAnexo(${e.id})">tirar anexo</button></div>`;
-  return`<div class="anexo" role="button" tabindex="0" onclick="anexarEv(${e.id})"><i class="ti ti-paperclip"></i> Anexar foto ou PDF</div>`;}
+function anexoUI(e){if(!e||!e.id)return'';const ds=docsDoEv(e);
+  const linha=d=>`<div class="hrow"><div class="hb" role="button" tabindex="0" onclick="abrirDoc('${esc(d.path)}')"><b>${esc(d.nome||d.path.split('/').pop())}</b>${d.data_doc?' · '+dBR(d.data_doc):''}</div><button class="lnk" type="button" style="color:var(--rosa);padding:6px 2px" onclick="removerAnexo(${e.id},${d.id})">tirar</button></div>`;
+  return(ds.length?`<div class="t-mut" style="margin:0 0 4px">${ds.length===1?'1 documento':ds.length+' documentos'}</div><div style="margin:0 0 12px">${ds.map(linha).join('')}</div>`:'')
+    +`<div class="anexo" role="button" tabindex="0" onclick="anexarEv(${e.id})"><i class="ti ti-paperclip"></i> ${ds.length?'Anexar mais um documento':'Anexar foto ou PDF'}</div>`;}
 const TIPOS_PROD=['vacina','vermifugo','antipulga','medicacao'];
 function editEv(id,preset,mais,keep){
-  if(!keep)window._evPrev=null;
+  if(!keep){window._evPrev=null;window._rotEsc=false;}
   const base=id?EV.find(x=>x.id===id):{cao_id:cao,tipo:'vacina',data:hojeISO(),status:'realizado',confirmado:true};
   if(!base)return;
   const e=Object.assign({},base,preset||{});
   if(!id&&!keep&&e.status==='a_agendar'&&!(preset&&preset.data))e.data=null;
-  const tipo=TIPOS[e.tipo]?e.tipo:'vacina',st=e.status||'realizado',doc=docById(e.documento_id),sug=titSug(tipo),pend=st==='a_agendar';
+  const tipo=TIPOS[e.tipo]?e.tipo:'vacina',st=e.status||'realizado',sug=titSug(tipo),pend=st==='a_agendar';
+  // lembrete: o vínculo gravado; se ainda não houve escolha, sugere só quando a heurística é única
+  const rotL=listaRot(e.cao_id,tipo);
+  const cands=rotCandidatos({tipo,cao_id:e.cao_id,produto:e.produto,titulo:e.titulo,subtitulo:e.subtitulo});
+  const rotSel=e.rotina_id!=null?e.rotina_id:(window._rotEsc||cands.length!==1?null:cands[0].id);
   const F={hora:{h:`<div class="field"><label>Hora</label><input type="time" id="eH" value="${hBR(e.hora)}"></div>`},
     produto:{h:`<div class="field"><label>Produto</label><input id="ePr" value="${esc(e.produto)}"></div>`},
     lote:{h:`<div class="field"><label>Lote</label><input id="eL" value="${esc(e.lote)}"></div>`},
@@ -413,16 +441,18 @@ function editEv(id,preset,mais,keep){
   <div class="field"><label>Título</label><input id="eTi" data-sug="${esc(sug)}" value="${esc(e.titulo||sug)}" placeholder="${esc(sug)}" maxlength="60"></div>
   <div class="field"><label>Detalhe <span style="color:var(--ink3);font-weight:400">(opcional)</span></label><input id="eSu" value="${esc(e.subtitulo)}" placeholder="Ex.: marca, dose, o que inclui"></div>
   <div class="row2"><div class="field"><label>Situação</label><select id="eS" data-prev="${st}" onchange="evRefresh(${id||'null'})"><option value="realizado" ${st==='realizado'?'selected':''}>Aconteceu</option><option value="agendado" ${st==='agendado'?'selected':''}>Agendado</option><option value="a_agendar" ${pend?'selected':''}>A agendar</option><option value="cancelado" ${st==='cancelado'?'selected':''}>Cancelado</option></select></div>${dataH}</div>
+  ${rotL.length?`<div class="field"><label>Lembrete <span style="color:var(--ink3);font-weight:400">(opcional)</span></label><select id="eRot" onchange="window._rotEsc=true">${optRot(rotL,rotSel)}</select></div>`:''}
   ${st==='agendado'?F.hora.h:''}
   ${pend?'<div class="t-mut" style="margin:-4px 0 12px">Ainda precisa ser marcado. Não mexe nos lembretes; aparece em Hoje → A agendar.</div>':''}
   ${linhas(pri.map(k=>F[k]))}
   <div class="mais" role="button" tabindex="0" onclick="evMais()"><i class="ti ti-chevron-${ab?'up':'down'}" id="eMaisIc"></i><span id="eMaisTx">${ab?'Menos detalhes':'Mais detalhes'}</span></div>
   <div id="eMais" style="display:${ab?'block':'none'}">${linhas(ext.map(k=>F[k]))}</div>
-  ${id?anexoUI(e,doc):''}
+  ${id?anexoUI(e):''}
   <button class="btn btn-p" type="button" onclick="saveEv(${id||'null'},this)">Salvar</button>
   ${id?`<div style="display:flex;gap:8px;margin-top:8px">${e.confirmado?'':`<button class="btn" type="button" onclick="confirmar(${id});closeSheet()">Confirmar</button>`}<button class="btn btn-danger" type="button" onclick="delEv(${id},this)">Apagar</button></div>${e.pagina_origem?`<div class="t-mut" style="margin-top:10px">Veio de: ${esc(e.pagina_origem)}</div>`:''}`:''}`);}
 function evMais(){const d=$('#eMais');if(!d)return;const on=d.style.display==='none';d.style.display=on?'block':'none';$('#eMaisTx').textContent=on?'Menos detalhes':'Mais detalhes';$('#eMaisIc').className='ti ti-chevron-'+(on?'up':'down');}
-function evRow(){return{cao_id:+val('eC'),tipo:val('eT'),status:val('eS')||'realizado',hora:val('eH')||null,data:val('eD')||null,proxima_data:val('eP')||null,titulo:val('eTi'),subtitulo:val('eSu')||null,produto:val('ePr')||null,lote:val('eL')||null,veterinario:val('eV')||null,clinica:val('eCl')||null,peso_kg:num('eK'),valor:num('eR'),observacao:val('eO')||null};}
+function evRow(){const o={cao_id:+val('eC'),tipo:val('eT'),status:val('eS')||'realizado',hora:val('eH')||null,data:val('eD')||null,proxima_data:val('eP')||null,titulo:val('eTi'),subtitulo:val('eSu')||null,produto:val('ePr')||null,lote:val('eL')||null,veterinario:val('eV')||null,clinica:val('eCl')||null,peso_kg:num('eK'),valor:num('eR'),observacao:val('eO')||null};
+  if($('#eRot'))o.rotina_id=val('eRot')?+val('eRot'):null;return o;}
 function evForm(){const t=$('#eTi'),sug=t?t.dataset.sug:'';const o=evRow();if(o.titulo===sug)o.titulo='';
   // campos que somem do formulário ao trocar tipo/situação continuam guardados
   const cur=window._evPrev||{};for(const k of ['hora','produto','lote','peso_kg','proxima_data'])if(!$('#'+{hora:'eH',produto:'ePr',lote:'eL',peso_kg:'eK',proxima_data:'eP'}[k])&&cur[k]!=null)o[k]=cur[k];return o;}
@@ -433,16 +463,21 @@ async function saveEv(id,btn){const row=evRow();const prev=window._evPrev||{};
   for(const [k,el] of Object.entries({hora:'eH',produto:'ePr',lote:'eL',peso_kg:'eK',proxima_data:'eP'}))if(!$('#'+el)){if(prev[k]!=null)row[k]=prev[k];else delete row[k];}
   if(row.status==='a_agendar'){row.hora=null;}
   if(!row.titulo||(!row.data&&row.status!=='a_agendar')){toast(row.titulo?'Informe a data':'Informe o título');return;}
+  const semRot=!!$('#eRot')&&!val('eRot')&&window._rotEsc===true;let novoId=id;
   if(!await comBotao(btn,async()=>{
     if(id){const r=ok(await sb.from('pet_eventos').update(row).eq('id',id).select().single());const x=EV.find(x=>x.id===id);if(x)Object.assign(x,r.data);}
-    else{row.origem='manual';row.confirmado=true;row.criado_por=autor;const r=ok(await sb.from('pet_eventos').insert(row).select().single());EV.unshift(r.data);}
+    else{row.origem='manual';row.confirmado=true;row.criado_por=autor;const r=ok(await sb.from('pet_eventos').insert(row).select().single());EV.unshift(r.data);novoId=r.data.id;}
     EV.sort(porData);}))return;
-  window._evPrev=null;closeSheet();
-  try{await syncRotina(row);}catch(e){console.warn(e);}
+  if(semRot&&novoId)semVinc(novoId);
+  window._evPrev=null;window._rotEsc=false;closeSheet();
+  try{await syncRotina(EV.find(x=>x.id===novoId)||Object.assign({id:novoId},row));}catch(e){console.warn(e);}
   render(atual);toast('Salvo');}
-async function syncRotina(ev){if(!ev.data||ev.status==='cancelado'||ev.status==='a_agendar')return;const rs=ROT.filter(r=>r.tipo===ev.tipo&&(r.cao_id===ev.cao_id||r.cao_id==null)&&r.ativo);if(!rs.length)return;
-  let r=null;if(ev.tipo==='vacina'){const f=famDe(ev);r=f?rs.find(x=>f.re.test((x.titulo||'')+' '+(x.produto||''))):null;}
-  if(!r)r=rs.find(x=>x.produto&&ev.produto&&x.produto.toLowerCase()===ev.produto.toLowerCase())||(rs.length===1?rs[0]:null);if(!r)return;
+// anda com o lembrete que o registro alimenta. Vínculo explícito (rotina_id) manda; sem ele, a heurística —
+// e se a heurística ficar ambígua, não chuta: deixa quieto e o app pede a escolha (precisaVinculo).
+async function syncRotina(ev){if(!ev.data||ev.status==='cancelado'||ev.status==='a_agendar')return;
+  let r=null;
+  if(ev.rotina_id!=null){r=rotById(ev.rotina_id);if(!r||!r.ativo)return;}
+  else{const c=rotCandidatos(ev);if(c.length!==1)return;r=c[0];}
   if(ev.status==='agendado'||ev.data>hojeISO()){const upd={proxima_data:ev.data};ok(await sb.from('pet_rotinas').update(upd).eq('id',r.id));Object.assign(r,upd);return;}
   if(r.ultima_data&&r.ultima_data>ev.data)return;
   const upd={ultima_data:ev.data,proxima_data:ev.proxima_data||addDays(ev.data,r.intervalo_dias)};ok(await sb.from('pet_rotinas').update(upd).eq('id',r.id));Object.assign(r,upd);}
@@ -467,6 +502,17 @@ async function saveMarquei(id,btn){const d=val('mD');if(!d){toast('Informe a dat
 async function cancelarEv(id,btn){const e=EV.find(x=>x.id===id);if(!e||!confirm('Cancelar "'+titSub(e).t+'"? Fica só no histórico.'))return;
   if(!await comBotao(btn,async()=>{const r=ok(await sb.from('pet_eventos').update({status:'cancelado',data:e.data||hojeISO()}).eq('id',id).select().single());Object.assign(e,r.data);EV.sort(porData);},'Cancelando…'))return;
   closeSheet();render(atual);toast('Cancelado');}
+// escolher a qual lembrete o registro pertence (quando o app não tem como saber sozinho)
+function sheetVincular(id){const e=EV.find(x=>x.id===id);if(!e)return;const ts=titSub(e);const l=listaRot(e.cao_id,e.tipo);
+  openSheet(`<h3>Qual lembrete?</h3><div class="t-mut" style="margin:-8px 0 14px">${esc(ts.t)}${ts.s?' · '+esc(ts.s):''}${e.data?' · '+dBR(e.data):''} — ${esc(nomeCao(e.cao_id))}</div>
+  ${l.length?`<div class="field"><label>Lembrete</label><select id="vR">${optRot(l,e.rotina_id)}</select></div>
+  <div class="t-mut" style="margin:-4px 0 14px">O lembrete escolhido passa a contar a partir deste registro.</div>
+  <button class="btn btn-p" type="button" onclick="saveVinculo(${id},this)">Salvar</button>`:'<div class="vazio">Este cão não tem lembretes ativos.</div>'}`);}
+async function saveVinculo(id,btn){const e=EV.find(x=>x.id===id);if(!e)return;const v=val('vR')?+val('vR'):null;
+  if(!await comBotao(btn,async()=>{const r=ok(await sb.from('pet_eventos').update({rotina_id:v}).eq('id',id).select().single());Object.assign(e,r.data);}))return;
+  if(v==null)semVinc(id);
+  closeSheet();try{await syncRotina(e);}catch(x){console.warn(x);}
+  render(atual);toast(v==null?'Sem lembrete':'Lembrete atualizado');}
 async function confirmarTodos(){const l=EV.filter(e=>!e.confirmado&&e.cao_id===cao);if(!l.length||!confirm(`Confirmar os ${l.length} registros de ${caoAtual().nome}?`))return;l.forEach(e=>e.confirmado=true);render(atual);
   const r=await sb.from('pet_eventos').update({confirmado:true}).in('id',l.map(e=>e.id));if(r.error){l.forEach(e=>e.confirmado=false);render(atual);toast(msgErro(r.error));return;}toast('Confirmados');}
 async function delEv(id,btn){if(!confirm('Apagar este registro?'))return;if(!await comBotao(btn,async()=>{ok(await sb.from('pet_eventos').delete().eq('id',id));},'Apagando…'))return;EV=EV.filter(x=>x.id!==id);closeSheet();render(atual);toast('Apagado');}
@@ -508,7 +554,7 @@ function sheetFeito(id){const r=ROT.find(x=>x.id===id);if(!r)return;
   <button class="btn btn-p" type="button" onclick="saveFeito(${id},this)">Salvar</button>`);}
 function feitoProx(n){const d=val('fD'),b=$('#fProx');if(b&&d)b.textContent=dBR(addDays(d,n));}
 async function saveFeito(id,btn){const r=ROT.find(x=>x.id===id);if(!r)return;const d=val('fD')||hojeISO();if(d>hojeISO()){toast('Data no futuro: use Novo registro → Agendado');return;}const ids=r.cao_id?[r.cao_id]:[...document.querySelectorAll('.fC:checked')].map(x=>+x.value);if(!ids.length){toast('Escolha o cão');return;}
-  const prox=addDays(d,r.intervalo_dias);const rows=ids.map(c=>({cao_id:c,tipo:r.tipo==='higiene'?'outro':r.tipo,data:d,titulo:r.titulo,produto:val('fP')||null,lote:val('fL')||null,veterinario:val('fV')||null,peso_kg:num('fK'),valor:num('fR'),proxima_data:prox,observacao:val('fO')||null,origem:'manual',confirmado:true,criado_por:autor}));
+  const prox=addDays(d,r.intervalo_dias);const rows=ids.map(c=>({cao_id:c,tipo:r.tipo==='higiene'?'outro':r.tipo,rotina_id:r.id,data:d,titulo:r.titulo,produto:val('fP')||null,lote:val('fL')||null,veterinario:val('fV')||null,peso_kg:num('fK'),valor:num('fR'),proxima_data:prox,observacao:val('fO')||null,origem:'manual',confirmado:true,criado_por:autor}));
   let andou=false;
   if(!await comBotao(btn,async()=>{const ins=ok(await sb.from('pet_eventos').insert(rows).select());EV=ins.data.concat(EV);EV.sort(porData);
     if(!(r.ultima_data&&r.ultima_data>d)){const upd={ultima_data:d,proxima_data:prox};ok(await sb.from('pet_rotinas').update(upd).eq('id',id));Object.assign(r,upd);andou=true;}}))return;
@@ -570,27 +616,48 @@ async function anexarEv(id){const e=EV.find(x=>x.id===id);if(!e)return;const fi=
   fi.onchange=async ev=>{const f=(ev.target.files||[])[0];fi.setAttribute('multiple','');if(!f)return;
     try{toast('Enviando anexo…',60000);await anexarArquivo(id,f);}catch(err){console.warn(err);toast(msgErro(err,'Não consegui enviar o anexo'));}};
   fi.click();}
+// anexar SEMPRE adiciona um documento ao registro (nunca substitui o que já estava lá)
 async function anexarArquivo(id,file){const e=EV.find(x=>x.id===id);if(!e)return;
   const pdf=file.type==='application/pdf';const blob=pdf?file:await shrink(file);const mime=mimeDe(file,blob);
   const path='anexos/'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+extDe(mime);
   const up=await sb.storage.from('pet-docs').upload(path,blob,{contentType:mime});if(up.error)throw up.error;
-  const row={cao_id:e.cao_id,path,nome:(titSub(e).t||'Anexo')+(e.data?' · '+dBR(e.data):''),tipo_mime:mime,status:'processado',categoria:e.tipo==='exame'?'exame':'outro',data_doc:e.data,resumo:'Anexado manualmente ao registro'};
-  const antigo=docById(e.documento_id);
-  if(antigo){const velho=antigo.path;
-    const r=await sb.from('pet_documentos').update(row).eq('id',antigo.id).select().single();if(r.error)throw r.error;
-    Object.assign(antigo,r.data);
-    if(velho&&velho!==path){try{await sb.storage.from('pet-docs').remove([velho]);}catch(_){}delete SIGNED[velho];}
-  }else{row.enviado_por=autor;
-    const ins=await sb.from('pet_documentos').insert(row).select().single();if(ins.error)throw ins.error;
-    DOCS.unshift(ins.data);
-    const u=await sb.from('pet_eventos').update({documento_id:ins.data.id}).eq('id',id).select().single();if(u.error)throw u.error;
-    Object.assign(e,u.data);}
+  const n=docsDoEv(e).length;
+  const row={cao_id:e.cao_id,path,evento_id:id,nome:(titSub(e).t||'Anexo')+(e.data?' · '+dBR(e.data):'')+(n?' ('+(n+1)+')':''),tipo_mime:mime,status:'processado',categoria:e.tipo==='exame'?'exame':'outro',data_doc:e.data,resumo:'Anexado manualmente ao registro',enviado_por:autor};
+  const ins=await sb.from('pet_documentos').insert(row).select().single();if(ins.error)throw ins.error;
+  DOCS.unshift(ins.data);
+  // compatibilidade: o primeiro documento também fica no campo antigo (telas antigas e rotinas do Mac)
+  if(!e.documento_id){const u=await sb.from('pet_eventos').update({documento_id:ins.data.id}).eq('id',id).select().single();if(u.error)throw u.error;Object.assign(e,u.data);}
   render(atual);editEv(id);toast('Anexo salvo');}
-async function removerAnexo(id){const e=EV.find(x=>x.id===id);if(!e)return;
-  if(!confirm('Desligar o anexo deste registro? O documento continua na aba Documentos.'))return;
-  const r=await sb.from('pet_eventos').update({documento_id:null}).eq('id',id).select().single();
-  if(r.error){toast(msgErro(r.error));return;}Object.assign(e,r.data);
-  render(atual);editEv(id);toast('Anexo removido');}
+// tirar o anexo desliga o vínculo; o documento continua na aba Documentos
+async function removerAnexo(id,docId){const e=EV.find(x=>x.id===id);if(!e)return;
+  if(!confirm('Tirar este documento do registro? Ele continua na aba Documentos.'))return;
+  const r=await sb.from('pet_documentos').update({evento_id:null}).eq('id',docId);
+  if(r.error){toast(msgErro(r.error));return;}
+  const d=docById(docId);if(d)d.evento_id=null;
+  if(e.documento_id===docId){const resto=docsDoEv(e).filter(x=>x.id!==docId)[0]||null;
+    const u=await sb.from('pet_eventos').update({documento_id:resto?resto.id:null}).eq('id',id).select().single();
+    if(u.error){toast(msgErro(u.error));return;}Object.assign(e,u.data);}
+  render(atual);editEv(id);toast('Documento desligado');}
+// abrir o anexo: um só abre direto; vários abrem o registro, que lista todos
+function abrirAnexos(id){const e=EV.find(x=>x.id===id);if(!e)return;const ds=docsDoEv(e);
+  if(ds.length===1)return abrirDoc(ds[0].path);
+  editEv(id);}
+// ligar um documento a um registro já existente (mais recentes primeiro, com busca por título)
+function sheetLigar(docId){const d=docById(docId);if(!d)return;const c=d.cao_id||cao;
+  openSheet(`<h3>Ligar a um registro</h3><div class="t-mut" style="margin:-8px 0 14px">${esc(d.nome||d.path.split('/').pop())} — ${esc(nomeCao(c))}</div>
+  <div class="field"><label>Buscar</label><input id="lQ" autocomplete="off" placeholder="Ultrassom, consulta, vacina…" oninput="listarLigar(${docId})"></div>
+  <div id="lL"></div>`);listarLigar(docId);}
+function listarLigar(docId){const d=docById(docId);const box=$('#lL');if(!d||!box)return;const c=d.cao_id||cao;
+  const q=(val('lQ')||'').toLowerCase();
+  const l=EV.filter(e=>e.cao_id===c&&(!q||((e.titulo||'')+' '+(e.subtitulo||'')+' '+(e.produto||'')).toLowerCase().includes(q))).sort(porData).slice(0,40);
+  box.innerHTML=l.length?l.map(e=>{const ts=titSub(e);const n=docsDoEv(e).length;
+    return`<div class="hrow"><div class="hd">${e.data?dBR(e.data):'—'}</div><div class="hb" role="button" tabindex="0" onclick="saveLigar(${docId},${e.id})"><b>${esc(ts.t)}</b>${ts.s?' · '+esc(ts.s):''}${n?' · '+n+' doc'+(n>1?'s':''):''}${e.id===d.evento_id?' <span class="tag ok">ligado</span>':''}</div></div>`;}).join('')
+    :'<div class="vazio">Nenhum registro com esse texto.</div>';}
+async function saveLigar(docId,evId){const d=docById(docId),e=EV.find(x=>x.id===evId);if(!d||!e)return;
+  const r=await sb.from('pet_documentos').update({evento_id:evId,cao_id:d.cao_id||e.cao_id}).eq('id',docId).select().single();
+  if(r.error){toast(msgErro(r.error,'Não consegui ligar'));return;}Object.assign(d,r.data);
+  if(!e.documento_id){const u=await sb.from('pet_eventos').update({documento_id:docId}).eq('id',evId).select().single();if(!u.error)Object.assign(e,u.data);}
+  closeSheet();render(atual);toast('Ligado a '+titSub(e).t);}
 async function reprocessar(id){const r=await sb.from('pet_documentos').update({status:'novo',erro:null}).eq('id',id);if(r.error){toast(msgErro(r.error));return;}const d=DOCS.find(x=>x.id===id);if(d){d.status='novo';d.erro=null;}render(atual);toast('Voltou para a caixa de entrada');}
 
 // ===== boot =====
@@ -703,23 +770,28 @@ async function chamarParse(texto){if(!ENTRADA)ENTRADA={historico:[],acoes:[],per
 const caoIdPorNome=n=>{const c=CAES.find(x=>x.nome.toLowerCase()===String(n||'').toLowerCase());return c?c.id:cao;};
 const nomeCao=id=>(CAES.find(c=>c.id===id)||{}).nome||'';
 const temCao=v=>!!v&&String(v).toLowerCase()!=='null'&&String(v).toLowerCase()!=='ambos';
+// só aceita lembrete que existe, está ativo e é do cão certo — a IA nunca inventa id
+function rotValida(v,caoId){const r=rotById(+v);return r&&r.ativo&&(r.cao_id==null||caoId==null||r.cao_id===caoId)?r.id:null;}
 function entradaEv(e){e=e||{};const pend=e.status==='a_agendar';const d=e.data||(pend?null:hojeISO());
-  return{cao_id:caoIdPorNome(e.cao),tipo:TIPOS[e.tipo]?e.tipo:'outro',status:pend?'a_agendar':(e.status==='agendado'||d>hojeISO())?'agendado':(e.status==='cancelado'?'cancelado':'realizado'),hora:pend?null:(e.hora||null),data:d,titulo:e.titulo||titSug(TIPOS[e.tipo]?e.tipo:'outro'),subtitulo:e.subtitulo||null,produto:e.produto||null,lote:e.lote||null,dose:e.dose||null,veterinario:e.veterinario||null,clinica:e.clinica||null,peso_kg:e.peso_kg??null,valor:e.valor??null,proxima_data:e.proxima_data||null,observacao:e.observacao||null};}
+  return{cao_id:caoIdPorNome(e.cao),rotina_id:e.rotina_id!=null?rotValida(e.rotina_id,caoIdPorNome(e.cao)):null,tipo:TIPOS[e.tipo]?e.tipo:'outro',status:pend?'a_agendar':(e.status==='agendado'||d>hojeISO())?'agendado':(e.status==='cancelado'?'cancelado':'realizado'),hora:pend?null:(e.hora||null),data:d,titulo:e.titulo||titSug(TIPOS[e.tipo]?e.tipo:'outro'),subtitulo:e.subtitulo||null,produto:e.produto||null,lote:e.lote||null,dose:e.dose||null,veterinario:e.veterinario||null,clinica:e.clinica||null,peso_kg:e.peso_kg??null,valor:e.valor??null,proxima_data:e.proxima_data||null,observacao:e.observacao||null};}
 function rotRow(r){r=r||{};const t=TIPOS_ROT.indexOf(r.tipo)>=0?r.tipo:'outro',i=+r.intervalo_dias||365;
   return{cao_id:temCao(r.cao)?caoIdPorNome(r.cao):null,tipo:t,titulo:r.titulo||titSug(t),produto:r.produto||null,intervalo_dias:i,ultima_data:r.ultima_data||null,proxima_data:r.proxima_data||(r.ultima_data?addDays(r.ultima_data,i):null),ativo:true,observacao:r.observacao||null};}
 function prodRowIA(p){p=p||{};
   return{cao_id:temCao(p.cao)?caoIdPorNome(p.cao):null,categoria:CATP[p.categoria]?p.categoria:'outro',nome:p.nome||'Produto',marca:p.marca||null,apresentacao:p.apresentacao||null,dose:p.dose||null,frequencia:p.frequencia||null,valor:p.valor??null,em_uso:true,observacao:p.observacao||'Cadastrado por voz/texto'};}
-const K_EV=['cao_id','tipo','status','data','hora','titulo','subtitulo','produto','lote','dose','veterinario','clinica','peso_kg','valor','proxima_data','observacao'];
+const K_EV=['cao_id','tipo','status','data','hora','titulo','subtitulo','produto','lote','dose','veterinario','clinica','peso_kg','valor','proxima_data','observacao','rotina_id'];
 const K_ROT=['cao_id','tipo','titulo','produto','intervalo_dias','ultima_data','proxima_data','ativo','observacao'];
 const K_PROD=['cao_id','categoria','nome','marca','apresentacao','dose','frequencia','em_uso','valor','onde_compra','observacao'];
 function soCampos(c,keys){const o={};if(!c)return o;for(const k of keys)if(c[k]!==undefined)o[k]=c[k];
   if(o.cao_id===undefined&&c.cao!==undefined&&keys.indexOf('cao_id')>=0)o.cao_id=temCao(c.cao)?caoIdPorNome(c.cao):null;return o;}
-function camposEv(c){const o=soCampos(c,K_EV);if(o.tipo&&!TIPOS[o.tipo])delete o.tipo;if(o.status&&['realizado','agendado','a_agendar','cancelado'].indexOf(o.status)<0)delete o.status;if(o.hora==='')o.hora=null;if(o.proxima_data==='')o.proxima_data=null;return o;}
+function camposEv(c){const o=soCampos(c,K_EV);if(o.tipo&&!TIPOS[o.tipo])delete o.tipo;if(o.status&&['realizado','agendado','a_agendar','cancelado'].indexOf(o.status)<0)delete o.status;if(o.hora==='')o.hora=null;if(o.proxima_data==='')o.proxima_data=null;
+  if(o.rotina_id!==undefined){const v=o.rotina_id==null||o.rotina_id===''?null:rotValida(o.rotina_id,o.cao_id==null?null:o.cao_id);if(v==null&&o.rotina_id!=null&&o.rotina_id!=='')delete o.rotina_id;else o.rotina_id=v;}
+  return o;}
 function camposRot(c){const o=soCampos(c,K_ROT);if(o.tipo&&TIPOS_ROT.indexOf(o.tipo)<0)delete o.tipo;if(o.intervalo_dias)o.intervalo_dias=+o.intervalo_dias;return o;}
 function camposProd(c){const o=soCampos(c,K_PROD);if(o.categoria&&!CATP[o.categoria])delete o.categoria;return o;}
-const LBL={cao_id:'cão',tipo:'tipo',status:'situação',data:'data',hora:'hora',titulo:'título',subtitulo:'detalhe',produto:'produto',lote:'lote',dose:'dose',veterinario:'veterinário',clinica:'clínica',peso_kg:'peso',valor:'valor',proxima_data:'próxima',observacao:'observação',intervalo_dias:'a cada',ultima_data:'última',ativo:'ativo',nome:'nome',marca:'marca',categoria:'categoria',frequencia:'frequência',apresentacao:'apresentação',em_uso:'em uso'};
+const LBL={cao_id:'cão',tipo:'tipo',status:'situação',data:'data',hora:'hora',titulo:'título',subtitulo:'detalhe',produto:'produto',lote:'lote',dose:'dose',veterinario:'veterinário',clinica:'clínica',peso_kg:'peso',valor:'valor',proxima_data:'próxima',observacao:'observação',rotina_id:'lembrete',intervalo_dias:'a cada',ultima_data:'última',ativo:'ativo',nome:'nome',marca:'marca',categoria:'categoria',frequencia:'frequência',apresentacao:'apresentação',em_uso:'em uso'};
 function descCampos(c){return Object.keys(c||{}).map(k=>{let v=c[k];
   if(k==='cao_id')v=nomeCao(v);
+  else if(k==='rotina_id')v=v==null?'nenhum':((rotById(v)||{}).titulo||v);
   else if(v===null||v==='')v='em branco';
   else if(v===true||v===false)v=v?'sim':'não';
   else if(k==='status')v={realizado:'aconteceu',agendado:'agendado',a_agendar:'a agendar',cancelado:'cancelado'}[v]||v;
@@ -732,7 +804,7 @@ function descCampos(c){return Object.keys(c||{}).map(k=>{let v=c[k];
 function acaoLinha(a,i){let ic='ti-pencil',cor='var(--ink2)',pre='',et='',es='';
   if(a.tipo==='evento_novo'){const e=entradaEv(a.evento);const T=TIPOS[e.tipo]||TIPOS.outro;ic=T.ic;cor=T.c;pre='Novo';
     et=esc(e.titulo)+` <span class="tag b">${esc(nomeCao(e.cao_id))}</span>`+(e.subtitulo?`<div class="es">${esc(e.subtitulo)}</div>`:'');
-    es=`${e.status==='agendado'?'agendado · ':''}${e.status==='a_agendar'?'a agendar'+(e.data?' · até ':''):''}${dBR(e.data)}${e.hora?' '+hBR(e.hora):''}${e.produto?' · '+esc(e.produto):''}${e.valor?' · '+money(e.valor):''}${e.peso_kg?' · '+e.peso_kg+' kg':''}${e.proxima_data?' · próxima '+dBR(e.proxima_data):''}`;}
+    es=`${e.status==='agendado'?'agendado · ':''}${e.status==='a_agendar'?'a agendar'+(e.data?' · até ':''):''}${dBR(e.data)}${e.hora?' '+hBR(e.hora):''}${e.produto?' · '+esc(e.produto):''}${e.valor?' · '+money(e.valor):''}${e.peso_kg?' · '+e.peso_kg+' kg':''}${e.proxima_data?' · próxima '+dBR(e.proxima_data):''}${e.rotina_id?' · '+esc((rotById(e.rotina_id)||{}).titulo||''):''}`;}
   else if(a.tipo==='evento_atualizar'){const o=EV.find(x=>x.id===a.id)||{};const T=TIPOS[o.tipo]||TIPOS.outro;ic=T.ic;cor=T.c;pre='Atualizar';
     et=esc(o.titulo?titSub(o).t:'registro')+(o.data?` <span class="tag b">${dBR(o.data)}</span>`:'');
     es=descCampos(camposEv(a.campos));}
