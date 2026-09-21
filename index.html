@@ -124,7 +124,7 @@
     <div class="h-title"><span class="hl">Nossos </span>Fofinhos</div>
     <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
       <div class="seg" id="segCao" role="tablist" aria-label="Escolher o cão"></div>
-      <div class="h-acts"><button class="ibtn v" type="button" onclick="sheetFalar()" aria-label="Falar ou escrever um registro"><i class="ti ti-microphone" aria-hidden="true"></i></button>
+      <div class="h-acts"><button class="ibtn v" type="button" onclick="sheetFalar()" aria-label="Adicionar por voz ou texto"><i class="ti ti-microphone" aria-hidden="true"></i></button>
       <button class="ibtn" type="button" id="btnRefresh" onclick="refreshApp()" aria-label="Atualizar"><i class="ti ti-refresh" aria-hidden="true" style="font-size:20px"></i></button></div>
     </div>
   </header>
@@ -136,9 +136,9 @@
 <nav aria-label="Abas">
   <a role="button" tabindex="0" data-go="hoje" class="on" aria-current="page" onclick="go('hoje')"><i class="ti ti-sun" aria-hidden="true"></i>Hoje</a>
   <a role="button" tabindex="0" data-go="cart" onclick="go('cart')"><i class="ti ti-vaccine" aria-hidden="true"></i>Carteirinha</a>
-  <a role="button" tabindex="0" data-go="vet" onclick="go('vet')"><i class="ti ti-stethoscope" aria-hidden="true"></i>Vet</a>
+  <a role="button" tabindex="0" data-go="vet" onclick="go('vet')"><i class="ti ti-stethoscope" aria-hidden="true"></i>Saúde</a>
   <a role="button" tabindex="0" data-go="docs" onclick="go('docs')"><i class="ti ti-files" aria-hidden="true"></i>Documentos</a>
-  <a role="button" tabindex="0" data-go="ficha" onclick="go('ficha')"><i class="ti ti-paw" aria-hidden="true"></i>Ficha</a>
+  <a role="button" tabindex="0" data-go="ficha" onclick="go('ficha')"><i class="ti ti-paw" aria-hidden="true"></i>Perfil</a>
 </nav>
 <div class="login" id="login"><div class="login-in"><img src="icon-180.png" alt=""><h2>Nossos Fofinhos</h2><p>Entre com o e-mail da família. Você recebe um código de 6 dígitos.</p>
   <div id="lg1"><div class="field"><label for="lgEmail">E-mail</label><input type="email" id="lgEmail" autocomplete="email" inputmode="email" autocapitalize="off" placeholder="seu@gmail.com" onkeydown="if(event.key==='Enter')enviarCodigo()"></div><button class="btn btn-p" id="lgBtn1" type="button" onclick="enviarCodigo()">Enviar código</button></div>
@@ -197,7 +197,7 @@ const caoAtual=()=>CAES.find(c=>c.id===cao);
 const caoCor=c=>c.nome==='Jorge'?'var(--c-jorge)':'var(--c-stout)';
 const fotoUrl=c=>(c&&c.foto_path&&FOTOS[c.foto_path])||null;
 function idade(iso){if(!iso)return'';const b=new Date(iso+'T00:00:00'),h=new Date();let a=h.getFullYear()-b.getFullYear(),m=h.getMonth()-b.getMonth();if(h.getDate()<b.getDate())m--;if(m<0){a--;m+=12;}return a>0?`${a} ano${a>1?'s':''}${m?` e ${m} m`:''}`:`${m} meses`;}
-function prazo(iso){if(!iso)return{t:'sem data',cls:'',tag:'b',lbl:'sem registro'};const n=diasAte(iso);if(n<0)return{t:-n>=365?`há ${Math.floor(-n/365)} ano${-n>=730?'s':''}`:-n>=60?`há ${Math.floor(-n/30)} meses`:`${-n} d atrás`,cls:'late',tag:'late',lbl:'vencida'};if(n===0)return{t:'hoje',cls:'late',tag:'late',lbl:'vence hoje'};if(n<=30)return{t:`em ${n} d`,cls:'soon',tag:'soon',lbl:'vence em breve'};return{t:dBR(iso),cls:'ok',tag:'ok',lbl:'em dia'};}
+function prazo(iso){if(!iso)return{t:'sem data',cls:'',tag:'b',lbl:'sem registro'};const n=diasAte(iso);if(n<0)return{t:-n>=365?`há ${Math.floor(-n/365)} ano${-n>=730?'s':''}`:-n>=60?`há ${Math.floor(-n/30)} meses`:`${-n} d atrás`,cls:'late',tag:'late',lbl:'atrasada'};if(n===0)return{t:'hoje',cls:'late',tag:'late',lbl:'vence hoje'};if(n<=30)return{t:`em ${n} d`,cls:'soon',tag:'soon',lbl:'vence em breve'};return{t:dBR(iso),cls:'ok',tag:'ok',lbl:'em dia'};}
 function toast(t,ms){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast._t);toast._t=setTimeout(()=>e.classList.remove('on'),ms||(String(t).length>40?3400:1900));}
 // erros: sempre em português, sem termo técnico
 function msgErro(e,oque){const m=String((e&&(e.message||e.error_description||e.msg))||e||'');
@@ -274,7 +274,7 @@ function titSub(e){const t=String(e.titulo||'').trim();if(e.subtitulo)return{t,s
   let m=t.match(/^(.{3,}?)\s*\(([^()]+)\)\s*$/);if(m)return{t:m[1].trim(),s:m[2].trim()};
   if(t.length>40){m=t.match(/^(.{3,}?)\s+[—–-]\s+(.+)$/)||t.match(/^(.{3,}?):\s+(.+)$/);if(m)return{t:m[1].trim(),s:m[2].trim()};}
   return{t,s:''};}
-function stTag(e){return agendado(e)?'<span class="tag soon">agendado</span>':aAgendar(e)?'<span class="tag b">a agendar</span>':e.status==='cancelado'?'<span class="tag b">cancelado</span>':'';}
+function stTag(e){return agendado(e)?'<span class="tag soon">agendado</span>':aAgendar(e)?'<span class="tag b">para agendar</span>':e.status==='cancelado'?'<span class="tag b">cancelado</span>':'';}
 const porData=(a,b)=>(b.data||'9999').localeCompare(a.data||'9999')||b.id-a.id;
 
 // ===== carregar =====
@@ -304,18 +304,18 @@ function setCao(v){if(cao===v)return;cao=v;aberto={};try{localStorage.setItem('f
 function rotCard(r){const t=TIPOS[r.tipo]||TIPOS.outro;const p=prazo(r.proxima_data);
   return`<div class="card"><div class="ic" style="background:${t.bg};color:${t.c}"><i class="ti ${t.ic}"></i></div>
     <div class="cb" role="button" tabindex="0" onclick="editRot(${r.id})"><div class="tt">${esc(r.titulo)}</div><div class="ts">${r.produto?esc(r.produto)+' · ':''}${r.ultima_data?'última '+dBR(r.ultima_data):'sem registro'}${r.ativo?'':' · pausado'}</div></div>
-    <div class="cr"><div class="d ${p.cls}">${p.t}</div><button class="done-btn" type="button" aria-label="Feito: ${esc(r.titulo)}" onclick="event.stopPropagation();sheetFeito(${r.id})">Feito</button></div></div>`;}
+    <div class="cr"><div class="d ${p.cls}">${p.t}</div><button class="done-btn" type="button" aria-label="Concluir: ${esc(r.titulo)}" onclick="event.stopPropagation();sheetFeito(${r.id})">Concluir</button></div></div>`;}
 function evCard(e,op){op=op||{};const t=TIPOS[e.tipo]||TIPOS.outro;const ds=docsDoEv(e);const doc=ds[0];const ts=titSub(e);
   const rot=rotById(e.rotina_id);const rotTit=rot&&String(rot.titulo||'').toLowerCase()!==ts.t.toLowerCase()?rot.titulo:'';
   const meta=[aAgendar(e)?(e.data?'até '+dBR(e.data):'sem data'):dBR(e.data)+(e.hora?' '+hBR(e.hora):''),e.produto&&!ts.s.includes(e.produto)&&!ts.t.includes(e.produto)?e.produto:'',e.lote?'lote '+e.lote:'',(e.veterinario||'').split('(')[0].trim()||e.clinica,e.peso_kg?kg(e.peso_kg):'',e.valor?money(e.valor):'',ds.length>1?ds.length+' documentos':'',rotTit].filter(Boolean).join(' · ');
-  const acao=agendado(e)?`<button class="done-btn" onclick="event.stopPropagation();aconteceu(${e.id})">Aconteceu</button>`
-    :aAgendar(e)?`<button class="done-btn" onclick="event.stopPropagation();sheetMarquei(${e.id})">Marquei</button>`
+  const acao=agendado(e)?`<button class="done-btn" onclick="event.stopPropagation();aconteceu(${e.id})">Concluir</button>`
+    :aAgendar(e)?`<button class="done-btn" onclick="event.stopPropagation();sheetMarquei(${e.id})">Agendar</button>`
     :(e.confirmado?'':`<button class="mini ok" type="button" aria-label="Confirmar registro" onclick="event.stopPropagation();confirmar(${e.id})"><i class="ti ti-circle-check"></i></button>`);
   return`<div class="card${aAgendar(e)?' pend':''}" style="${e.confirmado?'':'border-color:#cdbfe8'}"><div class="ic" style="background:${t.bg};color:${t.c}"><i class="ti ${t.ic}"></i></div>
-    <div class="cb" role="button" tabindex="0" onclick="editEv(${e.id})"><div class="tl"><div class="tt">${esc(ts.t)}</div>${aAgendar(e)||op.semTag?'':stTag(e)}${e.confirmado?'':'<span class="tag ia">a confirmar</span>'}</div>${ts.s?`<div class="st">${esc(ts.s)}</div>`:''}<div class="ts">${esc(meta)}</div>${e.observacao&&!aAgendar(e)&&['exame','consulta','medicacao','cirurgia'].includes(e.tipo)?`<div class="obs" style="white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(e.observacao)}</div>`:''}${precisaVinculo(e)?`<div class="ts"><span role="button" tabindex="0" style="color:var(--azul);font-weight:600" onclick="event.stopPropagation();sheetVincular(${e.id})">escolher o lembrete</span></div>`:''}</div>
+    <div class="cb" role="button" tabindex="0" onclick="editEv(${e.id})"><div class="tl"><div class="tt">${esc(ts.t)}</div>${aAgendar(e)||op.semTag?'':stTag(e)}${e.confirmado?'':'<span class="tag ia">para revisar</span>'}</div>${ts.s?`<div class="st">${esc(ts.s)}</div>`:''}<div class="ts">${esc(meta)}</div>${e.observacao&&!aAgendar(e)&&['exame','consulta','medicacao','cirurgia'].includes(e.tipo)?`<div class="obs" style="white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(e.observacao)}</div>`:''}${precisaVinculo(e)?`<div class="ts"><span role="button" tabindex="0" style="color:var(--azul);font-weight:600" onclick="event.stopPropagation();sheetVincular(${e.id})">escolher o lembrete</span></div>`:''}</div>
     ${doc?`<button class="mini doc" type="button" aria-label="${ds.length>1?ds.length+' documentos':'Abrir documento'}" onclick="event.stopPropagation();abrirAnexos(${e.id})"><i class="ti ti-file-text"></i>${ds.length>1?`<span style="font-size:11px;font-weight:700;margin-left:1px">${ds.length}</span>`:''}</button>`:''}
     ${acao}</div>`;}
-function hrow(e){const ds=docsDoEv(e);const doc=ds[0];return`<div class="hrow"><div class="hd">${e.data?dBR(e.data):'—'}</div><div class="hb" role="button" tabindex="0" onclick="editEv(${e.id})"><b>${esc(e.produto||titSub(e).t)}</b>${!e.produto&&titSub(e).s?' · '+esc(titSub(e).s):''}${e.lote?' · lote '+esc(e.lote):''}${e.veterinario?' · '+esc(e.veterinario.split('(')[0].trim()):''}${ds.length>1?' · '+ds.length+' documentos':''}${stTag(e)?' '+stTag(e):''}${e.confirmado?'':' <span class="tag ia">a confirmar</span>'}</div>${doc?`<button class="mini doc" type="button" aria-label="${ds.length>1?ds.length+' documentos':'Abrir documento'}" style="min-height:36px" onclick="abrirAnexos(${e.id})"><i class="ti ti-file-text"></i></button>`:''}</div>`;}
+function hrow(e){const ds=docsDoEv(e);const doc=ds[0];return`<div class="hrow"><div class="hd">${e.data?dBR(e.data):'—'}</div><div class="hb" role="button" tabindex="0" onclick="editEv(${e.id})"><b>${esc(e.produto||titSub(e).t)}</b>${!e.produto&&titSub(e).s?' · '+esc(titSub(e).s):''}${e.lote?' · lote '+esc(e.lote):''}${e.veterinario?' · '+esc(e.veterinario.split('(')[0].trim()):''}${ds.length>1?' · '+ds.length+' documentos':''}${stTag(e)?' '+stTag(e):''}${e.confirmado?'':' <span class="tag ia">para revisar</span>'}</div>${doc?`<button class="mini doc" type="button" aria-label="${ds.length>1?ds.length+' documentos':'Abrir documento'}" style="min-height:36px" onclick="abrirAnexos(${e.id})"><i class="ti ti-file-text"></i></button>`:''}</div>`;}
 function toggle(k){aberto[k]=!aberto[k];render(atual);}
 
 // ===== views =====
@@ -326,27 +326,27 @@ V.hoje=()=>{const c=caoAtual();if(!c)return SEM_CAO;
   const agsD=new Set(EV.filter(e=>agendado(e)&&e.cao_id===cao).map(e=>e.tipo+'|'+e.data));const late=rots.filter(r=>diasAte(r.proxima_data)<=0&&!agsD.has(r.tipo+'|'+r.proxima_data)),soon=rots.filter(r=>{const n=diasAte(r.proxima_data);return n>0&&n<=30;}),next=rots.filter(r=>diasAte(r.proxima_data)>30).slice(0,3);
   const aconf=EV.filter(e=>!e.confirmado&&e.cao_id===cao),novos=DOCS.filter(d=>d.status==='novo').length,pa=pesoAtual(c.id);
   let h=`<div class="hero ${fotoUrl(c)?'':'nofoto'}" style="${fotoUrl(c)?`--hero-img:url('${fotoUrl(c)}')`:''}"><div class="hn">${esc(c.nome)}</div><div class="hs">${[idade(c.nascimento),c.raca,pa?String(pa.peso_kg).replace('.',',')+' kg':''].filter(Boolean).map(esc).join(' · ')}</div>
-    <div class="kpis"><div class="kpi"><b>${late.length}</b><span>atrasado${late.length===1?'':'s'}</span></div><div class="kpi"><b>${soon.length}</b><span>em 30 dias</span></div>${aconf.length?`<div class="kpi"><b>${aconf.length}</b><span>a confirmar</span></div>`:''}</div></div>`;
-  h+=`<div class="falar" role="button" tabindex="0" onclick="sheetFalar()"><i class="ti ti-microphone"></i><div>Falar ou escrever um registro<span>“dei Bravecto na Stout hoje, 95 reais” · “banho dos dois ontem”</span></div></div>`;
+    <div class="kpis"><div class="kpi"><b>${late.length}</b><span>atrasado${late.length===1?'':'s'}</span></div><div class="kpi"><b>${soon.length}</b><span>em 30 dias</span></div>${aconf.length?`<div class="kpi"><b>${aconf.length}</b><span>para revisar</span></div>`:''}</div></div>`;
+  h+=`<div class="falar" role="button" tabindex="0" onclick="sheetFalar()"><i class="ti ti-microphone"></i><div>Adicionar por voz ou texto<span>“dei Bravecto na Stout hoje, 95 reais” · “banho dos dois ontem”</span></div></div>`;
   if(novos)h+=`<div class="note" role="button" tabindex="0" onclick="go('docs')" style="cursor:pointer;margin-top:10px"><b>${novos} documento${novos>1?'s':''} na caixa de entrada</b> — o Claude lê e registra à noite (ou peça "processa a caixa").</div>`;
   const amb=EV.filter(e=>e.cao_id===cao&&precisaVinculo(e));
   if(amb.length)h+=`<div class="t-mut" style="margin:12px 2px 0;padding-left:10px;border-left:2px solid var(--azul);line-height:1.6"><b style="color:var(--ink)">${esc(titSub(amb[0]).t)}</b>${amb[0].data?' ('+dBR(amb[0].data)+')':''} pode alimentar mais de um lembrete — não atualizei nenhum. <button class="lnk" type="button" style="padding:0" onclick="sheetVincular(${amb[0].id})">escolher o lembrete</button>${amb.length>1?`<br>e mais ${amb.length-1} registro${amb.length>2?'s':''} assim.`:''}</div>`;
   const ags=EV.filter(e=>agendado(e)&&e.cao_id===cao).sort((a,b)=>(a.data||'9999').localeCompare(b.data||'9999')||String(a.hora||'').localeCompare(String(b.hora||'')));
   if(ags.length)h+=`<div class="sec">Agendado</div>`+ags.map(e=>evCard(e,{semTag:1})).join('');
   const pend=EV.filter(e=>aAgendar(e)&&e.cao_id===cao).sort((a,b)=>(a.data||'9999').localeCompare(b.data||'9999')||a.id-b.id);
-  if(pend.length)h+=`<div class="sec">A agendar</div>`+pend.map(evCard).join('');
+  if(pend.length)h+=`<div class="sec">Para agendar</div>`+pend.map(evCard).join('');
   if(late.length)h+=`<div class="sec">Atrasado</div>`+late.map(rotCard).join('');
-  if(soon.length)h+=`<div class="sec">Vence em 30 dias</div>`+soon.map(rotCard).join('');
-  if(next.length)h+=`<div class="sec">Próximos</div>`+next.map(rotCard).join('');
+  if(soon.length)h+=`<div class="sec">Próximos 30 dias</div>`+soon.map(rotCard).join('');
+  if(next.length)h+=`<div class="sec">Mais adiante</div>`+next.map(rotCard).join('');
   if(!late.length&&!soon.length&&!next.length&&!ags.length&&!pend.length)h+=`<div class="empty"><b>Nada pendente</b>Crie lembretes na Carteirinha (vacinas, antipulgas, banho) e eles aparecem aqui quando estiverem perto de vencer.</div>`;
-  if(aconf.length)h+=`<div class="sec">A confirmar (${aconf.length}) <span role="button" tabindex="0" onclick="confirmarTodos()">confirmar todos</span></div>`+aconf.slice(0,aberto.aconf?999:4).map(evCard).join('')+(aconf.length>4&&!aberto.aconf?`<button class="lnk" type="button" onclick="toggle('aconf')">ver os ${aconf.length}</button>`:'');
+  if(aconf.length)h+=`<div class="sec">Para revisar (${aconf.length}) <span role="button" tabindex="0" onclick="confirmarTodos()">Confirmar todos</span></div>`+aconf.slice(0,aberto.aconf?999:4).map(evCard).join('')+(aconf.length>4&&!aberto.aconf?`<button class="lnk" type="button" onclick="toggle('aconf')">ver os ${aconf.length}</button>`:'');
   return h;};
 V.cart=()=>{const vac=EV.filter(e=>e.tipo==='vacina'&&e.cao_id===cao);let h=`<div class="sec" style="margin-top:12px">Vacinas <span role="button" tabindex="0" onclick="editEv(null,{tipo:'vacina'})">+ vacina</span></div>`;
   const usadas=new Set();let fams=0;
   // a família aparece quando há dose registrada OU quando existe lembrete dela (vacina que nunca foi tomada também precisa aparecer)
   for(const f of FAM){const evs=vac.filter(e=>famDe(e)===f);const rot=ROT.find(r=>r.tipo==='vacina'&&meu(r)&&r.ativo&&f.re.test((r.titulo||'')+' '+(r.produto||'')));
     if(!evs.length&&!rot)continue;evs.forEach(e=>usadas.add(e.id));const last=evs.find(e=>e.status==='realizado'&&e.data)||evs.find(e=>e.status==='agendado'&&e.data)||{data:null};const prox=(rot&&rot.proxima_data)||last.proxima_data||(last.data?addDays(last.data,365):null);const p=prazo(prox);const k='f'+f.k;
-    h+=`<div class="fam"><div class="fh" role="button" tabindex="0" aria-expanded="${!!aberto[k]}" onclick="toggle('${k}')"><div class="ic" style="background:${TIPOS.vacina.bg};color:${TIPOS.vacina.c}"><i class="ti ti-vaccine"></i></div><div class="cb"><div class="tt">${f.n}<span class="tag ${p.tag}">${p.lbl}</span></div><div class="ts">${last.data?'última '+dBR(last.data):'sem dose registrada'}${last.produto?' · '+esc(last.produto):''}${prox?' · próxima '+dBR(prox):''}</div></div><div class="cr"><button class="done-btn" onclick="event.stopPropagation();${rot?`sheetFeito(${rot.id})`:`editEv(null,{tipo:'vacina',titulo:'${f.n}'})`}" aria-label="Registrar dose: ${f.n}">Feito</button></div></div>
+    h+=`<div class="fam"><div class="fh" role="button" tabindex="0" aria-expanded="${!!aberto[k]}" onclick="toggle('${k}')"><div class="ic" style="background:${TIPOS.vacina.bg};color:${TIPOS.vacina.c}"><i class="ti ti-vaccine"></i></div><div class="cb"><div class="tt">${f.n}<span class="tag ${p.tag}">${p.lbl}</span></div><div class="ts">${last.data?'última '+dBR(last.data):'sem dose registrada'}${last.produto?' · '+esc(last.produto):''}${prox?' · próxima '+dBR(prox):''}</div></div><div class="cr"><button class="done-btn" onclick="event.stopPropagation();${rot?`sheetFeito(${rot.id})`:`editEv(null,{tipo:'vacina',titulo:'${f.n}'})`}" aria-label="Concluir: ${f.n}">Concluir</button></div></div>
       ${aberto[k]&&evs.length?`<div class="fb">${evs.map(hrow).join('')}</div>`:''}</div>`;fams++;}
   const outras=vac.filter(e=>!usadas.has(e.id));if(outras.length)h+=`<div class="fam"><div class="fh" role="button" tabindex="0" aria-expanded="${!!aberto.fout}" onclick="toggle('fout')"><div class="ic" style="background:${TIPOS.vacina.bg};color:${TIPOS.vacina.c}"><i class="ti ti-vaccine"></i></div><div class="cb"><div class="tt">Outras vacinas</div><div class="ts">${outras.length} registro${outras.length>1?'s':''}</div></div></div>${aberto.fout?`<div class="fb">${outras.map(hrow).join('')}</div>`:''}</div>`;
   if(!vac.length&&!fams)h+='<div class="vazio">Nenhuma vacina registrada.</div>';
@@ -370,7 +370,7 @@ function pesoChart(c){const ps=EV.filter(e=>e.cao_id===c.id&&e.peso_kg&&e.data&&
   return`<div class="pet" style="padding:12px 14px;margin-top:10px"><div style="display:flex;justify-content:space-between;font-size:13px;align-items:baseline"><b>Peso</b><span class="t-mut">${kg(ps[0].peso_kg)} (${dBR(ps[0].data)}) → ${kg(ps[ps.length-1].peso_kg)} (${dBR(ps[ps.length-1].data)})</span></div>
     <div class="chart" style="margin-top:10px"><svg role="img" aria-label="Gráfico do peso ao longo do tempo" viewBox="0 0 ${W} ${H}"><polyline fill="none" stroke="${caoCor(c)}" stroke-width="2.5" stroke-linejoin="round" points="${pts}"/>${ps.map((p,i)=>`<circle cx="${X(xs[i]).toFixed(1)}" cy="${Y(ys[i]).toFixed(1)}" r="3.5" fill="${caoCor(c)}"/><text x="${X(xs[i]).toFixed(1)}" y="${(Y(ys[i])-9).toFixed(1)}" font-size="10" text-anchor="middle" fill="#4f5663">${String(p.peso_kg).replace('.',',')}</text>`).join('')}</svg></div></div>`;}
 V.docs=()=>{const st={novo:['na caixa','novo'],processando:['lendo…','novo'],processado:['registrado','ok'],erro:['não consegui ler','late'],ignorado:['ignorado','b']};
-  let h=`<div class="up-btn" role="button" tabindex="0" onclick="pickDocs()"><i class="ti ti-camera-plus" aria-hidden="true"></i> Enviar foto ou PDF</div><div class="note">Exame, receita, carteira de vacina ou nota. Vai para a caixa de entrada: o Claude lê, traduz se preciso e cria os registros como <b>"a confirmar"</b>.</div>`;
+  let h=`<div class="up-btn" role="button" tabindex="0" onclick="pickDocs()"><i class="ti ti-camera-plus" aria-hidden="true"></i> Enviar foto ou PDF</div><div class="note">Exame, receita, carteira de vacina ou nota. Vai para a caixa de entrada: o Claude lê, traduz se preciso e cria os registros como <b>"para revisar"</b>.</div>`;
   const docCard=d=>{const s=st[d.status]||st.novo;const ev=evDoDoc(d);const k='d'+d.id;
     return`<div class="doc"><div class="dh"><i class="ti ${d.tipo_mime==='application/pdf'?'ti-file-type-pdf':'ti-photo'}" style="font-size:22px;color:var(--ink3)"></i>
       <div style="flex:1;min-width:0;cursor:pointer" role="button" tabindex="0" aria-expanded="${!!aberto[k]}" onclick="toggle('${k}')"><div class="dn">${esc(d.nome||d.path.split('/').pop())}</div><div class="dm">${d.data_doc?dLong(d.data_doc)+' · ':''}${d.paginas?d.paginas.split(',').length+' pág · ':''}${ev?esc(titSub(ev).t)+' · ':''}<span class="tag ${s[1]}" style="margin-left:0">${s[0]}</span></div></div>
@@ -485,10 +485,10 @@ function editEv(id,preset,mais,keep){
   <div class="row2"><div class="field"><label>Cão</label>${selCao('eC',e.cao_id)}</div><div class="field"><label>Tipo</label><select id="eT" onchange="evRefresh(${id||'null'})">${TIPOS_EV.map(t=>`<option value="${t}" ${tipo===t?'selected':''}>${TIPOS[t].n}</option>`).join('')}</select></div></div>
   <div class="field"><label>Título</label><input id="eTi" data-sug="${esc(sug)}" value="${esc(e.titulo||sug)}" placeholder="${esc(sug)}" maxlength="60"></div>
   <div class="field"><label>Detalhe <span style="color:var(--ink3);font-weight:400">(opcional)</span></label><input id="eSu" value="${esc(e.subtitulo)}" placeholder="Ex.: marca, dose, o que inclui"></div>
-  <div class="row2"><div class="field"><label>Situação</label><select id="eS" data-prev="${st}" onchange="evRefresh(${id||'null'})"><option value="realizado" ${st==='realizado'?'selected':''}>Aconteceu</option><option value="agendado" ${st==='agendado'?'selected':''}>Agendado</option><option value="a_agendar" ${pend?'selected':''}>A agendar</option><option value="cancelado" ${st==='cancelado'?'selected':''}>Cancelado</option></select></div>${dataH}</div>
-  ${rotL.length?`<div class="field"><label>Lembrete <span style="color:var(--ink3);font-weight:400">(opcional)</span></label><select id="eRot" onchange="window._rotEsc=true">${optRot(rotL,rotSel)}</select></div>`:''}
+  <div class="row2"><div class="field"><label>Status</label><select id="eS" data-prev="${st}" onchange="evRefresh(${id||'null'})"><option value="realizado" ${st==='realizado'?'selected':''}>Concluído</option><option value="agendado" ${st==='agendado'?'selected':''}>Agendado</option><option value="a_agendar" ${pend?'selected':''}>Para agendar</option><option value="cancelado" ${st==='cancelado'?'selected':''}>Cancelado</option></select></div>${dataH}</div>
+  ${rotL.length?`<div class="field"><label>Vincular a um lembrete</label><select id="eRot" onchange="window._rotEsc=true">${optRot(rotL,rotSel)}</select></div>`:''}
   ${st==='agendado'?F.hora.h:''}
-  ${pend?'<div class="t-mut" style="margin:-4px 0 12px">Ainda precisa ser marcado. Não mexe nos lembretes; aparece em Hoje → A agendar.</div>':''}
+  ${pend?'<div class="t-mut" style="margin:-4px 0 12px">Ainda precisa ser marcado. Não mexe nos lembretes; aparece em Hoje → Para agendar.</div>':''}
   ${linhas(pri.map(k=>F[k]))}
   <div class="mais" role="button" tabindex="0" onclick="evMais()"><i class="ti ti-chevron-${ab?'up':'down'}" id="eMaisIc"></i><span id="eMaisTx">${ab?'Menos detalhes':'Mais detalhes'}</span></div>
   <div id="eMais" style="display:${ab?'block':'none'}">${linhas(ext.map(k=>F[k]))}</div>
@@ -534,16 +534,16 @@ async function confirmar(id){const e=EV.find(x=>x.id===id);if(!e||e.confirmado)r
   const r=await sb.from('pet_eventos').update({confirmado:true}).eq('id',id);if(r.error){e.confirmado=false;render(atual);toast(msgErro(r.error));return;}toast('Confirmado');}
 // agendado → aconteceu. Se a data marcada ainda é futura (ou não tem), registra como hoje.
 async function aconteceu(id){const e=EV.find(x=>x.id===id);if(!e||aconteceu._b)return;const hj=hojeISO(),d=(!e.data||e.data>hj)?hj:e.data;
-  if(!confirm(`Confirmar que "${titSub(e).t}" aconteceu em ${dBR(d)}?`))return;aconteceu._b=1;
+  if(!confirm(`Concluir "${titSub(e).t}" em ${dBR(d)}?`))return;aconteceu._b=1;
   try{const r=ok(await sb.from('pet_eventos').update({status:'realizado',confirmado:true,data:d}).eq('id',id).select().single());Object.assign(e,r.data);EV.sort(porData);
-    try{await syncRotina(e);}catch(x){console.warn(x);}render(atual);toast('Registrado');}
+    try{await syncRotina(e);}catch(x){console.warn(x);}render(atual);toast('Concluído');}
   catch(err){toast(msgErro(err));}finally{aconteceu._b=0;}}
 function sheetMarquei(id){const e=EV.find(x=>x.id===id);if(!e)return;const ts=titSub(e);
-  openSheet(`<h3>Marquei</h3><div class="t-mut" style="margin:-8px 0 14px">${esc(ts.t)}${ts.s?' · '+esc(ts.s):''} — ${esc(nomeCao(e.cao_id))}</div>
+  openSheet(`<h3>Agendar</h3><div class="t-mut" style="margin:-8px 0 14px">${esc(ts.t)}${ts.s?' · '+esc(ts.s):''} — ${esc(nomeCao(e.cao_id))}</div>
   <div class="row2"><div class="field"><label>Data</label><input type="date" id="mD" value="${e.data&&e.data>=hojeISO()?e.data:''}"></div><div class="field"><label>Hora</label><input type="time" id="mH"></div></div>
   <div class="field"><label>Clínica <span style="color:var(--ink3);font-weight:400">(opcional)</span></label><input id="mC" value="${esc(e.clinica)}"></div>
-  <button class="btn btn-p" type="button" onclick="saveMarquei(${id},this)">Salvar como agendado</button>
-  <div style="display:flex;gap:8px;margin-top:8px"><button class="btn" type="button" onclick="editEv(${id})">Editar</button><button class="btn btn-danger" type="button" onclick="cancelarEv(${id},this)">Não vai mais</button></div>`);}
+  <button class="btn btn-p" type="button" onclick="saveMarquei(${id},this)">Agendar</button>
+  <div style="display:flex;gap:8px;margin-top:8px"><button class="btn" type="button" onclick="editEv(${id})">Editar</button><button class="btn btn-danger" type="button" onclick="cancelarEv(${id},this)">Cancelar</button></div>`);}
 async function saveMarquei(id,btn){const d=val('mD');if(!d){toast('Informe a data');return;}const upd={status:'agendado',data:d,hora:val('mH')||null,clinica:val('mC')||null};
   let e=null;if(!await comBotao(btn,async()=>{const r=ok(await sb.from('pet_eventos').update(upd).eq('id',id).select().single());
     e=EV.find(x=>x.id===id);if(e)Object.assign(e,r.data);else EV.unshift(e=r.data);EV.sort(porData);}))return;
@@ -605,7 +605,7 @@ async function saveRot(id,btn){const t=val('rTi'),i=Math.round(+val('rI'));if(!t
   closeSheet();render(atual);toast('Salvo');}
 async function delRot(id,btn){if(!confirm('Apagar este lembrete? Os registros já feitos continuam.'))return;if(!await comBotao(btn,async()=>{ok(await sb.from('pet_rotinas').delete().eq('id',id));},'Apagando…'))return;ROT=ROT.filter(x=>x.id!==id);closeSheet();render(atual);toast('Apagado');}
 function sheetFeito(id){const r=ROT.find(x=>x.id===id);if(!r)return;
-  openSheet(`<h3>${esc(r.titulo)} — feito</h3>
+  openSheet(`<h3>${esc(r.titulo)} — concluir</h3>
   ${r.cao_id?'':`<div class="field"><label>Para</label>${CAES.map(c=>`<label style="display:inline-flex;align-items:center;gap:8px;margin-right:18px;min-height:44px;font-size:15px"><input type="checkbox" class="fC" value="${c.id}" ${c.id===cao?'checked':''} style="width:auto">${c.nome}</label>`).join('')}</div>`}
   <div class="row2"><div class="field"><label>Data</label><input type="date" id="fD" value="${hojeISO()}" onchange="feitoProx(${r.intervalo_dias})"></div><div class="field"><label>Valor (R$)</label><input type="text" inputmode="decimal" autocomplete="off" id="fR"></div></div>
   <div class="row2"><div class="field"><label>Produto</label><input id="fP" value="${esc(r.produto)}"></div><div class="field"><label>Lote</label><input id="fL"></div></div>
@@ -619,7 +619,7 @@ async function saveFeito(id,btn){const r=ROT.find(x=>x.id===id);if(!r)return;con
   let andou=false;
   if(!await comBotao(btn,async()=>{const ins=ok(await sb.from('pet_eventos').insert(rows).select());EV=ins.data.concat(EV);EV.sort(porData);
     if(!(r.ultima_data&&r.ultima_data>d)){const upd={ultima_data:d,proxima_data:prox};ok(await sb.from('pet_rotinas').update(upd).eq('id',id));Object.assign(r,upd);andou=true;}}))return;
-  closeSheet();render(atual);toast(andou?'Salvo · próxima '+dBR(prox):'Salvo');}
+  closeSheet();render(atual);toast(andou?'Concluído · próxima '+dBR(prox):'Concluído');}
 
 // --- produto ---
 function sheetProd(id,preset){const b0=id?PROD.find(x=>x.id===id):{cao_id:cao,categoria:'racao',em_uso:true};if(!b0)return;const p=Object.assign({},b0,preset||{});
@@ -831,7 +831,7 @@ let ENTRADA=null;
 function sheetFalar(texto){ENTRADA={historico:[],res:null,acoes:[],perg:[],ultimo:''};
   openSheet(falarHTML(texto||''));recUI();
   setTimeout(()=>{const t=$('#flTxt');if(t){t.focus();try{t.setSelectionRange(t.value.length,t.value.length);}catch(_){}}},80);}
-function falarHTML(texto){return`<h3>Falar ou escrever</h3><div id="flOuv"></div>
+function falarHTML(texto){return`<h3>Adicionar por voz ou texto</h3><div id="flOuv"></div>
   <div class="field"><textarea id="flTxt" rows="4" aria-label="O que aconteceu" oninput="pararRec(true)" placeholder="Ex.: dei antipulgas Simparic no Jorge hoje, 60 reais · a Stout pesou 5,8 kg · remarca a consulta para quinta">${esc(texto)}</textarea></div>
   <div class="t-mut" style="margin-bottom:10px">Cão selecionado: <b>${esc((caoAtual()||{}).nome||'')}</b> (se não citar o nome, uso este).</div>
   <div id="flBtns"></div><div class="err" id="flErr" style="color:var(--rosa);font-size:13px;margin-top:10px"></div>`;}
@@ -906,7 +906,7 @@ function descCampos(c){return Object.keys(c||{}).map(k=>{let v=c[k];
   else if(k==='rotina_id')v=v==null?'nenhum':((rotById(v)||{}).titulo||v);
   else if(v===null||v==='')v='em branco';
   else if(v===true||v===false)v=v?'sim':'não';
-  else if(k==='status')v={realizado:'aconteceu',agendado:'agendado',a_agendar:'a agendar',cancelado:'cancelado'}[v]||v;
+  else if(k==='status')v={realizado:'concluído',agendado:'agendado',a_agendar:'para agendar',cancelado:'cancelado'}[v]||v;
   else if(k==='tipo')v=(TIPOS[v]||{}).n||v;
   else if(k==='categoria')v=CATP[v]||v;
   else if(/data/.test(k)&&/^\d{4}-\d{2}-\d{2}$/.test(String(v)))v=dBR(v);
@@ -916,7 +916,7 @@ function descCampos(c){return Object.keys(c||{}).map(k=>{let v=c[k];
 function acaoLinha(a,i){let ic='ti-pencil',cor='var(--ink2)',pre='',et='',es='';
   if(a.tipo==='evento_novo'){const e=entradaEv(a.evento);const T=TIPOS[e.tipo]||TIPOS.outro;ic=T.ic;cor=T.c;pre='Novo';
     et=esc(e.titulo)+` <span class="tag b">${esc(nomeCao(e.cao_id))}</span>`+(e.subtitulo?`<div class="es">${esc(e.subtitulo)}</div>`:'');
-    es=`${e.status==='agendado'?'agendado · ':''}${e.status==='a_agendar'?'a agendar'+(e.data?' · até ':''):''}${dBR(e.data)}${e.hora?' '+hBR(e.hora):''}${e.produto?' · '+esc(e.produto):''}${e.valor?' · '+money(e.valor):''}${e.peso_kg?' · '+e.peso_kg+' kg':''}${e.proxima_data?' · próxima '+dBR(e.proxima_data):''}${e.rotina_id?' · '+esc((rotById(e.rotina_id)||{}).titulo||''):''}`;}
+    es=`${e.status==='agendado'?'agendado · ':''}${e.status==='a_agendar'?'para agendar'+(e.data?' · até ':''):''}${dBR(e.data)}${e.hora?' '+hBR(e.hora):''}${e.produto?' · '+esc(e.produto):''}${e.valor?' · '+money(e.valor):''}${e.peso_kg?' · '+e.peso_kg+' kg':''}${e.proxima_data?' · próxima '+dBR(e.proxima_data):''}${e.rotina_id?' · '+esc((rotById(e.rotina_id)||{}).titulo||''):''}`;}
   else if(a.tipo==='evento_atualizar'){const o=EV.find(x=>x.id===a.id)||{};const T=TIPOS[o.tipo]||TIPOS.outro;ic=T.ic;cor=T.c;pre='Atualizar';
     et=esc(o.titulo?titSub(o).t:'registro')+(o.data?` <span class="tag b">${dBR(o.data)}</span>`:'');
     es=descCampos(camposEv(a.campos));}
@@ -948,7 +948,7 @@ function mostrarEntrada(texto,res){if(!ENTRADA)ENTRADA={historico:[]};
   const todas=(res.acoes||[]).filter(a=>a&&a.tipo);
   const acoes=todas.filter(existeAlvo);const sumiram=todas.length-acoes.length;ENTRADA.acoes=acoes;
   const linhasA=acoes.map((a,i)=>acaoLinha(a,i)).join('');
-  openSheet(`<h3>Entendi assim</h3>${res.resumo?`<div class="t-mut" style="margin:-8px 0 12px">${esc(res.resumo)}</div>`:''}
+  openSheet(`<h3>Confira o que entendi</h3>${res.resumo?`<div class="t-mut" style="margin:-8px 0 12px">${esc(res.resumo)}</div>`:''}
     ${linhasA}
     ${sumiram?`<div class="t-mut" style="margin-top:10px;padding-left:10px;border-left:2px solid var(--rosa)">Deixei de fora ${sumiram} ite${sumiram>1?'ns que apontavam':'m que apontava'} para um registro que não existe mais.</div>`:''}
     ${acoes.length?`<div class="t-mut" style="margin-top:10px">Toque num item para ajustar antes.</div><button class="btn btn-p" type="button" id="btEnt" style="margin-top:12px" onclick="salvarEntrada()">Salvar${acoes.length>1?' tudo ('+acoes.length+')':''}</button>`:'<div class="empty">Nada para registrar.</div>'}

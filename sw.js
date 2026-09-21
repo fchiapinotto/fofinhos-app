@@ -1,6 +1,6 @@
 // Service worker: torna o app instalável; rede primeiro, cache só como reserva da casca. + notificações push.
 // Ao publicar mudança no app, suba a versão abaixo (a tela avisa "Nova versão — tocar para atualizar").
-const C='fofinhos-v10';
+const C='fofinhos-v11';
 const CASCA=['./','./index.html','./manifest.webmanifest','./icon-180.png','./icon-192.png'];
 // bibliotecas de fora (versões fixas): guardadas para o app abrir mesmo sem internet
 const CDN=/^https:\/\/(cdn\.jsdelivr\.net|fonts\.googleapis\.com|fonts\.gstatic\.com)\//;
