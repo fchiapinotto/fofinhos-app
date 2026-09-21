@@ -51,7 +51,7 @@
   .cb .tl{display:flex;align-items:center;flex-wrap:wrap;gap:2px 6px;min-width:0}.cb .tl .tt{font-size:14.5px;min-width:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}.cb .tl .tag{margin-left:0;flex-shrink:0}
   .cb .st{font-size:12.5px;color:var(--ink2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .cb .tl+.ts,.cb .st+.ts{font-size:12px;color:var(--ink3)}
-  .card.pend{background:transparent;border-style:dashed}
+  .card.pend{border-style:dashed}
   .cr{text-align:right;flex-shrink:0}.cr .d{font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums}
   .cr .d.late{color:var(--rosa)}.cr .d.soon{color:var(--ambar)}.cr .d.ok{color:var(--verde)}
   .tag{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:99px;vertical-align:1px;margin-left:5px}
@@ -107,8 +107,12 @@
   .pulso{width:10px;height:10px;border-radius:50%;background:var(--verde);animation:pul 1s ease-in-out infinite;flex-shrink:0}
   @keyframes pul{0%,100%{transform:scale(.7);opacity:.45}50%{transform:scale(1.25);opacity:1}}
   .chips{display:flex;flex-wrap:wrap;gap:7px;margin:9px 0 9px}
-  .chip{display:inline-flex;align-items:center;min-height:40px;font-family:inherit;border:1px solid var(--line);background:var(--card);border-radius:99px;padding:8px 14px;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer}
+  .chip{display:inline-flex;align-items:center;min-height:44px;font-family:inherit;border:1px solid var(--line);background:var(--card);border-radius:99px;padding:8px 14px;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer}
   .chip.on{background:var(--verde);border-color:var(--verde);color:#fff}
+  .tgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 4px}
+  .tbtn{display:flex;align-items:center;gap:10px;min-height:56px;padding:9px 11px;border:1px solid var(--line);background:var(--card);border-radius:14px;font-family:inherit;font-size:14.5px;font-weight:600;color:var(--ink);cursor:pointer;text-align:left;line-height:1.2}
+  .tbtn i{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+  .tbtn:active{background:#faf9f6}
   .perg{background:#fbfaf7;border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin-bottom:10px}
   .perg .pq{font-size:14.5px;font-weight:600;line-height:1.35}
   .mais{display:inline-flex;align-items:center;gap:6px;color:var(--verde);font-size:13.5px;font-weight:600;cursor:pointer;margin:-8px 0 6px;padding:10px 0;min-height:44px}
@@ -131,7 +135,7 @@
   <div class="off" id="offline" role="status">Sem internet — mostrando o que já estava carregado.</div>
   <main id="view"><div class="empty">Carregando…</div></main>
 </div>
-<button class="fab" id="fab" type="button" onclick="fabAction()" aria-label="Novo registro">+</button>
+<button class="fab" id="fab" type="button" onclick="fabAction()" aria-label="Adicionar">+</button>
 <button class="upd" id="upd" type="button" onclick="location.reload()"><i class="ti ti-refresh" aria-hidden="true"></i>Nova versão — tocar para atualizar</button>
 <nav aria-label="Abas">
   <a role="button" tabindex="0" data-go="hoje" class="on" aria-current="page" onclick="go('hoje')"><i class="ti ti-sun" aria-hidden="true"></i>Hoje</a>
@@ -433,8 +437,8 @@ function ligaLabels(root){root.querySelectorAll('.field').forEach(f=>{const l=f.
 function closeSheet(){$('#sheet').classList.remove('on');}
 function selCao(id,sel,allowBoth){return`<select id="${id}">${allowBoth?`<option value="" ${sel==null?'selected':''}>Os dois</option>`:''}${CAES.map(c=>`<option value="${c.id}" ${sel===c.id?'selected':''}>${c.nome}</option>`).join('')}</select>`;}
 function selTipo(id,list,sel){return`<select id="${id}">${list.map(t=>`<option value="${t}" ${sel===t?'selected':''}>${TIPOS[t].n}</option>`).join('')}</select>`;}
-const FAB_LBL={hoje:'Novo registro',cart:'Novo lembrete',vet:'Nova consulta',docs:'Enviar documento',ficha:'Novo produto'};
-function fabAction(){if(atual==='cart')editRot(null);else if(atual==='docs')pickDocs();else if(atual==='ficha')sheetProd(null);else if(atual==='vet')editEv(null,{tipo:'consulta'});else editEv(null);}
+// o "+" abre sempre a folha Adicionar; lembrete e produto seguem em Perfil (e lembrete tambem na Carteirinha)
+function fabAction(){sheetAdicionar();}
 const val=id=>($('#'+id)?$('#'+id).value.trim():'');const num=id=>{const v=val(id).replace(',','.');return v===''?null:+v;};
 
 // --- evento ---
@@ -570,6 +574,127 @@ async function saveVinculo(id,btn){const e=EV.find(x=>x.id===id);if(!e)return;co
 async function confirmarTodos(){const l=EV.filter(e=>!e.confirmado&&e.cao_id===cao);if(!l.length||!confirm(`Confirmar os ${l.length} registros de ${caoAtual().nome}?`))return;l.forEach(e=>e.confirmado=true);render(atual);
   const r=await sb.from('pet_eventos').update({confirmado:true}).in('id',l.map(e=>e.id));if(r.error){l.forEach(e=>e.confirmado=false);render(atual);toast(msgErro(r.error));return;}toast('Confirmados');}
 async function delEv(id,btn){if(!confirm('Apagar este registro?'))return;if(!await comBotao(btn,async()=>{ok(await sb.from('pet_eventos').delete().eq('id',id));},'Apagando…'))return;EV=EV.filter(x=>x.id!==id);closeSheet();render(atual);toast('Apagado');}
+
+// --- adicionar (guiado, sem IA) ---
+// O "+" abre esta folha: em cima, falar/escrever; embaixo, o que aconteceu. Escolhido o tipo,
+// vem so o formulario minimo daquele tipo (cao e data ja prontos) e o resto em "Mais detalhes".
+const ADD_TIPOS=['vacina','vermifugo','antipulga','banho','tosa','peso','consulta','exame','medicacao','outro'];
+const ADD_LBL={vacina:'Vacina',vermifugo:'Vermífugo',antipulga:'Antipulgas',banho:'Banho',tosa:'Tosa',peso:'Peso',consulta:'Consulta',exame:'Exame',medicacao:'Remédio',outro:'Outro'};
+const ADD_FAM=[{k:'v10',n:'Polivalente',tit:'Polivalente V10'},{k:'raiva',n:'Antirrábica',tit:'Antirrábica'},{k:'gripe',n:'Gripe',tit:'Gripe canina'},{k:'giardia',n:'Giárdia',tit:'Giárdia'},{k:'outra',n:'Outra',tit:''}];
+const ADD_EX=[{k:'sangue',n:'Sangue',tit:'Exame de sangue'},{k:'us',n:'Ultrassom',tit:'Ultrassom'},{k:'eco',n:'Eco + eletro',tit:'Eco + eletrocardiograma'},{k:'outro',n:'Outro',tit:''}];
+const ADD_MAIS={vacina:['produto','lote','vet','clinica','valor','obs'],vermifugo:['lote','vet','valor','obs'],antipulga:['lote','vet','valor','obs'],banho:['obs'],tosa:['obs'],peso:['clinica','obs'],consulta:['vet','valor','obs'],exame:['vet','clinica','valor','obs'],medicacao:['vet','valor','obs'],outro:['valor','obs']};
+const ADD_OUTRO='';
+let NOVO=null,ADD_OPS={};
+function sheetAdicionar(){NOVO=null;
+  openSheet(`<h3>Adicionar</h3>
+  <div class="falar" role="button" tabindex="0" style="margin:0" onclick="sheetFalar()"><i class="ti ti-microphone" aria-hidden="true"></i><div>Falar ou escrever<span>“dei Bravecto na Stout hoje, 95 reais” · “banho dos dois ontem”</span></div></div>
+  <div class="sec" style="margin:20px 2px 10px">Ou escolha o que aconteceu</div>
+  <div class="tgrid">${ADD_TIPOS.map(t=>{const T=TIPOS[t]||TIPOS.outro;return`<button class="tbtn" type="button" onclick="addTipo('${t}')"><i class="ti ${T.ic}" style="background:${T.bg};color:${T.c}" aria-hidden="true"></i>${esc(ADD_LBL[t])}</button>`;}).join('')}</div>`);}
+function addTipo(t){NOVO={tipo:t,cao_id:cao,data:hojeISO(),status:'realizado',mais:false,fam:'',ex:'',titulo:'',produto:'',prodOutro:false,lote:'',veterinario:'',clinica:'',clinOutro:false,valor:'',observacao:'',peso:'',dose:'',hora:''};addForm();}
+// guarda o que ja esta digitado antes de redesenhar a folha
+function addColeta(){if(!NOVO)return;const m={aD:'data',aH:'hora',aTi:'titulo',aPr:'produto',aL:'lote',aV:'veterinario',aCl:'clinica',aR:'valor',aO:'observacao',aK:'peso',aDo:'dose'};
+  for(const id in m){const el=$('#'+id);if(el)NOVO[m[id]]=el.value;}}
+function addSet(k,v){if(!NOVO)return;addColeta();
+  if(k==='produto'){NOVO.prodOutro=(v===ADD_OUTRO);NOVO.produto=NOVO.prodOutro?'':v;}
+  else if(k==='clinica'){NOVO.clinOutro=(v===ADD_OUTRO);NOVO.clinica=NOVO.clinOutro?'':v;}
+  else NOVO[k]=v;
+  if(k==='status')NOVO.data=(v==='a_agendar')?'':(NOVO.data||hojeISO());
+  addForm();}
+function addSetI(campo,i){addSet(campo,(ADD_OPS[campo]||[])[i]);}
+function addRefresh(){addColeta();addForm();}
+function addMais(){if(!NOVO)return;addColeta();NOVO.mais=!NOVO.mais;addForm();}
+function addChipsV(campo,ops,sel){ADD_OPS[campo]=ops.map(o=>o.v);
+  return`<div class="chips">${ops.map((o,i)=>`<button type="button" class="chip${String(sel==null?'':sel)===String(o.v)?' on':''}" onclick="addSetI('${campo}',${i})">${esc(o.n)}</button>`).join('')}</div>`;}
+// produtos que ja foram usados nesse tipo para esse cao (registros, produtos em uso, lembrete)
+function addProdutos(t,caoId){const l=[];const add=n=>{n=String(n||'').trim();if(n&&!l.some(x=>x.toLowerCase()===n.toLowerCase()))l.push(n);};
+  EV.filter(e=>e.tipo===t&&(e.cao_id===caoId||caoId==null)&&e.produto).sort(porData).forEach(e=>add(e.produto));
+  PROD.filter(p=>p.categoria===t&&(p.cao_id===caoId||p.cao_id==null)&&p.em_uso).forEach(p=>add(p.nome));
+  ROT.filter(r=>r.tipo===t&&(r.cao_id===caoId||r.cao_id==null)&&r.ativo&&r.produto).forEach(r=>add(r.produto));
+  return l.slice(0,5);}
+// ultimo produto usado nessa familia de vacina, para esse cao
+function addUltProd(caoId,famK){const f=FAM.find(x=>x.k===famK);if(!f)return'';
+  const e=EV.filter(x=>x.tipo==='vacina'&&x.cao_id===caoId&&x.produto&&famDe(x)===f).sort(porData)[0];return e?e.produto:'';}
+const addDec=s=>{s=String(s==null?'':s).trim().replace(',','.');return s===''||!isFinite(s)?null:+s;};
+function addRow(){const n=NOVO;if(!n)return null;const t=n.tipo;
+  let tit='',prod=(n.produto||'').trim();
+  if(t==='vacina'){const f=ADD_FAM.find(x=>x.k===n.fam);tit=(f&&f.tit)||(n.fam==='outra'?(n.titulo||'').trim():'');}
+  else if(t==='exame'){const f=ADD_EX.find(x=>x.k===n.ex);tit=(f&&f.tit)||(n.ex==='outro'?(n.titulo||'').trim():'');}
+  else if(t==='peso'){const p=addDec(n.peso);tit=p?'Pesagem '+String(p).replace('.',',')+' kg':'';}
+  else if(t==='medicacao'||t==='outro'){tit=(n.titulo||'').trim();if(t==='medicacao'&&tit&&!prod)prod=tit;}
+  else tit=titSug(t);
+  return{cao_id:n.cao_id,tipo:t,status:n.status||'realizado',data:(n.data||'')||null,hora:(n.status==='agendado'&&n.hora)?n.hora:null,
+    titulo:tit,subtitulo:null,produto:prod||null,lote:(n.lote||'').trim()||null,dose:(n.dose||'').trim()||null,
+    veterinario:(n.veterinario||'').trim()||null,clinica:(n.clinica||'').trim()||null,
+    peso_kg:t==='peso'?addDec(n.peso):null,valor:addDec(n.valor),observacao:(n.observacao||'').trim()||null,proxima_data:null};}
+function addRotUnica(){try{const r=addRow();if(!r)return null;const c=rotCandidatos(r);return c.length===1?c[0]:null;}catch(_){return null;}}
+function addForm(){const n=NOVO;if(!n)return;ADD_OPS={};const T=TIPOS[n.tipo]||TIPOS.outro;const pend=n.status==='a_agendar';
+  const opc=' <span style="color:var(--ink3);font-weight:400">(opcional)</span>';
+  const dois=['banho','tosa'].includes(n.tipo)&&ROT.some(r=>r.tipo===n.tipo&&r.cao_id==null&&r.ativo);
+  const caoOps=CAES.map(c=>({v:c.id,n:c.nome})).concat(dois?[{v:null,n:'Os dois'}]:[]);
+  let h=`<button class="lnk" type="button" style="padding:0 2px 4px;margin:-2px 0 2px" onclick="sheetAdicionar()"><i class="ti ti-chevron-left" aria-hidden="true"></i> Voltar</button>
+  <h3 style="margin-top:0"><i class="ti ${T.ic}" style="color:${T.c};margin-right:7px" aria-hidden="true"></i>${esc(ADD_LBL[n.tipo])}</h3>
+  <div class="field"><label>Cão</label>${addChipsV('cao_id',caoOps,n.cao_id)}</div>`;
+  if(n.tipo==='vacina'){h+=`<div class="field"><label>Qual?</label>${addChipsV('fam',ADD_FAM.map(f=>({v:f.k,n:f.n})),n.fam)}</div>`;
+    if(n.fam==='outra')h+=`<div class="field"><label>Qual vacina?</label><input id="aTi" value="${esc(n.titulo)}" placeholder="Ex.: Leishmaniose" maxlength="60"></div>`;}
+  if(n.tipo==='exame'){h+=`<div class="field"><label>Qual?</label>${addChipsV('ex',ADD_EX.map(f=>({v:f.k,n:f.n})),n.ex)}</div>`;
+    if(n.ex==='outro')h+=`<div class="field"><label>Qual exame?</label><input id="aTi" value="${esc(n.titulo)}" placeholder="Ex.: Raio-X do tórax" maxlength="60"></div>`;
+    h+=`<div class="field"><label>Situação</label>${addChipsV('status',[{v:'realizado',n:'Concluído'},{v:'agendado',n:'Agendado'},{v:'a_agendar',n:'Para agendar'}],n.status)}</div>`;}
+  if(n.tipo==='consulta')h+=`<div class="field"><label>Situação</label>${addChipsV('status',[{v:'realizado',n:'Concluída'},{v:'agendado',n:'Agendada'}],n.status)}</div>`;
+  if(n.tipo==='vermifugo'||n.tipo==='antipulga'){const ps=addProdutos(n.tipo,n.cao_id);
+    h+=`<div class="field"><label>Produto</label>${addChipsV('produto',ps.map(p=>({v:p,n:p})).concat([{v:ADD_OUTRO,n:'Outro'}]),n.prodOutro?ADD_OUTRO:n.produto)}</div>`;
+    if(n.prodOutro||!ps.length)h+=`<div class="field"><label>Qual produto?</label><input id="aPr" value="${esc(n.produto)}" placeholder="Ex.: Simparic 5 mg"></div>`;}
+  if(n.tipo==='peso')h+=`<div class="field"><label>Peso (kg)</label><input type="text" inputmode="decimal" autocomplete="off" id="aK" value="${esc(n.peso)}" placeholder="5,8" style="font-size:30px;font-weight:700;text-align:center;padding:16px 12px"></div>`;
+  if(n.tipo==='medicacao'){h+=`<div class="field"><label>Nome do remédio</label><input id="aTi" value="${esc(n.titulo)}" placeholder="Ex.: Apoquel" maxlength="60"></div>
+    <div class="field"><label>Dose${opc}</label><input id="aDo" value="${esc(n.dose)}" placeholder="1 comprimido, 2x ao dia"></div>`;}
+  if(n.tipo==='outro')h+=`<div class="field"><label>Título</label><input id="aTi" value="${esc(n.titulo)}" placeholder="O que aconteceu" maxlength="60"></div>`;
+  const rf=(n.tipo==='vermifugo'||n.tipo==='antipulga')?' onchange="addRefresh()"':'';
+  const dataF=`<div class="field"><label>${pend?'Prazo'+opc:'Data'}</label><input type="date" id="aD" value="${esc(n.data)}"${rf}></div>`;
+  h+=(n.status==='agendado')?`<div class="row2">${dataF}<div class="field"><label>Hora${opc}</label><input type="time" id="aH" value="${esc(n.hora)}"></div></div>`:dataF;
+  if(n.tipo==='consulta'){const cs=CONT.filter(k=>k.nome).map(k=>({v:k.nome,n:k.nome}));
+    h+=`<div class="field"><label>Clínica${opc}</label>${addChipsV('clinica',cs.concat([{v:ADD_OUTRO,n:'Outra'}]),n.clinOutro?ADD_OUTRO:n.clinica)}</div>`;
+    if(n.clinOutro||!cs.length)h+=`<div class="field"><label>Qual clínica?</label><input id="aCl" value="${esc(n.clinica)}"></div>`;}
+  if(['banho','tosa'].includes(n.tipo))h+=`<div class="field"><label>Valor (R$)${opc}</label><input type="text" inputmode="decimal" autocomplete="off" id="aR" value="${esc(n.valor)}"></div>`;
+  if(pend)h+=`<div class="t-mut" style="margin:-4px 0 12px">Ainda precisa ser marcado. Não mexe nos lembretes; aparece em Hoje → Para agendar.</div>`;
+  if(['vermifugo','antipulga'].includes(n.tipo)&&n.status==='realizado'&&n.data){const r=addRotUnica();
+    if(r)h+=`<div class="t-mut" style="margin:-4px 0 12px">Próxima ficará em <b>${dBR(addDays(n.data,r.intervalo_dias))}</b> (a cada ${r.intervalo_dias} dias).</div>`;}
+  const F={produto:()=>{const sug=n.tipo==='vacina'?addUltProd(n.cao_id,n.fam):'';
+      return`<div class="field"><label>Produto</label><input id="aPr" value="${esc(n.produto)}" placeholder="Marca / nome">${sug&&!n.produto?addChipsV('produto',[{v:sug,n:'Último: '+sug}],''):''}</div>`;},
+    lote:()=>`<div class="field"><label>Lote</label><input id="aL" value="${esc(n.lote)}"></div>`,
+    vet:()=>`<div class="field"><label>Veterinário</label><input id="aV" value="${esc(n.veterinario)}"></div>`,
+    clinica:()=>`<div class="field"><label>Clínica</label><input id="aCl" value="${esc(n.clinica)}"></div>`,
+    valor:()=>`<div class="field"><label>Valor (R$)</label><input type="text" inputmode="decimal" autocomplete="off" id="aR" value="${esc(n.valor)}"></div>`,
+    obs:()=>`<div class="field"><label>Observação</label><textarea id="aO" rows="3">${esc(n.observacao)}</textarea></div>`};
+  const ex=(ADD_MAIS[n.tipo]||[]).filter(k=>F[k]);
+  h+=`<div class="mais" role="button" tabindex="0" onclick="addMais()"><i class="ti ti-chevron-${n.mais?'up':'down'}" aria-hidden="true"></i><span>${n.mais?'Menos detalhes':'Mais detalhes'}</span></div>
+  <div id="aMais" style="display:${n.mais?'block':'none'}">${ex.map(k=>F[k]()).join('')}<div class="anexo" role="button" tabindex="0" onclick="addSalvar(this,undefined,1)"><i class="ti ti-paperclip" aria-hidden="true"></i> Salvar e anexar documento</div></div>
+  <button class="btn btn-p" type="button" onclick="addSalvar(this)">Salvar</button>`;
+  openSheet(h);}
+// empate de verdade entre lembretes: pergunta em vez de chutar
+function addPergLembrete(anexar){const row=addRow();const cs=rotCandidatos(row);
+  openSheet(`<h3>Qual lembrete?</h3><div class="t-mut" style="margin:-8px 0 14px">${esc(row.titulo)} pode alimentar mais de um lembrete. Escolha qual anda com este registro.</div>
+  ${cs.map(r=>`<button class="btn" type="button" style="margin-bottom:8px" onclick="addSalvar(this,${r.id},${anexar?1:0})">${esc(r.titulo)}${r.cao_id==null?' (os dois)':''}</button>`).join('')}
+  <button class="btn" type="button" onclick="addSalvar(this,null,${anexar?1:0})">Nenhum</button>`);}
+function addOferecerAnexo(id){openSheet(`<h3>Exame salvo</h3><div class="t-mut" style="margin:-8px 0 14px">Quer anexar o pedido ou o laudo agora?</div>
+  <div class="anexo" role="button" tabindex="0" onclick="anexarEv(${id})"><i class="ti ti-paperclip" aria-hidden="true"></i> Anexar documento</div>
+  <button class="btn" type="button" onclick="closeSheet()">Agora não</button>`);}
+async function addSalvar(btn,rotId,anexar){if(!NOVO)return;addColeta();
+  const n=NOVO,row=addRow();
+  if(!row.titulo){toast(n.tipo==='vacina'?'Escolha qual vacina':n.tipo==='exame'?'Escolha qual exame':n.tipo==='peso'?'Informe o peso':'Informe o título');return;}
+  if(n.tipo==='peso'&&!row.peso_kg){toast('Informe o peso');return;}
+  if((n.tipo==='vermifugo'||n.tipo==='antipulga')&&!row.produto){toast('Escolha o produto');return;}
+  if(!row.data&&row.status!=='a_agendar'){toast('Informe a data');return;}
+  let rid=rotId;
+  if(rid===undefined){const cs=rotCandidatos(row);
+    if(cs.length>1)return addPergLembrete(anexar);
+    rid=cs.length===1?cs[0].id:null;}
+  const ids=row.cao_id==null?CAES.map(c=>c.id):[row.cao_id];
+  const rows=ids.map(id=>Object.assign({},row,{cao_id:id,rotina_id:rid,origem:'manual',confirmado:true,criado_por:autor}));
+  let novos=[];
+  if(!await comBotao(btn,async()=>{const r=ok(await sb.from('pet_eventos').insert(rows).select());novos=[].concat(r.data||[]);EV=novos.concat(EV);EV.sort(porData);}))return;
+  const tipo=n.tipo;NOVO=null;closeSheet();
+  for(const e of novos){try{await syncRotina(e);}catch(x){console.warn(x);}}
+  render(atual);toast('Salvo');
+  if(novos.length===1&&(anexar||tipo==='exame')){if(anexar)anexarEv(novos[0].id);else addOferecerAnexo(novos[0].id);}}
 
 // --- rotina ---
 function editRot(id,tipo,preset,mais){
@@ -773,7 +898,7 @@ async function reprocessar(id){const r=await sb.from('pet_documentos').update({s
 
 // ===== boot =====
 function render(v){try{$('#view').innerHTML=(V[v]||V.hoje)();}catch(e){console.error(e);$('#view').innerHTML='<div class="empty"><b>Algo deu errado nesta tela</b>Recarregue para tentar de novo.<br><button class="btn" type="button" onclick="location.reload()">Recarregar</button></div>';}}
-function go(v){atual=v;render(v);window.scrollTo(0,0);document.querySelectorAll('nav a').forEach(a=>{const on=a.dataset.go===v;a.classList.toggle('on',on);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});$('#fab').setAttribute('aria-label',FAB_LBL[v]||'Novo registro');}
+function go(v){atual=v;render(v);window.scrollTo(0,0);document.querySelectorAll('nav a').forEach(a=>{const on=a.dataset.go===v;a.classList.toggle('on',on);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});}
 $('#sheet').addEventListener('click',e=>{if(e.target.id==='sheet')closeSheet();});
 // teclado: Esc fecha; Enter/espaço aciona o que tem role=button
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#sheet').classList.contains('on'))closeSheet();
