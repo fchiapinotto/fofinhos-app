@@ -641,6 +641,7 @@ function addForm(){const n=NOVO;if(!n)return;ADD_OPS={};const T=TIPOS[n.tipo]||T
     h+=`<div class="field"><label>Situação</label>${addChipsV('status',[{v:'realizado',n:'Concluído'},{v:'agendado',n:'Agendado'},{v:'a_agendar',n:'Para agendar'}],n.status)}</div>`;}
   if(n.tipo==='consulta')h+=`<div class="field"><label>Situação</label>${addChipsV('status',[{v:'realizado',n:'Concluída'},{v:'agendado',n:'Agendada'}],n.status)}</div>`;
   if(n.tipo==='vermifugo'||n.tipo==='antipulga'){const ps=addProdutos(n.tipo,n.cao_id);
+    if(n.produto&&!n.prodOutro&&!ps.some(x=>x.toLowerCase()===n.produto.toLowerCase()))ps.unshift(n.produto);
     h+=`<div class="field"><label>Produto</label>${addChipsV('produto',ps.map(p=>({v:p,n:p})).concat([{v:ADD_OUTRO,n:'Outro'}]),n.prodOutro?ADD_OUTRO:n.produto)}</div>`;
     if(n.prodOutro||!ps.length)h+=`<div class="field"><label>Qual produto?</label><input id="aPr" value="${esc(n.produto)}" placeholder="Ex.: Simparic 5 mg"></div>`;}
   if(n.tipo==='peso')h+=`<div class="field"><label>Peso (kg)</label><input type="text" inputmode="decimal" autocomplete="off" id="aK" value="${esc(n.peso)}" placeholder="5,8" style="font-size:30px;font-weight:700;text-align:center;padding:16px 12px"></div>`;
@@ -666,7 +667,7 @@ function addForm(){const n=NOVO;if(!n)return;ADD_OPS={};const T=TIPOS[n.tipo]||T
     obs:()=>`<div class="field"><label>Observação</label><textarea id="aO" rows="3">${esc(n.observacao)}</textarea></div>`};
   const ex=(ADD_MAIS[n.tipo]||[]).filter(k=>F[k]);
   h+=`<div class="mais" role="button" tabindex="0" onclick="addMais()"><i class="ti ti-chevron-${n.mais?'up':'down'}" aria-hidden="true"></i><span>${n.mais?'Menos detalhes':'Mais detalhes'}</span></div>
-  <div id="aMais" style="display:${n.mais?'block':'none'}">${ex.map(k=>F[k]()).join('')}<div class="anexo" role="button" tabindex="0" onclick="addSalvar(this,undefined,1)"><i class="ti ti-paperclip" aria-hidden="true"></i> Salvar e anexar documento</div></div>
+  <div id="aMais" style="display:${n.mais?'block':'none'}">${ex.map(k=>F[k]()).join('')}<div class="anexo" role="button" tabindex="0" onclick="addSalvar(null,undefined,1)"><i class="ti ti-paperclip" aria-hidden="true"></i> Salvar e anexar documento</div></div>
   <button class="btn btn-p" type="button" onclick="addSalvar(this)">Salvar</button>`;
   openSheet(h);}
 // empate de verdade entre lembretes: pergunta em vez de chutar
