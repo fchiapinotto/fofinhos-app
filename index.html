@@ -148,7 +148,7 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <input type="file" id="filein" accept="image/*,application/pdf" style="display:none" multiple aria-hidden="true" tabindex="-1">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0" integrity="sha384-JBR+x8blGwjDRO63aHCGiZMD4VNiTR4ZUGA+N6ZKLf3zNt1fK8IBpcgPaMrxqWBp" crossorigin="anonymous"></script>
 <script>
 const $=(s,e=document)=>e.querySelector(s);
 const SB_URL="https://fctyjollnxthppfjtilq.supabase.co";
@@ -185,7 +185,7 @@ const addDays=(iso,n)=>{const d=new Date(iso+'T00:00:00');d.setDate(d.getDate()+
 const diasAte=iso=>Math.round((new Date(iso+'T00:00:00')-new Date(hojeISO()+'T00:00:00'))/864e5);
 const kg=n=>String(n).replace('.',',')+' kg';
 const money=n=>'R$ '+Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-const esc=s=>(s==null?'':(''+s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+const esc=s=>(s==null?'':(''+s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 const caoAtual=()=>CAES.find(c=>c.id===cao);
 const caoCor=c=>c.nome==='Jorge'?'var(--c-jorge)':'var(--c-stout)';
 const fotoUrl=c=>(c&&c.foto_path&&FOTOS[c.foto_path])||null;
@@ -200,6 +200,38 @@ function msgErro(e,oque){const m=String((e&&(e.message||e.error_description||e.m
   if(/rate limit|too many|429/i.test(m))return'Muitas tentativas seguidas. Espere um minuto.';
   return(oque||'Não consegui salvar')+'. Tente de novo.';}
 const ok=r=>{if(r&&r.error)throw r.error;return r;};
+// ===== salvar só o que mudou =====
+// A folha guarda o registro como ele estava quando abriu. Ao salvar, manda só os campos alterados —
+// assim a edição de uma pessoa não apaga o que a outra mexeu em outro campo. Se o realtime trouxer
+// uma mudança de fora num campo que esta pessoa também alterou, avisa antes de sobrescrever.
+let FOLHA=null;
+const LISTA_DE={pet_eventos:()=>EV,pet_rotinas:()=>ROT,pet_produtos:()=>PROD,pet_caes:()=>CAES};
+const nz=v=>{if(v===''||v===undefined)return null;
+  if(typeof v==='string'&&/^\d{2}:\d{2}:\d{2}$/.test(v))return v.slice(0,5);// hora do banco vem com segundos
+  return v;};
+const mesmoValor=(a,b)=>{a=nz(a);b=nz(b);
+  if(a==null&&b==null)return true;if(a==null||b==null)return false;
+  if(a!==''&&b!==''&&isFinite(a)&&isFinite(b))return Number(a)===Number(b);// 95 e "95.00" são o mesmo valor
+  return String(a)===String(b);};
+function abriuFolha(tab,id,obj){FOLHA=(id&&obj)?{tab,id,base:Object.assign({},obj),forcar:false}:null;}
+// devolve {mud, conf}: mud = campos alterados nesta folha; conf = campos que outra pessoa também mudou
+function soMudou(tab,id,row){
+  if(!FOLHA||FOLHA.tab!==tab||FOLHA.id!==id)return{mud:row,conf:[]};
+  const base=FOLHA.base,atual=((LISTA_DE[tab]||(()=>[]))().find(x=>x.id===id))||base;
+  const mud={},conf=[];
+  for(const k of Object.keys(row)){
+    if(mesmoValor(row[k],base[k]))continue;
+    mud[k]=row[k];
+    if(!mesmoValor(base[k],atual[k])&&!mesmoValor(atual[k],row[k]))conf.push(k);}
+  return{mud,conf};}
+// true = pode gravar; false = avisou sobre o conflito e espera o segundo toque em Salvar
+function podeGravar(conf){
+  if(!conf.length||(FOLHA&&FOLHA.forcar))return true;
+  if(FOLHA)FOLHA.forcar=true;
+  const quais=conf.map(k=>(typeof LBL!=='undefined'&&LBL[k])||k).join(', ');
+  toast('Este registro foi alterado por outra pessoa — revise ('+quais+'). Toque em Salvar de novo para gravar o que você escreveu.',7000);
+  return false;}
+const nadaMudou=()=>{closeSheet();toast('Nada mudou');};
 // trava o botão enquanto salva (evita salvar duas vezes); em erro, destrava e mantém o formulário aberto
 async function comBotao(btn,fn,txt){if(btn){if(btn.disabled)return false;btn.disabled=true;btn.dataset.t=btn.textContent;btn.textContent=txt||'Salvando…';}
   try{await fn();return true;}catch(e){console.warn(e);toast(msgErro(e));if(btn&&btn.isConnected){btn.disabled=false;btn.textContent=btn.dataset.t;}return false;}}
@@ -252,8 +284,11 @@ async function loadAll(){
   if(!CAES.some(x=>x.id===cao)){let s=null;try{s=+localStorage.getItem('fof_cao');}catch(_){}cao=CAES.some(x=>x.id===s)?s:(CAES[0]||{}).id;}
   await signFotos();renderSeg();signDocs();
 }
-async function signDocs(){const lim=Date.now()+600e3;const paths=[...new Set(DOCS.map(d=>d.path).filter(p=>p&&!(SIGNED[p]&&SIGNED[p].t>lim)))];if(!paths.length)return;
-  try{const r=await sb.storage.from('pet-docs').createSignedUrls(paths,3600);(r.data||[]).forEach(x=>{if(x.signedUrl&&!x.error)SIGNED[x.path]={url:x.signedUrl,t:Date.now()+3000e3};});}catch(_){}}
+// URLs assinadas dos documentos: valem 8 h e são renovadas quando falta menos de 1 h (SIGNED[p].t = quando vence)
+const URL_VALE=288e5,URL_RENOVA=36e5;
+const urlBoa=p=>{const s=SIGNED[p];return s&&(s.t-Date.now())>URL_RENOVA?s:null;};
+async function signDocs(){const paths=[...new Set(DOCS.map(d=>d.path).filter(p=>p&&!urlBoa(p)))];if(!paths.length)return;
+  try{const r=await sb.storage.from('pet-docs').createSignedUrls(paths,URL_VALE/1000);(r.data||[]).forEach(x=>{if(x.signedUrl&&!x.error)SIGNED[x.path]={url:x.signedUrl,t:Date.now()+URL_VALE};});}catch(_){}}
 async function signFotos(){const paths=CAES.map(c=>c.foto_path).filter(Boolean);if(!paths.length)return;try{const r=await sb.storage.from('pet-docs').createSignedUrls(paths,604800);(r.data||[]).forEach(x=>{if(x.signedUrl&&!x.error)FOTOS[x.path]=x.signedUrl;});}catch(e){}}
 function renderSeg(){$('#segCao').innerHTML=CAES.map(c=>`<div role="tab" tabindex="0" aria-selected="${cao===c.id}" class="${cao===c.id?'on '+(c.nome==='Jorge'?'j':'s'):''}" onclick="setCao(${c.id})">${fotoUrl(c)?`<img src="${fotoUrl(c)}" alt="" onerror="this.remove()">`:''}${esc(c.nome)}</div>`).join('');}
 function setCao(v){if(cao===v)return;cao=v;aberto={};try{localStorage.setItem('fof_cao',v);}catch(_){}renderSeg();render(atual);}
@@ -300,12 +335,14 @@ V.hoje=()=>{const c=caoAtual();if(!c)return SEM_CAO;
   if(aconf.length)h+=`<div class="sec">A confirmar (${aconf.length}) <span role="button" tabindex="0" onclick="confirmarTodos()">confirmar todos</span></div>`+aconf.slice(0,aberto.aconf?999:4).map(evCard).join('')+(aconf.length>4&&!aberto.aconf?`<button class="lnk" type="button" onclick="toggle('aconf')">ver os ${aconf.length}</button>`:'');
   return h;};
 V.cart=()=>{const vac=EV.filter(e=>e.tipo==='vacina'&&e.cao_id===cao);let h=`<div class="sec" style="margin-top:12px">Vacinas <span role="button" tabindex="0" onclick="editEv(null,{tipo:'vacina'})">+ vacina</span></div>`;
-  const usadas=new Set();
-  for(const f of FAM){const evs=vac.filter(e=>famDe(e)===f);if(!evs.length)continue;evs.forEach(e=>usadas.add(e.id));const last=evs.find(e=>e.status==='realizado'&&e.data)||evs.find(e=>e.status==='agendado'&&e.data)||{data:null};const rot=ROT.find(r=>r.tipo==='vacina'&&meu(r)&&r.ativo&&f.re.test((r.titulo||'')+' '+(r.produto||'')));const prox=(rot&&rot.proxima_data)||last.proxima_data||(last.data?addDays(last.data,365):null);const p=prazo(prox);const k='f'+f.k;
+  const usadas=new Set();let fams=0;
+  // a família aparece quando há dose registrada OU quando existe lembrete dela (vacina que nunca foi tomada também precisa aparecer)
+  for(const f of FAM){const evs=vac.filter(e=>famDe(e)===f);const rot=ROT.find(r=>r.tipo==='vacina'&&meu(r)&&r.ativo&&f.re.test((r.titulo||'')+' '+(r.produto||'')));
+    if(!evs.length&&!rot)continue;evs.forEach(e=>usadas.add(e.id));const last=evs.find(e=>e.status==='realizado'&&e.data)||evs.find(e=>e.status==='agendado'&&e.data)||{data:null};const prox=(rot&&rot.proxima_data)||last.proxima_data||(last.data?addDays(last.data,365):null);const p=prazo(prox);const k='f'+f.k;
     h+=`<div class="fam"><div class="fh" role="button" tabindex="0" aria-expanded="${!!aberto[k]}" onclick="toggle('${k}')"><div class="ic" style="background:${TIPOS.vacina.bg};color:${TIPOS.vacina.c}"><i class="ti ti-vaccine"></i></div><div class="cb"><div class="tt">${f.n}<span class="tag ${p.tag}">${p.lbl}</span></div><div class="ts">${last.data?'última '+dBR(last.data):'sem dose registrada'}${last.produto?' · '+esc(last.produto):''}${prox?' · próxima '+dBR(prox):''}</div></div><div class="cr"><button class="done-btn" onclick="event.stopPropagation();${rot?`sheetFeito(${rot.id})`:`editEv(null,{tipo:'vacina',titulo:'${f.n}'})`}" aria-label="Registrar dose: ${f.n}">Feito</button></div></div>
-      ${aberto[k]?`<div class="fb">${evs.map(hrow).join('')}</div>`:''}</div>`;}
+      ${aberto[k]&&evs.length?`<div class="fb">${evs.map(hrow).join('')}</div>`:''}</div>`;fams++;}
   const outras=vac.filter(e=>!usadas.has(e.id));if(outras.length)h+=`<div class="fam"><div class="fh" role="button" tabindex="0" aria-expanded="${!!aberto.fout}" onclick="toggle('fout')"><div class="ic" style="background:${TIPOS.vacina.bg};color:${TIPOS.vacina.c}"><i class="ti ti-vaccine"></i></div><div class="cb"><div class="tt">Outras vacinas</div><div class="ts">${outras.length} registro${outras.length>1?'s':''}</div></div></div>${aberto.fout?`<div class="fb">${outras.map(hrow).join('')}</div>`:''}</div>`;
-  if(!vac.length)h+='<div class="vazio">Nenhuma vacina registrada.</div>';
+  if(!vac.length&&!fams)h+='<div class="vazio">Nenhuma vacina registrada.</div>';
   const bloco=(titulo,tipos,k)=>{const rs=ROT.filter(r=>tipos.includes(r.tipo)&&meu(r));const evs=EV.filter(e=>tipos.includes(e.tipo)&&e.cao_id===cao);let s=`<div class="sec">${titulo} <span role="button" tabindex="0" onclick="editRot(null,'${tipos[0]}')">+ lembrete</span></div>`;
     if(!rs.length&&!evs.length)return s+'<div class="vazio">Nada registrado ainda.</div>';
     s+=rs.map(rotCard).join('');
@@ -342,7 +379,7 @@ V.ficha=()=>{const c=caoAtual();if(!c)return SEM_CAO;const pa=pesoAtual(c.id);co
     <div class="grid"><div><b>Nascimento</b>${dLong(c.nascimento)||'—'}</div><div><b>Adoção</b>${dLong(c.adocao)||'<span style="color:var(--rosa)">informar</span>'}</div><div><b>Peso atual</b>${pa?kg(pa.peso_kg)+' <span class="t-mut">('+dBR(pa.data)+')</span>':'—'}</div><div><b>Microchip</b>${esc(c.microchip||'—')}</div><div><b>Castração</b>${c.castrado==null?'—':(c.castrado?'sim':'não')}</div><div><b>Alergias</b>${esc(c.alergias||'—')}</div></div>
     ${c.observacao?`<div class="obs">${esc(c.observacao)}</div>`:''}<div class="t-mut" style="margin-top:10px">Toque no nome para editar.</div></div>`;
   h+=`<div class="sec">Em uso <span role="button" tabindex="0" onclick="sheetProd(null)">+ produto</span></div><div class="pet">${prods.length?prods.map(prodRow).join(''):'<div class="t-mut">Nenhum produto cadastrado.</div>'}</div>`;
-  h+=`<div class="sec">Lembretes <span role="button" tabindex="0" onclick="editRot(null)">+ lembrete</span></div><div class="pet">${rots.length?rots.map(r=>`<div class="prod" role="button" tabindex="0" onclick="editRot(${r.id})"><i class="ti ${(TIPOS[r.tipo]||TIPOS.outro).ic}" style="color:var(--ink3);font-size:18px;margin-top:2px"></i><div style="flex:1"><div class="pn">${esc(r.titulo)}${r.ativo?'':'<span class="tag b">pausado</span>'}${r.cao_id==null?'<span class="tag b">os dois</span>':''}</div><div class="pd">a cada ${r.intervalo_dias} dias${r.produto?' · '+esc(r.produto):''}${r.proxima_data?' · próxima '+dBR(r.proxima_data):''}</div></div></div>`).join(''):'<div class="t-mut">Nenhum lembrete. Crie um para vacina, antipulgas ou banho.</div>'}</div>`;
+  h+=`<div class="sec">Lembretes <span role="button" tabindex="0" onclick="editRot(null)">+ lembrete</span></div><div class="pet">${rots.length?rots.map(r=>`<div class="prod" role="button" tabindex="0" onclick="editRot(${r.id})"><i class="ti ${(TIPOS[r.tipo]||TIPOS.outro).ic}" style="color:var(--ink3);font-size:18px;margin-top:2px"></i><div style="flex:1"><div class="pn">${esc(r.titulo)}${r.ativo?'':'<span class="tag b">pausado</span>'}${r.cao_id==null?'<span class="tag b">os dois</span>':''}</div><div class="pd">a cada ${r.intervalo_dias} dias${r.produto?' · '+esc(r.produto):''}${r.proxima_data?' · próxima '+dBR(r.proxima_data):' · <b style="color:var(--rosa);font-weight:600">sem data</b>'}</div></div></div>`).join(''):'<div class="t-mut">Nenhum lembrete. Crie um para vacina, antipulgas ou banho.</div>'}</div>`;
   h+=pushSec();
   h+=`<div class="sec">Contatos <span role="button" tabindex="0" onclick="sheetCont(null)">+ contato</span></div><div class="pet">`+(CONT.length?CONT.map(k=>`<div class="ct"><div style="flex:1;min-width:0" role="button" tabindex="0" onclick="sheetCont(${k.id})"><div class="cp">${esc(k.papel)}</div><div class="cn">${esc(k.nome)||'<span style=\"color:var(--ink3)\">preencher</span>'}</div>${k.telefone||k.endereco?`<div class="cs">${esc(k.telefone||'')}${k.telefone&&k.endereco?' · ':''}${esc(k.endereco||'')}</div>`:''}${k.observacao?`<div class="cs">${esc(k.observacao)}</div>`:''}</div>${k.telefone?`<a class="call" aria-label="Ligar para ${esc(k.nome||k.papel)}" href="tel:${esc(k.telefone.replace(/[^0-9+]/g,''))}"><i class="ti ti-phone"></i></a>`:''}</div>`).join(''):'<div class="t-mut">Nenhum contato.</div>')+`</div>`;
   h+=`<div style="text-align:center;margin:18px 0 6px"><button class="lnk" type="button" style="color:var(--ink2)" onclick="sair()">Sair da conta (${esc(autor==='Carol'?'Carol':'Fernando')})</button></div>`;
@@ -410,6 +447,7 @@ function editEv(id,preset,mais,keep){
   if(!keep){window._evPrev=null;window._rotEsc=false;}
   const base=id?EV.find(x=>x.id===id):{cao_id:cao,tipo:'vacina',data:hojeISO(),status:'realizado',confirmado:true};
   if(!base)return;
+  if(!keep)abriuFolha('pet_eventos',id,id?base:null);
   const e=Object.assign({},base,preset||{});
   if(!id&&!keep&&e.status==='a_agendar'&&!(preset&&preset.data))e.data=null;
   const tipo=TIPOS[e.tipo]?e.tipo:'vacina',st=e.status||'realizado',sug=titSug(tipo),pend=st==='a_agendar';
@@ -464,8 +502,12 @@ async function saveEv(id,btn){const row=evRow();const prev=window._evPrev||{};
   if(row.status==='a_agendar'){row.hora=null;}
   if(!row.titulo||(!row.data&&row.status!=='a_agendar')){toast(row.titulo?'Informe a data':'Informe o título');return;}
   const semRot=!!$('#eRot')&&!val('eRot')&&window._rotEsc===true;let novoId=id;
+  let env=row;
+  if(id){const d=soMudou('pet_eventos',id,row);if(!podeGravar(d.conf))return;
+    if(!Object.keys(d.mud).length){if(semRot)semVinc(id);window._evPrev=null;window._rotEsc=false;return nadaMudou();}
+    env=d.mud;}
   if(!await comBotao(btn,async()=>{
-    if(id){const r=ok(await sb.from('pet_eventos').update(row).eq('id',id).select().single());const x=EV.find(x=>x.id===id);if(x)Object.assign(x,r.data);}
+    if(id){const r=ok(await sb.from('pet_eventos').update(env).eq('id',id).select().single());const x=EV.find(x=>x.id===id);if(x)Object.assign(x,r.data);}
     else{row.origem='manual';row.confirmado=true;row.criado_por=autor;const r=ok(await sb.from('pet_eventos').insert(row).select().single());EV.unshift(r.data);novoId=r.data.id;}
     EV.sort(porData);}))return;
   if(semRot&&novoId)semVinc(novoId);
@@ -500,7 +542,12 @@ async function saveMarquei(id,btn){const d=val('mD');if(!d){toast('Informe a dat
     e=EV.find(x=>x.id===id);if(e)Object.assign(e,r.data);else EV.unshift(e=r.data);EV.sort(porData);}))return;
   closeSheet();try{await syncRotina(e);}catch(x){console.warn(x);}render(atual);toast('Agendado · '+dBR(d));}
 async function cancelarEv(id,btn){const e=EV.find(x=>x.id===id);if(!e||!confirm('Cancelar "'+titSub(e).t+'"? Fica só no histórico.'))return;
+  const dAnt=e.data;
   if(!await comBotao(btn,async()=>{const r=ok(await sb.from('pet_eventos').update({status:'cancelado',data:e.data||hojeISO()}).eq('id',id).select().single());Object.assign(e,r.data);EV.sort(porData);},'Cancelando…'))return;
+  // o lembrete não pode continuar apontando para uma data que foi cancelada
+  try{const r=e.rotina_id!=null?rotById(e.rotina_id):(rotCandidatos(e).length===1?rotCandidatos(e)[0]:null);
+    if(r&&dAnt&&r.proxima_data===dAnt){const upd={proxima_data:addDays(r.ultima_data||hojeISO(),r.intervalo_dias)};
+      ok(await sb.from('pet_rotinas').update(upd).eq('id',r.id));Object.assign(r,upd);}}catch(x){console.warn(x);}
   closeSheet();render(atual);toast('Cancelado');}
 // escolher a qual lembrete o registro pertence (quando o app não tem como saber sozinho)
 function sheetVincular(id){const e=EV.find(x=>x.id===id);if(!e)return;const ts=titSub(e);const l=listaRot(e.cao_id,e.tipo);
@@ -521,6 +568,7 @@ async function delEv(id,btn){if(!confirm('Apagar este registro?'))return;if(!awa
 function editRot(id,tipo,preset,mais){
   const base=id?ROT.find(x=>x.id===id):{cao_id:cao,tipo:tipo||'vacina',intervalo_dias:{antipulga:30,vermifugo:90,banho:15,tosa:60}[tipo]||365,ativo:true};
   if(!base)return;
+  abriuFolha('pet_rotinas',id,id?base:null);
   const r=Object.assign({},base,preset||{});
   const t=TIPOS_ROT.indexOf(r.tipo)>=0?r.tipo:'outro',sug=titSug(t);
   const ab=(mais===undefined)?!!(r.produto||r.ultima_data||r.observacao||r.ativo===false):!!mais;
@@ -537,9 +585,15 @@ function editRot(id,tipo,preset,mais){
 function rotMais(){const d=$('#rMais');if(!d)return;const on=d.style.display==='none';d.style.display=on?'block':'none';$('#rMaisTx').textContent=on?'Menos detalhes':'Mais detalhes';$('#rMaisIc').className='ti ti-chevron-'+(on?'up':'down');}
 async function saveRot(id,btn){const t=val('rTi'),i=Math.round(+val('rI'));if(!t){toast('Informe o título');return;}if(!(i>0)){toast('Informe a cada quantos dias');return;}
   let prox=val('rN')||null;const ult=val('rU')||null;if(!prox&&ult)prox=addDays(ult,i);
+  // sem "próxima" e sem "última": o lembrete passa a valer a partir de hoje (senão sumiria da tela Hoje)
+  if(!prox&&!ult)prox=addDays(hojeISO(),i);
   const row={cao_id:val('rC')?+val('rC'):null,tipo:val('rT'),titulo:t,produto:val('rP')||null,intervalo_dias:i,ultima_data:ult,proxima_data:prox,observacao:val('rO')||null,ativo:$('#rA').checked};
+  let env=row;
+  if(id){const d=soMudou('pet_rotinas',id,row);if(!podeGravar(d.conf))return;
+    if(!Object.keys(d.mud).length)return nadaMudou();
+    env=d.mud;}
   if(!await comBotao(btn,async()=>{
-    if(id){const r=ok(await sb.from('pet_rotinas').update(row).eq('id',id).select().single());const x=ROT.find(x=>x.id===id);if(x)Object.assign(x,r.data);}
+    if(id){const r=ok(await sb.from('pet_rotinas').update(env).eq('id',id).select().single());const x=ROT.find(x=>x.id===id);if(x)Object.assign(x,r.data);}
     else{row.ordem=50;const r=ok(await sb.from('pet_rotinas').insert(row).select().single());ROT.push(r.data);}}))return;
   closeSheet();render(atual);toast('Salvo');}
 async function delRot(id,btn){if(!confirm('Apagar este lembrete? Os registros já feitos continuam.'))return;if(!await comBotao(btn,async()=>{ok(await sb.from('pet_rotinas').delete().eq('id',id));},'Apagando…'))return;ROT=ROT.filter(x=>x.id!==id);closeSheet();render(atual);toast('Apagado');}
@@ -562,6 +616,7 @@ async function saveFeito(id,btn){const r=ROT.find(x=>x.id===id);if(!r)return;con
 
 // --- produto ---
 function sheetProd(id,preset){const b0=id?PROD.find(x=>x.id===id):{cao_id:cao,categoria:'racao',em_uso:true};if(!b0)return;const p=Object.assign({},b0,preset||{});
+  abriuFolha('pet_produtos',id,id?b0:null);
   openSheet(`<h3>${id?'Editar produto':'Novo produto'}</h3>
   <div class="row2"><div class="field"><label>Cão</label>${selCao('pC',p.cao_id,true)}</div><div class="field"><label>Categoria</label><select id="pK">${Object.entries(CATP).map(([k,n])=>`<option value="${k}" ${p.categoria===k?'selected':''}>${n}</option>`).join('')}</select></div></div>
   <div class="field"><label>Nome</label><input id="pN" value="${esc(p.nome)}" placeholder="Ex.: Ração Premier Raças Pequenas"></div>
@@ -572,19 +627,25 @@ function sheetProd(id,preset){const b0=id?PROD.find(x=>x.id===id):{cao_id:cao,ca
   <div class="field"><label><input type="checkbox" id="pU" ${p.em_uso?'checked':''} style="width:auto;margin-right:8px">Em uso</label></div>
   <button class="btn btn-p" type="button" onclick="saveProd(${id||'null'},this)">Salvar</button>${id?`<button class="btn btn-danger" type="button" style="margin-top:8px" onclick="delProd(${id},this)">Apagar</button>`:''}`);}
 async function saveProd(id,btn){const n=val('pN');if(!n){toast('Informe o nome');return;}const row={cao_id:val('pC')?+val('pC'):null,categoria:val('pK'),nome:n,marca:val('pM')||null,apresentacao:val('pA')||null,dose:val('pD')||null,frequencia:val('pF')||null,valor:num('pV'),onde_compra:val('pW')||null,observacao:val('pO')||null,em_uso:$('#pU').checked};
-  if(!await comBotao(btn,async()=>{if(id){const r=ok(await sb.from('pet_produtos').update(row).eq('id',id).select().single());const x=PROD.find(x=>x.id===id);if(x)Object.assign(x,r.data);}else{const r=ok(await sb.from('pet_produtos').insert(row).select().single());PROD.push(r.data);}}))return;
+  let env=row;
+  if(id){const d=soMudou('pet_produtos',id,row);if(!podeGravar(d.conf))return;
+    if(!Object.keys(d.mud).length)return nadaMudou();
+    env=d.mud;}
+  if(!await comBotao(btn,async()=>{if(id){const r=ok(await sb.from('pet_produtos').update(env).eq('id',id).select().single());const x=PROD.find(x=>x.id===id);if(x)Object.assign(x,r.data);}else{const r=ok(await sb.from('pet_produtos').insert(row).select().single());PROD.push(r.data);}}))return;
   closeSheet();render(atual);toast('Salvo');}
 async function delProd(id,btn){if(!confirm('Apagar este produto?'))return;if(!await comBotao(btn,async()=>{ok(await sb.from('pet_produtos').delete().eq('id',id));},'Apagando…'))return;PROD=PROD.filter(x=>x.id!==id);closeSheet();render(atual);toast('Apagado');}
 
 // --- cão ---
-function editCao(id){const c=CAES.find(x=>x.id===id);if(!c)return;openSheet(`<h3>${esc(c.nome)}</h3>
+function editCao(id){const c=CAES.find(x=>x.id===id);if(!c)return;abriuFolha('pet_caes',id,c);openSheet(`<h3>${esc(c.nome)}</h3>
   <div class="row2"><div class="field"><label>Nascimento</label><input type="date" id="cN" value="${c.nascimento||''}"></div><div class="field"><label>Adoção</label><input type="date" id="cA" value="${c.adocao||''}"></div></div>
   <div class="row2"><div class="field"><label>Raça</label><input id="cR" value="${esc(c.raca)}"></div><div class="field"><label>Microchip</label><input id="cM" value="${esc(c.microchip)}"></div></div>
   <div class="row2"><div class="field"><label>Castrado</label><select id="cC"><option value="" ${c.castrado==null?'selected':''}>não informado</option><option value="1" ${c.castrado===true?'selected':''}>sim</option><option value="0" ${c.castrado===false?'selected':''}>não</option></select></div><div class="field"><label>Alergias</label><input id="cAl" value="${esc(c.alergias)}"></div></div>
   <div class="field"><label>Observações</label><textarea id="cO" rows="4">${esc(c.observacao)}</textarea></div>
   <button class="btn btn-p" type="button" onclick="saveCao(${id},this)">Salvar</button>`);}
 async function saveCao(id,btn){const row={nascimento:val('cN')||null,adocao:val('cA')||null,raca:val('cR')||null,microchip:val('cM')||null,castrado:val('cC')===''?null:val('cC')==='1',alergias:val('cAl')||null,observacao:val('cO')||null};
-  if(!await comBotao(btn,async()=>{const r=ok(await sb.from('pet_caes').update(row).eq('id',id).select().single());const x=CAES.find(x=>x.id===id);if(x)Object.assign(x,r.data);}))return;
+  const d=soMudou('pet_caes',id,row);if(!podeGravar(d.conf))return;
+  if(!Object.keys(d.mud).length)return nadaMudou();
+  if(!await comBotao(btn,async()=>{const r=ok(await sb.from('pet_caes').update(d.mud).eq('id',id).select().single());const x=CAES.find(x=>x.id===id);if(x)Object.assign(x,r.data);}))return;
   closeSheet();renderSeg();render(atual);toast('Salvo');}
 
 // --- contato ---
@@ -599,31 +660,74 @@ async function saveCont(id,btn){const row={papel:val('kP')||'Contato',nome:val('
 async function delCont(id,btn){if(!confirm('Apagar este contato?'))return;if(!await comBotao(btn,async()=>{ok(await sb.from('pet_contatos').delete().eq('id',id));},'Apagando…'))return;CONT=CONT.filter(x=>x.id!==id);closeSheet();render(atual);toast('Apagado');}
 
 // --- documentos ---
-function pickDocs(){const fi=$('#filein');fi.value='';fi.setAttribute('multiple','');fi.onchange=async e=>{const files=[...e.target.files];if(!files.length)return;toast(files.length>1?'Enviando '+files.length+' arquivos…':'Enviando…',60000);
-  let n=0,err=null;for(const f of files){try{await uploadDoc(f);n++;}catch(x){console.warn(x);err=x;}}
+// enviar pela aba Documentos: primeiro pergunta de quem é (senão o documento cairia no cão do seletor sem ninguém ver)
+function pickDocs(){openSheet(`<h3>De quem é esse documento?</h3><div class="t-mut" style="margin:-8px 0 14px">Fica guardado no nome do cão certo. Se não souber, o Claude descobre ao ler.</div>
+  ${CAES.map(c=>`<button class="btn" type="button" style="margin-bottom:8px" onclick="escolherCaoDoc(${c.id})">${esc(c.nome)}</button>`).join('')}
+  <button class="btn" type="button" onclick="escolherCaoDoc(null)">Não sei</button>`);}
+function escolherCaoDoc(caoId){closeSheet();const fi=$('#filein');fi.value='';fi.setAttribute('multiple','');
+  fi.onchange=e=>{const files=[...e.target.files];if(!files.length)return;enviarDocs(files,caoId);};fi.click();}
+let ENVIO={files:[],cao:null};
+const erroSimples=(e,oque)=>(e&&e.amigavel)||msgErro(e,oque);
+async function enviarDocs(files,caoId){const falhas=[];
+  for(let i=0;i<files.length;i++){
+    toast(files.length>1?'Enviando '+(i+1)+' de '+files.length+'…':'Enviando…',60000);
+    try{await uploadDoc(files[i],caoId);}catch(x){console.warn(x);falhas.push({f:files[i],m:erroSimples(x,'Não consegui enviar')});}}
   try{await loadAll();}catch(_){}go('docs');
-  toast(err?(n?n+' enviado(s); '+(files.length-n)+' não foi(ram). ':'')+msgErro(err,'Não consegui enviar'):(n>1?n+' arquivos na caixa de entrada':'Na caixa de entrada'));};fi.click();}
+  const n=files.length-falhas.length;
+  if(!falhas.length){toast(n>1?n+' arquivos na caixa de entrada':'Na caixa de entrada');return;}
+  ENVIO={files:falhas.map(x=>x.f),cao:caoId};
+  openSheet(`<h3>${n?'Enviei '+n+' de '+files.length:'Não consegui enviar'}</h3>
+    <div class="t-mut" style="margin:-8px 0 12px">${falhas.length===1?'Este arquivo não foi:':'Estes arquivos não foram:'}</div>
+    ${falhas.map(x=>`<div class="hrow"><div class="hb"><b>${esc(x.f.name)}</b><div class="es">${esc(x.m)}</div></div></div>`).join('')}
+    <button class="btn btn-p" type="button" style="margin-top:12px" onclick="repetirEnvio()">Tentar de novo</button>
+    <button class="btn" type="button" style="margin-top:8px" onclick="closeSheet()">Deixar para depois</button>`);}
+function repetirEnvio(){const f=(ENVIO.files||[]).slice();if(!f.length)return closeSheet();closeSheet();enviarDocs(f,ENVIO.cao);}
 function shrink(file){return new Promise(res=>{const img=new Image();img.onerror=()=>res(file);img.onload=()=>{const M=1800,sc=Math.min(1,M/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=img.width*sc;c.height=img.height*sc;c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(b=>res(b||file),'image/jpeg',.82);URL.revokeObjectURL(img.src);};img.src=URL.createObjectURL(file);});}
 // tipo e extensão reais do arquivo enviado (a foto vira JPEG; se não der para converter, sobe o original)
 const mimeDe=(file,blob)=>file.type==='application/pdf'?'application/pdf':((blob&&blob.type)||file.type||'image/jpeg');
 const extDe=m=>m==='application/pdf'?'.pdf':m==='image/jpeg'?'.jpg':'.'+((m.split('/')[1]||'img').replace(/[^a-z0-9]/gi,''));
-async function uploadDoc(file){const pdf=file.type==='application/pdf';const blob=pdf?file:await shrink(file);const mime=mimeDe(file,blob);const path='inbox/'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+extDe(mime);
+const MAX_PDF=25*1024*1024;
+const erroAmigavel=m=>{const e=new Error(m);e.amigavel=m;return e;};
+async function uploadDoc(file,caoId){const pdf=file.type==='application/pdf';
+  if(pdf&&file.size>MAX_PDF)throw erroAmigavel('Este PDF é grande demais ('+Math.round(file.size/1048576)+' MB, limite 25 MB) — mande as páginas principais como foto.');
+  const blob=pdf?file:await shrink(file);const mime=mimeDe(file,blob);const path='inbox/'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+extDe(mime);
   const up=await sb.storage.from('pet-docs').upload(path,blob,{contentType:mime});if(up.error)throw up.error;
-  const ins=await sb.from('pet_documentos').insert({cao_id:cao,path,nome:file.name,tipo_mime:mime,status:'novo',enviado_por:autor});if(ins.error)throw ins.error;}
-async function abrirDoc(path){let s=SIGNED[path];if(!s||s.t<Date.now()){toast('Abrindo…');const r=await sb.storage.from('pet-docs').createSignedUrl(path,3600);if(r.error){toast(msgErro(r.error,'Não consegui abrir o documento'));return;}s=SIGNED[path]={url:r.data.signedUrl,t:Date.now()+3000e3};}const w=window.open(s.url,'_blank');if(!w)location.href=s.url;}
-async function delDoc(id){if(!confirm('Apagar documento? Os registros ligados continuam, sem o anexo.'))return;const d=DOCS.find(x=>x.id===id);const rd=await sb.from('pet_documentos').delete().eq('id',id);if(rd.error){toast(msgErro(rd.error,'Não consegui apagar'));return;}if(d)await sb.storage.from('pet-docs').remove([d.path]);DOCS=DOCS.filter(x=>x.id!==id);EV.forEach(e=>{if(e.documento_id===id)e.documento_id=null;});render(atual);toast('Apagado');}
+  const ins=await sb.from('pet_documentos').insert({cao_id:caoId===undefined?cao:caoId,path,nome:file.name,tipo_mime:mime,status:'novo',enviado_por:autor});
+  // se a linha não gravou, o arquivo solto sai do bucket (senão vira lixo que ninguém vê)
+  if(ins.error){try{await sb.storage.from('pet-docs').remove([path]);}catch(_){}throw ins.error;}}
+// abrir documento: a aba é aberta NO TOQUE (síncrono), senão o iPhone bloqueia; a URL entra depois de assinada.
+// Se o aparelho bloquear mesmo assim, mostra um link para a pessoa tocar — nunca tira ela do app.
+function abrirDoc(path){const s=urlBoa(path);
+  const w=window.open(s?s.url:'','_blank');
+  if(s){if(!w)linkDoc(s.url);return;}
+  toast('Abrindo…');
+  (async()=>{try{
+    const r=await sb.storage.from('pet-docs').createSignedUrl(path,URL_VALE/1000);
+    if(r.error||!r.data){if(w&&!w.closed)try{w.close();}catch(_){}toast(msgErro(r.error,'Não consegui abrir o documento'));return;}
+    const url=(SIGNED[path]={url:r.data.signedUrl,t:Date.now()+URL_VALE}).url;
+    if(w&&!w.closed){try{w.location=url;}catch(_){linkDoc(url);}}else linkDoc(url);
+  }catch(e){if(w&&!w.closed)try{w.close();}catch(_){}toast(msgErro(e,'Não consegui abrir o documento'));}})();}
+function linkDoc(url){openSheet(`<h3>Documento pronto</h3><div class="t-mut" style="margin:-8px 0 14px">O aparelho não deixou abrir sozinho. Toque no botão para ver.</div>
+  <a class="btn btn-p" style="display:block;text-align:center;text-decoration:none" href="${esc(url)}" target="_blank" rel="noopener" onclick="closeSheet()">Abrir documento</a>`);}
+// apagar: primeiro o arquivo, depois a linha — se o arquivo não sair, a linha fica e dá para tentar de novo
+async function delDoc(id){if(!confirm('Apagar documento? Os registros ligados continuam, sem o anexo.'))return;const d=DOCS.find(x=>x.id===id);
+  if(d&&d.path){const rf=await sb.storage.from('pet-docs').remove([d.path]);if(rf.error){toast(msgErro(rf.error,'Não consegui apagar o arquivo'));return;}}
+  const rd=await sb.from('pet_documentos').delete().eq('id',id);if(rd.error){toast(msgErro(rd.error,'Não consegui apagar'));return;}DOCS=DOCS.filter(x=>x.id!==id);EV.forEach(e=>{if(e.documento_id===id)e.documento_id=null;});render(atual);toast('Apagado');}
 async function anexarEv(id){const e=EV.find(x=>x.id===id);if(!e)return;const fi=$('#filein');fi.value='';fi.removeAttribute('multiple');
   fi.onchange=async ev=>{const f=(ev.target.files||[])[0];fi.setAttribute('multiple','');if(!f)return;
-    try{toast('Enviando anexo…',60000);await anexarArquivo(id,f);}catch(err){console.warn(err);toast(msgErro(err,'Não consegui enviar o anexo'));}};
+    try{toast('Enviando anexo…',60000);await anexarArquivo(id,f);}catch(err){console.warn(err);toast(erroSimples(err,'Não consegui enviar o anexo'));}};
   fi.click();}
 // anexar SEMPRE adiciona um documento ao registro (nunca substitui o que já estava lá)
 async function anexarArquivo(id,file){const e=EV.find(x=>x.id===id);if(!e)return;
-  const pdf=file.type==='application/pdf';const blob=pdf?file:await shrink(file);const mime=mimeDe(file,blob);
+  const pdf=file.type==='application/pdf';
+  if(pdf&&file.size>MAX_PDF)throw erroAmigavel('Este PDF é grande demais ('+Math.round(file.size/1048576)+' MB, limite 25 MB) — mande as páginas principais como foto.');
+  const blob=pdf?file:await shrink(file);const mime=mimeDe(file,blob);
   const path='anexos/'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+extDe(mime);
   const up=await sb.storage.from('pet-docs').upload(path,blob,{contentType:mime});if(up.error)throw up.error;
   const n=docsDoEv(e).length;
   const row={cao_id:e.cao_id,path,evento_id:id,nome:(titSub(e).t||'Anexo')+(e.data?' · '+dBR(e.data):'')+(n?' ('+(n+1)+')':''),tipo_mime:mime,status:'processado',categoria:e.tipo==='exame'?'exame':'outro',data_doc:e.data,resumo:'Anexado manualmente ao registro',enviado_por:autor};
-  const ins=await sb.from('pet_documentos').insert(row).select().single();if(ins.error)throw ins.error;
+  const ins=await sb.from('pet_documentos').insert(row).select().single();
+  if(ins.error){try{await sb.storage.from('pet-docs').remove([path]);}catch(_){}throw ins.error;}
   DOCS.unshift(ins.data);
   // compatibilidade: o primeiro documento também fica no campo antigo (telas antigas e rotinas do Mac)
   if(!e.documento_id){const u=await sb.from('pet_eventos').update({documento_id:ins.data.id}).eq('id',id).select().single();if(u.error)throw u.error;Object.assign(e,u.data);}
@@ -760,6 +864,7 @@ async function chamarParse(texto){if(!ENTRADA)ENTRADA={historico:[],acoes:[],per
   try{const {data,error}=await sb.functions.invoke('fofinhos-parse',{body:{texto,cao_id:cao,historico:ENTRADA.historico||[]}});
     if(error)throw new Error(await msgErroInvoke(error));if(!data)throw new Error('sem resposta');if(data.erro)throw new Error(data.erro);
     ENTRADA.historico=(ENTRADA.historico||[]).concat([{role:'user',content:texto},{role:'assistant',content:JSON.stringify(data)}]).slice(-20);
+    if(data.entrada_id)ENTRADA.entradaId=data.entrada_id;
     mostrarEntrada(texto,data);
   }catch(e){ENTRADA.ultimo=texto;let m=String((e&&e.message)||e||'');
     if(/^n[aã]o autorizado$/i.test(m)){m='Sua sessão expirou. Entre de novo.';sessaoExpirada();}
@@ -833,11 +938,13 @@ function mostrarEntrada(texto,res){if(!ENTRADA)ENTRADA={historico:[]};
   ENTRADA.res=res;ENTRADA.ultimo=texto;res=res||{};
   const perg=(res.perguntas||[]).filter(q=>q&&q.texto);
   if(perg.length&&res.pronto!==true)return sheetPerguntas(res,perg);
-  const acoes=(res.acoes||[]).filter(a=>a&&a.tipo);ENTRADA.acoes=acoes;
+  const todas=(res.acoes||[]).filter(a=>a&&a.tipo);
+  const acoes=todas.filter(existeAlvo);const sumiram=todas.length-acoes.length;ENTRADA.acoes=acoes;
   const linhasA=acoes.map((a,i)=>acaoLinha(a,i)).join('');
   openSheet(`<h3>Entendi assim</h3>${res.resumo?`<div class="t-mut" style="margin:-8px 0 12px">${esc(res.resumo)}</div>`:''}
     ${linhasA}
-    ${acoes.length?`<div class="t-mut" style="margin-top:10px">Toque num item para ajustar antes.</div><button class="btn btn-p" type="button" style="margin-top:12px" onclick="salvarEntrada()">Salvar${acoes.length>1?' tudo ('+acoes.length+')':''}</button>`:'<div class="empty">Nada para registrar.</div>'}
+    ${sumiram?`<div class="t-mut" style="margin-top:10px;padding-left:10px;border-left:2px solid var(--rosa)">Deixei de fora ${sumiram} ite${sumiram>1?'ns que apontavam':'m que apontava'} para um registro que não existe mais.</div>`:''}
+    ${acoes.length?`<div class="t-mut" style="margin-top:10px">Toque num item para ajustar antes.</div><button class="btn btn-p" type="button" id="btEnt" style="margin-top:12px" onclick="salvarEntrada()">Salvar${acoes.length>1?' tudo ('+acoes.length+')':''}</button>`:'<div class="empty">Nada para registrar.</div>'}
     <button class="btn" type="button" style="margin-top:8px" onclick="sheetFalar(ENTRADA&&ENTRADA.ultimo)">Reescrever</button>`);}
 function sheetPerguntas(res,perg){const qs=perg.slice(0,2);ENTRADA.perg=qs;
   openSheet(`<h3>Me ajuda com isso</h3>${res.resumo?`<div class="t-mut" style="margin:-8px 0 12px">${esc(res.resumo)}</div>`:''}
@@ -854,40 +961,56 @@ function responder(){const qs=(ENTRADA&&ENTRADA.perg)||[],partes=[];
   qs.forEach((q,i)=>{const v=val('rq'+i);if(v)partes.push(q.texto+' -> '+v);});
   if(!partes.length){toast('Escolha ou escreva uma resposta');return;}
   chamarParse(partes.join('\n'));}
-async function salvarEntrada(){const acoes=(ENTRADA&&ENTRADA.acoes)||[];if(!acoes.length||salvarEntrada._b)return;salvarEntrada._b=1;ENTRADA.acoes=[];closeSheet();toast('Salvando…',30000);
-  let n=0,falhas=0,ultErro=null;
-  for(const a of acoes){
-    try{
-      if(a.tipo==='evento_novo'){
-        const row=Object.assign(entradaEv(a.evento),{origem:'ia',confirmado:true,criado_por:autor+' (voz/texto)'});
-        const r=await sb.from('pet_eventos').insert(row).select().single();if(r.error)throw r.error;
-        EV.unshift(r.data);await syncRotina(r.data);n++;
-      }else if(a.tipo==='evento_atualizar'){
-        const c=camposEv(a.campos);if(!a.id||!Object.keys(c).length)continue;
-        const r=await sb.from('pet_eventos').update(c).eq('id',a.id).select().single();if(r.error)throw r.error;
-        const x=EV.find(e=>e.id===a.id);if(x)Object.assign(x,r.data);else EV.unshift(r.data);
-        await syncRotina(r.data);n++;
-      }else if(a.tipo==='rotina_nova'){
-        const r=await sb.from('pet_rotinas').insert(Object.assign(rotRow(a.rotina),{ordem:50})).select().single();if(r.error)throw r.error;
-        ROT.push(r.data);n++;
-      }else if(a.tipo==='rotina_atualizar'){
-        const c=camposRot(a.campos);if(!a.id||!Object.keys(c).length)continue;
-        const r=await sb.from('pet_rotinas').update(c).eq('id',a.id).select().single();if(r.error)throw r.error;
-        const x=ROT.find(e=>e.id===a.id);if(x)Object.assign(x,r.data);else ROT.push(r.data);n++;
-      }else if(a.tipo==='produto_novo'){
-        const r=await sb.from('pet_produtos').insert(prodRowIA(a.produto)).select().single();if(r.error)throw r.error;
-        PROD.push(r.data);n++;
-      }else if(a.tipo==='produto_atualizar'){
-        const c=camposProd(a.campos);if(!a.id||!Object.keys(c).length)continue;
-        const r=await sb.from('pet_produtos').update(c).eq('id',a.id).select().single();if(r.error)throw r.error;
-        const x=PROD.find(e=>e.id===a.id);if(x)Object.assign(x,r.data);n++;
-      }
-    }catch(err){falhas++;ultErro=err;console.warn(err);}
-  }
+// a ação tem que apontar para um registro que ainda existe (o banco pode ter mudado desde a leitura da IA)
+function existeAlvo(a){
+  if(!a||!a.tipo)return false;
+  if(a.tipo==='evento_atualizar')return !!(a.id&&EV.some(x=>x.id===a.id));
+  if(a.tipo==='rotina_atualizar')return !!(a.id&&ROT.some(x=>x.id===a.id));
+  if(a.tipo==='produto_atualizar')return !!(a.id&&PROD.some(x=>x.id===a.id));
+  return true;}
+async function aplicarAcao(a){
+  if(!existeAlvo(a))throw erroAmigavel('O registro que este item ia mudar não existe mais.');
+  if(a.tipo==='evento_novo'){
+    const row=Object.assign(entradaEv(a.evento),{origem:'ia',confirmado:true,criado_por:autor+' (voz/texto)'});
+    const r=await sb.from('pet_eventos').insert(row).select().single();if(r.error)throw r.error;
+    EV.unshift(r.data);await syncRotina(r.data);return;}
+  if(a.tipo==='evento_atualizar'){
+    const c=camposEv(a.campos);if(!Object.keys(c).length)return;
+    const r=await sb.from('pet_eventos').update(c).eq('id',a.id).select().single();if(r.error)throw r.error;
+    const x=EV.find(e=>e.id===a.id);if(x)Object.assign(x,r.data);else EV.unshift(r.data);
+    await syncRotina(r.data);return;}
+  if(a.tipo==='rotina_nova'){
+    const r=await sb.from('pet_rotinas').insert(Object.assign(rotRow(a.rotina),{ordem:50})).select().single();if(r.error)throw r.error;
+    ROT.push(r.data);return;}
+  if(a.tipo==='rotina_atualizar'){
+    const c=camposRot(a.campos);if(!Object.keys(c).length)return;
+    const r=await sb.from('pet_rotinas').update(c).eq('id',a.id).select().single();if(r.error)throw r.error;
+    const x=ROT.find(e=>e.id===a.id);if(x)Object.assign(x,r.data);else ROT.push(r.data);return;}
+  if(a.tipo==='produto_novo'){
+    const r=await sb.from('pet_produtos').insert(prodRowIA(a.produto)).select().single();if(r.error)throw r.error;
+    PROD.push(r.data);return;}
+  if(a.tipo==='produto_atualizar'){
+    const c=camposProd(a.campos);if(!Object.keys(c).length)return;
+    const r=await sb.from('pet_produtos').update(c).eq('id',a.id).select().single();if(r.error)throw r.error;
+    const x=PROD.find(e=>e.id===a.id);if(x)Object.assign(x,r.data);return;}}
+// marca a linha de pet_entradas desta conversa como aplicada (o id vem da função, nunca "a última do banco")
+async function marcarEntradaAplicada(){const id=ENTRADA&&ENTRADA.entradaId;if(!id)return;
+  try{await sb.from('pet_entradas').update({aplicado:true}).eq('id',id);}catch(_){}}
+// salva item por item; o que falhar FICA na folha com "Tentar de novo" — a folha só fecha quando tudo gravou
+async function salvarEntrada(){const acoes=((ENTRADA&&ENTRADA.acoes)||[]).slice();if(!acoes.length||salvarEntrada._b)return;
+  salvarEntrada._b=1;const b=$('#btEnt');if(b){b.disabled=true;b.textContent='Salvando…';}
+  const falhas=[];let n=0;
+  for(const a of acoes){try{await aplicarAcao(a);n++;}catch(err){console.warn(err);falhas.push({a,m:erroSimples(err,'Não consegui salvar')});}}
   salvarEntrada._b=0;EV.sort(porData);
-  try{const u=await sb.from('pet_entradas').select('id').order('id',{ascending:false}).limit(1).single();
-    if(u.data)await sb.from('pet_entradas').update({aplicado:true}).eq('id',u.data.id);}catch(_){}
-  render(atual);toast(falhas?(n?n+' salvo(s); '+falhas+' não salvou. ':'')+msgErro(ultErro):(n===1?'Salvo':n+' itens salvos'));}
+  if(n)await marcarEntradaAplicada();
+  ENTRADA.acoes=falhas.map(x=>x.a);
+  render(atual);
+  if(!falhas.length){closeSheet();toast(n===1?'Salvo':n+' itens salvos');return;}
+  openSheet(`<h3>${n?'Salvei '+n+' de '+acoes.length:'Não consegui salvar'}</h3>
+    <div class="t-mut" style="margin:-8px 0 12px">${falhas.length===1?'Este item não gravou:':'Estes itens não gravaram:'}</div>
+    ${falhas.map((x,i)=>acaoLinha(x.a,i)+`<div class="t-mut" style="margin:-6px 2px 10px;color:var(--rosa)">${esc(x.m)}</div>`).join('')}
+    <button class="btn btn-p" type="button" id="btEnt" style="margin-top:4px" onclick="salvarEntrada()">Tentar de novo</button>
+    <button class="btn" type="button" style="margin-top:8px" onclick="closeSheet()">Deixar para depois</button>`);}
 async function refreshApp(manual){if($('#login').classList.contains('on')||!BOOTED)return;const b=$('#btnRefresh');if(b.classList.contains('spin'))return;b.classList.add('spin');const t0=Date.now();
   try{await loadAll();render(atual);}catch(e){console.warn(e);if(!CAES.length)$('#view').innerHTML=erroCarga(e);else if(manual!==false)toast(msgErro(e,'Não consegui atualizar'));}
   setTimeout(()=>b.classList.remove('spin'),Math.max(0,500-(Date.now()-t0)));}
