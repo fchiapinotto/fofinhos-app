@@ -14,8 +14,12 @@ self.addEventListener('fetch',e=>{const q=e.request;if(q.method!=='GET'||q.cache
       .catch(()=>caches.match(q,{ignoreSearch:true}).then(m=>m||(nav?caches.match('./index.html'):undefined)).then(m=>m||Response.error())));
     return;}
   if(CDN.test(q.url)){
-    // cache primeiro, atualiza por trás
-    e.respondWith(caches.open(C).then(c=>c.match(q).then(m=>{const net=fetch(q).then(r=>{if(r.ok||r.type==='opaque')c.put(q,r.clone());return r;}).catch(()=>m||Response.error());return m||net;})));
+    // cache primeiro, atualiza por trás. Cópia "opaca" (guardada sem CORS) não serve para pedido que
+    // confere a integridade do arquivo (integrity) — nesse caso vai direto para a rede.
+    e.respondWith(caches.open(C).then(c=>c.match(q).then(m=>{
+      if(m&&m.type==='opaque'&&q.mode==='cors')m=null;
+      const net=fetch(q).then(r=>{if(r.ok||r.type==='opaque')c.put(q,r.clone());return r;}).catch(()=>m||Response.error());
+      return m||net;})));
   }});
 self.addEventListener('push',e=>{let d={};try{d=e.data?e.data.json():{};}catch(x){d={corpo:e.data&&e.data.text()};}
   const titulo=d.titulo||'Nossos Fofinhos';

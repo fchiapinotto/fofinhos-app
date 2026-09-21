@@ -150,7 +150,14 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0" integrity="sha384-JBR+x8blGwjDRO63aHCGiZMD4VNiTR4ZUGA+N6ZKLf3zNt1fK8IBpcgPaMrxqWBp" crossorigin="anonymous"></script>
 <script>
+// Se a cópia guardada no aparelho for antiga demais para a conferência de integridade, busca de novo
+// direto da rede (endereço com ?r=2 para não cair no que estava guardado). Roda só quando falhou.
+if(!window.supabase)document.write('<scr'+'ipt src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0?r=2" integrity="sha384-JBR+x8blGwjDRO63aHCGiZMD4VNiTR4ZUGA+N6ZKLf3zNt1fK8IBpcgPaMrxqWBp" crossorigin="anonymous"><\/scr'+'ipt>');
+</script>
+<script>
 const $=(s,e=document)=>e.querySelector(s);
+// nem a biblioteca principal nem a reserva vieram (sem internet, por exemplo): avisa em vez de ficar em "Carregando…"
+if(!window.supabase){$('#view').innerHTML='<div class="empty"><b>Não consegui abrir o app</b>Confira a conexão e tente de novo.<br><button class="btn" type="button" onclick="location.reload()">Recarregar</button></div>';throw new Error('supabase-js não carregou');}
 const SB_URL="https://fctyjollnxthppfjtilq.supabase.co";
 const SB_KEY="sb_publishable_oRsjR49Gs4b8WatMinr1Jw__j5MM9O_";
 const VAPID_PUB="BFl2xeodAzpajWVf7ZTtdM08YG5e8znV1uIsMsHmFNN3l9_PVOX1tSlXjbPMf5DzEL9v4lVYNTuxR2j2is6NpJc";
