@@ -323,7 +323,7 @@ const V={};
 const SEM_CAO='<div class="empty"><b>Nenhum cão cadastrado</b>Peça no chat para cadastrar.</div>';
 V.hoje=()=>{const c=caoAtual();if(!c)return SEM_CAO;
   const rots=ROT.filter(r=>r.ativo&&meu(r)&&r.proxima_data).sort((a,b)=>a.proxima_data.localeCompare(b.proxima_data));
-  const agsD=new Set(EV.filter(e=>agendado(e)&&e.cao_id===cao).map(e=>e.tipo+'|'+e.data));const late=rots.filter(r=>diasAte(r.proxima_data)<=0&&!agsD.has(r.tipo+'|'+r.proxima_data)),soon=rots.filter(r=>{const n=diasAte(r.proxima_data);return n>0&&n<=30;}),next=rots.filter(r=>diasAte(r.proxima_data)>30).slice(0,3);
+  const agsD=new Set(EV.filter(e=>agendado(e)&&e.cao_id===cao).map(e=>e.tipo+'|'+e.data));const late=rots.filter(r=>diasAte(r.proxima_data)<=0&&!agsD.has(r.tipo+'|'+r.proxima_data)),soon=rots.filter(r=>{const n=diasAte(r.proxima_data);return n>0&&n<=30;}),next=rots.filter(r=>diasAte(r.proxima_data)>30).sort((x,y)=>x.proxima_data.localeCompare(y.proxima_data));
   const aconf=EV.filter(e=>!e.confirmado&&e.cao_id===cao),novos=DOCS.filter(d=>d.status==='novo').length,pa=pesoAtual(c.id);
   let h=`<div class="hero ${fotoUrl(c)?'':'nofoto'}" style="${fotoUrl(c)?`--hero-img:url('${fotoUrl(c)}')`:''}"><div class="hn">${esc(c.nome)}</div><div class="hs">${[idade(c.nascimento),c.raca,pa?String(pa.peso_kg).replace('.',',')+' kg':''].filter(Boolean).map(esc).join(' · ')}</div>
     <div class="kpis"><div class="kpi"><b>${late.length}</b><span>atrasado${late.length===1?'':'s'}</span></div><div class="kpi"><b>${soon.length}</b><span>em 30 dias</span></div>${aconf.length?`<div class="kpi"><b>${aconf.length}</b><span>para revisar</span></div>`:''}</div></div>`;
