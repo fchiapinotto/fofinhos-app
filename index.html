@@ -298,7 +298,7 @@ async function signDocs(){const paths=[...new Set(DOCS.map(d=>d.path).filter(p=>
   try{const r=await sb.storage.from('pet-docs').createSignedUrls(paths,URL_VALE/1000);(r.data||[]).forEach(x=>{if(x.signedUrl&&!x.error)SIGNED[x.path]={url:x.signedUrl,t:Date.now()+URL_VALE};});}catch(_){}}
 async function signFotos(){const paths=CAES.map(c=>c.foto_path).filter(Boolean);if(!paths.length)return;try{const r=await sb.storage.from('pet-docs').createSignedUrls(paths,604800);(r.data||[]).forEach(x=>{if(x.signedUrl&&!x.error)FOTOS[x.path]=x.signedUrl;});}catch(e){}}
 function renderSeg(){$('#segCao').innerHTML=CAES.map(c=>`<div role="tab" tabindex="0" aria-selected="${cao===c.id}" class="${cao===c.id?'on '+(c.nome==='Jorge'?'j':'s'):''}" onclick="setCao(${c.id})">${fotoUrl(c)?`<img src="${fotoUrl(c)}" alt="" onerror="this.remove()">`:''}${esc(c.nome)}</div>`).join('');}
-function setCao(v){if(cao===v)return;cao=v;aberto={};try{localStorage.setItem('fof_cao',v);}catch(_){}renderSeg();render(atual);}
+function setCao(v){if(cao===v)return;cao=v;aberto={};try{localStorage.setItem('fof_cao',v);}catch(_){}renderSeg();render(atual);window.scrollTo({top:0});}
 
 // ===== cards =====
 function rotCard(r){const t=TIPOS[r.tipo]||TIPOS.outro;const p=prazo(r.proxima_data);
@@ -383,7 +383,7 @@ V.docs=()=>{const st={novo:['na caixa','novo'],processando:['lendo…','novo'],p
   return h;};
 V.ficha=()=>{const c=caoAtual();if(!c)return SEM_CAO;const pa=pesoAtual(c.id);const prods=PROD.filter(p=>meu(p)&&p.em_uso);const rots=ROT.filter(meu);
   let h=`<div class="pet" style="margin-top:10px"><div class="ph" role="button" tabindex="0" onclick="editCao(${c.id})"><div class="av" style="background:${caoCor(c)}">${fotoUrl(c)?`<img src="${fotoUrl(c)}" alt="">`:esc((c.nome||'?')[0])}</div><div><h3>${esc(c.nome)}${c.apelido_antigo?` <span class="t-mut" style="font-weight:500;font-size:14px">ex-${esc(c.apelido_antigo)}</span>`:''}</h3><div class="sub">${[c.raca,c.sexo==='F'?'fêmea':c.sexo==='M'?'macho':'',idade(c.nascimento)].filter(Boolean).map(esc).join(' · ')}</div></div></div>
-    <div class="grid"><div><b>Nascimento</b>${dLong(c.nascimento)||'—'}</div><div><b>Adoção</b>${dLong(c.adocao)||'<span style="color:var(--rosa)">informar</span>'}</div><div><b>Peso atual</b>${pa?kg(pa.peso_kg)+' <span class="t-mut">('+dBR(pa.data)+')</span>':'—'}</div><div><b>Microchip</b>${esc(c.microchip||'—')}</div><div><b>Castração</b>${c.castrado==null?'—':(c.castrado?'sim':'não')}</div><div><b>Alergias</b>${esc(c.alergias||'—')}</div></div>
+    <div class="grid"><div><b>Nascimento</b>${dLong(c.nascimento)||'—'}</div>${c.adocao||c.nome==='Jorge'?`<div><b>Adoção</b>${dLong(c.adocao)||'<span style="color:var(--ink3)">data a informar</span>'}</div>`:''}<div><b>Peso atual</b>${pa?kg(pa.peso_kg)+' <span class="t-mut">('+dBR(pa.data)+')</span>':'—'}</div><div><b>Microchip</b>${esc(c.microchip||'—')}</div><div><b>Castração</b>${c.castrado==null?'—':(c.castrado?'sim':'não')}</div><div><b>Alergias</b>${esc(c.alergias||'—')}</div></div>
     ${c.observacao?`<div class="obs">${esc(c.observacao)}</div>`:''}<div class="t-mut" style="margin-top:10px">Toque no nome para editar.</div></div>`;
   h+=`<div class="sec">Em uso <span role="button" tabindex="0" onclick="sheetProd(null)">+ produto</span></div><div class="pet">${prods.length?prods.map(prodRow).join(''):'<div class="t-mut">Nenhum produto cadastrado.</div>'}</div>`;
   h+=`<div class="sec">Lembretes <span role="button" tabindex="0" onclick="editRot(null)">+ lembrete</span></div><div class="pet">${rots.length?rots.map(r=>`<div class="prod" role="button" tabindex="0" onclick="editRot(${r.id})"><i class="ti ${(TIPOS[r.tipo]||TIPOS.outro).ic}" style="color:var(--ink3);font-size:18px;margin-top:2px"></i><div style="flex:1"><div class="pn">${esc(r.titulo)}${r.ativo?'':'<span class="tag b">pausado</span>'}${r.cao_id==null?'<span class="tag b">os dois</span>':''}</div><div class="pd">a cada ${r.intervalo_dias} dias${r.produto?' · '+esc(r.produto):''}${r.proxima_data?' · próxima '+dBR(r.proxima_data):' · <b style="color:var(--rosa);font-weight:600">sem data</b>'}</div></div></div>`).join(''):'<div class="t-mut">Nenhum lembrete. Crie um para vacina, antipulgas ou banho.</div>'}</div>`;
@@ -837,10 +837,10 @@ function falarHTML(texto){return`<h3>Falar ou escrever</h3><div id="flOuv"></div
   <div id="flBtns"></div><div class="err" id="flErr" style="color:var(--rosa);font-size:13px;margin-top:10px"></div>`;}
 function recUI(){const o=$('#flOuv'),b=$('#flBtns');if(!o||!b)return;
   if(REC.ativo){o.innerHTML='<div class="ouv"><span class="pulso"></span>Ouvindo… pode falar</div>';
-    b.innerHTML='<button class="btn" type="button" style="margin-bottom:8px" onclick="pararRec()"><i class="ti ti-player-stop" aria-hidden="true"></i> Parar</button><button class="btn btn-p" type="button" id="flBtn" onclick="interpretar()">Interpretar</button>';}
+    b.innerHTML='<button class="btn" type="button" style="margin-bottom:8px" onclick="pararRec()"><i class="ti ti-player-stop" aria-hidden="true"></i> Parar</button><button class="btn btn-p" type="button" id="flBtn" onclick="interpretar()">Continuar</button>';}
   else{const dica=REC.erro?'Não consegui usar o microfone aqui — escreva, ou toque no microfone do teclado para ditar.':(SR?'Toque em Gravar para ditar, ou escreva. Você pode editar o texto antes de interpretar.':'Escreva como falaria — no iPhone, toque no microfone do teclado para ditar.');
     o.innerHTML=`<div class="t-mut" style="margin:-8px 0 12px">${dica} Eu interpreto e você só confere.</div>`;
-    b.innerHTML=`${SR&&!REC.erro?'<button class="btn" type="button" style="margin-bottom:8px" onclick="startRec()"><i class="ti ti-microphone" aria-hidden="true"></i> Gravar</button>':''}<button class="btn btn-p" type="button" id="flBtn" onclick="interpretar()">Interpretar</button>`;}}
+    b.innerHTML=`${SR&&!REC.erro?'<button class="btn" type="button" style="margin-bottom:8px" onclick="startRec()"><i class="ti ti-microphone" aria-hidden="true"></i> Gravar</button>':''}<button class="btn btn-p" type="button" id="flBtn" onclick="interpretar()">Continuar</button>`;}}
 function startRec(){if(!SR){recUI();return;}
   try{if(REC.obj){try{REC.obj.abort();}catch(_){}}
     const r=new SR();REC={obj:r,ativo:false,final:(val('flTxt')||''),manual:false,erro:''};
@@ -922,7 +922,7 @@ function acaoLinha(a,i){let ic='ti-pencil',cor='var(--ink2)',pre='',et='',es='';
     es=descCampos(camposEv(a.campos));}
   else if(a.tipo==='rotina_nova'){const r=rotRow(a.rotina);const T=TIPOS[r.tipo]||TIPOS.outro;ic=T.ic;cor=T.c;pre='Novo lembrete';
     et=esc(r.titulo)+` <span class="tag b">${r.cao_id?esc(nomeCao(r.cao_id)):'os dois'}</span>`;
-    es='a cada '+r.intervalo_dias+' dias'+(r.produto?' · '+esc(r.produto):'')+(r.proxima_data?' · próxima '+dBR(r.proxima_data):'');}
+    es=(r.intervalo_dias===1?'todo dia':r.intervalo_dias===7?'toda semana':'a cada '+r.intervalo_dias+' dias')+(r.produto?' · '+esc(r.produto):'')+(r.proxima_data?' · próxima '+dBR(r.proxima_data):'');}
   else if(a.tipo==='rotina_atualizar'){const o=ROT.find(x=>x.id===a.id)||{};const T=TIPOS[o.tipo]||TIPOS.outro;ic=T.ic;cor=T.c;pre='Atualizar lembrete';
     et=esc(o.titulo||'lembrete');es=descCampos(camposRot(a.campos));}
   else if(a.tipo==='produto_novo'){const p=prodRowIA(a.produto);ic='ti-package';cor='var(--ink2)';pre='Novo produto';
