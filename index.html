@@ -70,6 +70,23 @@
   .hrow{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}.hrow:last-child{border-bottom:none}
   .hrow .hd{font-weight:600;font-variant-numeric:tabular-nums;width:64px;flex-shrink:0}.hrow .hb{flex:1;min-width:0;color:var(--ink2)}.hrow .hb b{color:var(--ink);font-weight:600}
   .obs{font-size:12.5px;color:var(--ink2);margin-top:6px;line-height:1.45;white-space:pre-wrap}
+  /* plano de banho e tosa (pacote pré-pago): filete no topo, número-âncora e barra fina */
+  .plano{background:var(--card);border:1px solid var(--line);border-top:3px solid #1f8a9e;border-radius:var(--rl);padding:14px 16px 13px;margin-bottom:11px;cursor:pointer}
+  .plano .pk{font-size:10.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:#1f8a9e}
+  .plano .pt{font-size:16px;font-weight:700;color:var(--ink);margin-top:3px;line-height:1.25}
+  .plano .pf{font-size:13px;color:var(--ink2);margin-top:1px}
+  .plano .pn{display:flex;align-items:baseline;gap:8px;margin-top:14px;font-size:15px;color:var(--ink2)}
+  .plano .pn b{font-size:34px;font-weight:700;color:var(--ink);line-height:1;letter-spacing:-.6px}
+  .plano .pi{font-size:13px;color:var(--ink2);margin-top:11px}
+  .plano .pr{font-size:11.5px;color:var(--ink3);margin-top:12px;padding-top:10px;border-top:1px solid var(--line);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .plano.fim{border-top-color:var(--rosa)}
+  .plano .fimt{font-size:17px;font-weight:700;color:var(--rosa);margin-top:13px}
+  .pbar{height:4px;border-radius:99px;background:#e0f2f5;overflow:hidden}
+  .plano .pbar{margin-top:9px}
+  .pbar i{display:block;height:100%;border-radius:99px;background:#1f8a9e}
+  .plinha{display:flex;align-items:center;gap:9px;min-height:44px;margin:-2px 0 8px;font-size:14.5px;color:var(--ink);cursor:pointer}
+  .plinha input{width:auto;margin:0}
+  .plinha span{color:var(--ink2);font-size:12.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .pet{background:var(--card);border:1px solid var(--line);border-radius:var(--rl);padding:16px;margin-bottom:14px}
   .pet .ph{display:flex;align-items:center;gap:13px}.pet .av{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden}.pet .av img{width:100%;height:100%;object-fit:cover}
   .pet h3{margin:0;font-size:20px;font-weight:700}.pet .sub{font-size:13px;color:var(--ink2)}
@@ -185,6 +202,8 @@ const MES=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','de
 
 // ===== estado =====
 let CAES=[],EV=[],ROT=[],PROD=[],DOCS=[],CONT=[];
+// planos pré-pagos (banho e tosa): PACOTES = o plano; SALDO = uma linha por item, da view pet_pacote_saldo
+let PACOTES=[],SALDO=[];
 let cao=null, atual='hoje', autor='Fernando', aberto={};
 const FOTOS={}; const SIGNED={};
 
@@ -283,15 +302,17 @@ const porData=(a,b)=>(b.data||'9999').localeCompare(a.data||'9999')||b.id-a.id;
 
 // ===== carregar =====
 async function loadAll(){
-  const [c,e,r,p,d,k]=await Promise.all([
+  const [c,e,r,p,d,k,pc,sl]=await Promise.all([
     sb.from('pet_caes').select('*').eq('ativo',true).order('ordem'),
     sb.from('pet_eventos').select('*').order('data',{ascending:false,nullsFirst:false}).order('id',{ascending:false}),
     sb.from('pet_rotinas').select('*').order('ordem'),
     sb.from('pet_produtos').select('*').order('categoria').order('nome'),
     sb.from('pet_documentos').select('*').order('data_doc',{ascending:false,nullsFirst:true}).order('criado_em',{ascending:false}),
-    sb.from('pet_contatos').select('*').order('ordem')]);
-  for(const x of [c,e,r,p,d,k]) if(x.error) throw x.error;
-  CAES=c.data;EV=e.data;ROT=r.data;PROD=p.data;DOCS=d.data;CONT=k.data;
+    sb.from('pet_contatos').select('*').order('ordem'),
+    sb.from('pet_pacotes').select('*').order('id'),
+    sb.from('pet_pacote_saldo').select('*').order('ordem')]);
+  for(const x of [c,e,r,p,d,k,pc,sl]) if(x.error) throw x.error;
+  CAES=c.data;EV=e.data;ROT=r.data;PROD=p.data;DOCS=d.data;CONT=k.data;PACOTES=pc.data;SALDO=sl.data;
   if(!CAES.some(x=>x.id===cao)){let s=null;try{s=+localStorage.getItem('fof_cao');}catch(_){}cao=CAES.some(x=>x.id===s)?s:(CAES[0]||{}).id;}
   await signFotos();renderSeg();signDocs();
 }
@@ -303,6 +324,62 @@ async function signDocs(){const paths=[...new Set(DOCS.map(d=>d.path).filter(p=>
 async function signFotos(){const paths=CAES.map(c=>c.foto_path).filter(Boolean);if(!paths.length)return;try{const r=await sb.storage.from('pet-docs').createSignedUrls(paths,604800);(r.data||[]).forEach(x=>{if(x.signedUrl&&!x.error)FOTOS[x.path]=x.signedUrl;});}catch(e){}}
 function renderSeg(){$('#segCao').innerHTML=CAES.map(c=>`<div role="tab" tabindex="0" aria-selected="${cao===c.id}" class="${cao===c.id?'on '+(c.nome==='Jorge'?'j':'s'):''}" onclick="setCao(${c.id})">${fotoUrl(c)?`<img src="${fotoUrl(c)}" alt="" onerror="this.remove()">`:''}${esc(c.nome)}</div>`).join('');}
 function setCao(v){if(cao===v)return;cao=v;aberto={};try{localStorage.setItem('fof_cao',v);}catch(_){}renderSeg();render(atual);window.scrollTo({top:0});}
+
+// ===== plano de banho e tosa (pacote pré-pago) =====
+// Regra: o saldo é do plano, não do cão — cada banho de qualquer um dos dois desconta 1.
+// O que conta como usado é o registro CONCLUÍDO ligado ao item (a view pet_pacote_saldo faz a conta).
+const pacById=id=>PACOTES.find(p=>p.id===id)||null;
+const itemById=id=>SALDO.find(s=>s.item_id===id)||null;
+// plano em uso: ativo e, se tiver prazo, ainda dentro dele (plano sem prazo vale sempre)
+const pacVale=p=>!!p&&p.ativo!==false&&(!p.validade||p.validade>=hojeISO());
+// o plano serve para este cão? sem cão definido (os dois) só vale plano que é dos dois
+const pacServe=(p,caoId)=>pacVale(p)&&(p.cao_id==null||(caoId!=null&&p.cao_id===caoId));
+const itensPac=id=>SALDO.filter(s=>s.pacote_id===id).sort((a,b)=>(a.ordem-b.ordem)||(a.item_id-b.item_id));
+// item principal = o de maior quantidade; é ele que vira o número grande do cartão
+const itemPrinc=id=>itensPac(id).slice().sort((a,b)=>(b.quantidade-a.quantidade)||(a.ordem-b.ordem))[0]||null;
+// itens com saldo que servem para um registro (mesmo tipo, plano válido para o cão)
+function planoItens(tipo,caoId){return SALDO.filter(s=>s.restam>0&&s.tipo===tipo&&pacServe(pacById(s.pacote_id),caoId)).sort((a,b)=>(a.ordem-b.ordem)||(a.item_id-b.item_id));}
+const pacAtivos=()=>PACOTES.filter(pacVale);
+const semS=s=>String(s||'').toLowerCase().replace(/s$/,'');
+// "restam 10 banhos do plano" — frase curta para o toast e para os avisos
+function saldoFrase(it,n){if(!it)return'';n=(n==null?it.restam:n);const l=String(it.rotulo||'').toLowerCase();
+  return n>=2?`restam ${n} ${l} do plano`:n===1?`resta 1 ${semS(l)} do plano`:`não sobrou ${semS(l)} no plano`;}
+// desconta na tela antes de o banco responder (o realtime recarrega e corrige em seguida)
+function planoConsumir(itemId,n){const s=itemById(itemId);if(!s)return null;s.usados=Math.max(0,s.usados+n);s.restam=Math.max(0,s.quantidade-s.usados);return s;}
+// o registro trocou de item (ou saiu do plano): devolve o item que passou a ser usado
+function planoAjustar(antes,depois){if(antes===depois)return depois?itemById(depois):null;
+  if(antes)planoConsumir(antes,-1);return depois?planoConsumir(depois,1):null;}
+// só aceita item de plano que existe, tem saldo e vale para o cão — a IA nunca inventa id
+function itemValido(v,caoId){const it=itemById(+v);return(it&&pacServe(pacById(it.pacote_id),caoId)&&it.restam>0)?it:null;}
+const barra=(n,q)=>`<div class="pbar"><i style="width:${q>0?Math.max(0,Math.min(100,Math.round(n/q*100))):0}%"></i></div>`;
+// cartão do plano na Carteirinha: saldo em destaque, o resto pequeno
+function pacCard(p){const its=itensPac(p.id),pr=itemPrinc(p.id);
+  if(!pr)return'';
+  const fim=its.every(i=>i.restam<=0),zerado=pr.restam<=0;
+  const outros=its.filter(i=>i.item_id!==pr.item_id).map(i=>esc(i.rotulo)+': '+i.restam);
+  const rod=[p.valor?money(p.valor)+(p.parcelas>1?' em '+p.parcelas+'x':''):'',p.comprado_em?'comprado em '+dBR(p.comprado_em):'',p.validade?'vale até '+dBR(p.validade):'',p.observacao||''].filter(Boolean).map(esc).join(' · ');
+  return`<div class="plano${fim?' fim':''}" role="button" tabindex="0" onclick="sheetPacote(${p.id})">
+    <div class="pk">Plano</div><div class="pt">${esc(p.nome)}</div>${p.fornecedor?`<div class="pf">${esc(p.fornecedor)}</div>`:''}
+    ${fim?`<div class="fimt">Plano terminado — renovar</div>`
+      :`<div class="pn"><b>${pr.restam}</b> de ${pr.quantidade} ${esc(String(pr.rotulo).toLowerCase())}</div>${barra(pr.restam,pr.quantidade)}`}
+    ${outros.length?`<div class="pi">${outros.join(' · ')}</div>`:''}
+    ${zerado&&!fim?`<div class="fimt" style="font-size:14.5px;margin-top:11px">${esc(pr.rotulo)} do plano ${/s$/i.test(pr.rotulo)?'acabaram':'acabou'} — renovar</div>`:''}
+    ${zerado?`<button class="btn" type="button" style="margin-top:12px" onclick="event.stopPropagation();editPacote(null)">Registrar novo plano</button>`:''}
+    ${rod?`<div class="pr">${rod}</div>`:''}</div>`;}
+// folha do plano: saldo item a item, quem já usou e o botão de editar
+function sheetPacote(id){const p=pacById(id);if(!p)return;const its=itensPac(id);
+  const usos=EV.filter(e=>e.pacote_id===id).sort(porData);
+  const rod=[p.valor?money(p.valor)+(p.parcelas>1?' em '+p.parcelas+'x':''):'',p.comprado_em?'comprado em '+dBR(p.comprado_em):'',p.validade?'vale até '+dBR(p.validade):'sem prazo para usar'].filter(Boolean).map(esc).join(' · ');
+  openSheet(`<h3>${esc(p.nome)}</h3>
+  <div class="t-mut" style="margin:-8px 0 16px">${[p.fornecedor,p.cao_id==null?'vale para os dois':nomeCao(p.cao_id),p.ativo?'':'encerrado'].filter(Boolean).map(esc).join(' · ')}</div>
+  ${its.map(i=>`<div style="margin-bottom:13px"><div style="display:flex;justify-content:space-between;align-items:baseline;font-size:14px"><span>${esc(i.rotulo)}</span><span><b style="font-size:16px">${i.restam}</b> <span class="t-mut">de ${i.quantidade}</span></span></div><div style="margin-top:6px">${barra(i.restam,i.quantidade)}</div></div>`).join('')}
+  <div class="sec" style="margin:20px 2px 8px">Quem já usou</div>
+  ${usos.length?`<div class="fam"><div class="fb" style="border-top:none;background:var(--card)">${usos.map(e=>{const it=e.pacote_item_id?itemById(e.pacote_item_id):null;
+    return`<div class="hrow"><div class="hd">${e.data?dBR(e.data):'—'}</div><div class="hb" role="button" tabindex="0" onclick="editEv(${e.id})"><b>${esc(nomeCao(e.cao_id))}</b> · ${esc(it?it.rotulo:titSub(e).t)}${e.status==='realizado'?'':' '+stTag(e)}</div></div>`;}).join('')}</div></div>`
+    :'<div class="vazio">Ninguém usou ainda.</div>'}
+  <div class="t-mut" style="margin:16px 0 0">${rod}</div>
+  ${p.observacao?`<div class="obs">${esc(p.observacao)}</div>`:''}
+  <button class="btn" type="button" style="margin-top:16px" onclick="editPacote(${id})">Editar plano</button>`);}
 
 // ===== cards =====
 function rotCard(r){const t=TIPOS[r.tipo]||TIPOS.outro;const p=prazo(r.proxima_data);
@@ -335,6 +412,9 @@ V.hoje=()=>{const c=caoAtual();if(!c)return SEM_CAO;
   if(novos)h+=`<div class="note" role="button" tabindex="0" onclick="go('docs')" style="cursor:pointer;margin-top:10px"><b>${novos} documento${novos>1?'s':''} na caixa de entrada</b> — o Claude lê e registra à noite (ou peça "processa a caixa").</div>`;
   const amb=EV.filter(e=>e.cao_id===cao&&precisaVinculo(e));
   if(amb.length)h+=`<div class="t-mut" style="margin:12px 2px 0;padding-left:10px;border-left:2px solid var(--azul);line-height:1.6"><b style="color:var(--ink)">${esc(titSub(amb[0]).t)}</b>${amb[0].data?' ('+dBR(amb[0].data)+')':''} pode alimentar mais de um lembrete — não atualizei nenhum. <button class="lnk" type="button" style="padding:0" onclick="sheetVincular(${amb[0].id})">escolher o lembrete</button>${amb.length>1?`<br>e mais ${amb.length-1} registro${amb.length>2?'s':''} assim.`:''}</div>`;
+  // plano acabando: uma linha discreta que leva para a Carteirinha (o saldo vale para os dois)
+  const pb=SALDO.filter(s=>s.tipo==='banho'&&s.restam<=2&&pacVale(pacById(s.pacote_id))).sort((a,b)=>a.restam-b.restam)[0];
+  if(pb)h+=`<div class="t-mut" role="button" tabindex="0" style="margin:12px 2px 0;padding-left:10px;border-left:2px solid #1f8a9e;line-height:1.6;cursor:pointer" onclick="go('cart')"><b style="color:var(--ink)">${pb.restam===0?'O plano de banhos acabou':pb.restam===1?'Resta 1 banho do plano':'Restam '+pb.restam+' banhos do plano'}</b> — ${pb.restam===0?'hora de renovar':'renovar em breve'}.</div>`;
   const ags=EV.filter(e=>agendado(e)&&e.cao_id===cao).sort((a,b)=>(a.data||'9999').localeCompare(b.data||'9999')||String(a.hora||'').localeCompare(String(b.hora||'')));
   if(ags.length)h+=`<div class="sec">Agendado</div>`+ags.map(e=>evCard(e,{semTag:1})).join('');
   const pend=EV.filter(e=>aAgendar(e)&&e.cao_id===cao).sort((a,b)=>(a.data||'9999').localeCompare(b.data||'9999')||a.id-b.id);
@@ -354,12 +434,13 @@ V.cart=()=>{const vac=EV.filter(e=>e.tipo==='vacina'&&e.cao_id===cao);let h=`<di
       ${aberto[k]&&evs.length?`<div class="fb">${evs.map(hrow).join('')}</div>`:''}</div>`;fams++;}
   const outras=vac.filter(e=>!usadas.has(e.id));if(outras.length)h+=`<div class="fam"><div class="fh" role="button" tabindex="0" aria-expanded="${!!aberto.fout}" onclick="toggle('fout')"><div class="ic" style="background:${TIPOS.vacina.bg};color:${TIPOS.vacina.c}"><i class="ti ti-vaccine"></i></div><div class="cb"><div class="tt">Outras vacinas</div><div class="ts">${outras.length} registro${outras.length>1?'s':''}</div></div></div>${aberto.fout?`<div class="fb">${outras.map(hrow).join('')}</div>`:''}</div>`;
   if(!vac.length&&!fams)h+='<div class="vazio">Nenhuma vacina registrada.</div>';
-  const bloco=(titulo,tipos,k)=>{const rs=ROT.filter(r=>tipos.includes(r.tipo)&&meu(r));const evs=EV.filter(e=>tipos.includes(e.tipo)&&e.cao_id===cao);let s=`<div class="sec">${titulo} <span role="button" tabindex="0" onclick="editRot(null,'${tipos[0]}')">+ lembrete</span></div>`;
+  const bloco=(titulo,tipos,k,antes)=>{const rs=ROT.filter(r=>tipos.includes(r.tipo)&&meu(r));const evs=EV.filter(e=>tipos.includes(e.tipo)&&e.cao_id===cao);let s=`<div class="sec">${titulo} <span role="button" tabindex="0" onclick="editRot(null,'${tipos[0]}')">+ lembrete</span></div>`+(antes||'');
     if(!rs.length&&!evs.length)return s+'<div class="vazio">Nada registrado ainda.</div>';
     s+=rs.map(rotCard).join('');
     if(evs.length)s+=`<div class="fam"><div class="fh" role="button" tabindex="0" aria-expanded="${!!aberto[k]}" onclick="toggle('${k}')"><div class="cb"><div class="tt" style="font-size:13.5px;color:var(--ink2)">Histórico · ${evs.length} registro${evs.length>1?'s':''}</div></div><i class="ti ti-chevron-${aberto[k]?'up':'down'}" style="color:var(--ink3)"></i></div>${aberto[k]?`<div class="fb">${evs.map(hrow).join('')}</div>`:''}</div>`;return s;};
   h+=bloco('Antipulgas e vermífugo',['antipulga','vermifugo'],'hprot');
-  h+=bloco('Banho e tosa',['banho','tosa'],'hbanho');
+  // o plano vem antes dos lembretes: é o saldo que manda no banho e na tosa
+  h+=bloco('Banho e tosa',['banho','tosa'],'hbanho',pacAtivos().filter(p=>(p.cao_id==null||p.cao_id===cao)&&itensPac(p.id).some(i=>['banho','tosa'].includes(i.tipo))).map(pacCard).join(''));
   return h;};
 V.vet=()=>{const c=caoAtual();if(!c)return SEM_CAO;let h=pesoChart(c);
   const ex=EV.filter(e=>e.tipo==='exame'&&e.cao_id===cao),co=EV.filter(e=>['consulta','medicacao','cirurgia','outro'].includes(e.tipo)&&e.cao_id===cao);
@@ -390,6 +471,8 @@ V.ficha=()=>{const c=caoAtual();if(!c)return SEM_CAO;const pa=pesoAtual(c.id);co
     <div class="grid"><div><b>Nascimento</b>${dLong(c.nascimento)||'—'}</div>${c.adocao||c.nome==='Jorge'?`<div><b>Adoção</b>${dLong(c.adocao)||'<span style="color:var(--ink3)">data a informar</span>'}</div>`:''}<div><b>Peso atual</b>${pa?kg(pa.peso_kg)+' <span class="t-mut">('+dBR(pa.data)+')</span>':'—'}</div><div><b>Microchip</b>${esc(c.microchip||'—')}</div><div><b>Castração</b>${c.castrado==null?'—':(c.castrado?'sim':'não')}</div><div><b>Alergias</b>${esc(c.alergias||'—')}</div></div>
     ${c.observacao?`<div class="obs">${esc(c.observacao)}</div>`:''}<div class="t-mut" style="margin-top:10px">Toque no nome para editar.</div></div>`;
   h+=`<div class="sec">Em uso <span role="button" tabindex="0" onclick="sheetProd(null)">+ produto</span></div><div class="pet">${prods.length?prods.map(prodRow).join(''):'<div class="t-mut">Nenhum produto cadastrado.</div>'}</div>`;
+  h+=`<div class="sec">Planos <span role="button" tabindex="0" onclick="editPacote(null)">+ plano</span></div><div class="pet">${PACOTES.length?PACOTES.map(p=>{const pr=itemPrinc(p.id);
+    return`<div class="prod" role="button" tabindex="0" onclick="sheetPacote(${p.id})"><i class="ti ti-ticket" style="color:var(--ink3);font-size:18px;margin-top:2px"></i><div style="flex:1;min-width:0"><div class="pn">${esc(p.nome)}${p.ativo?'':'<span class="tag b">encerrado</span>'}${p.cao_id==null?'<span class="tag b">os dois</span>':''}</div><div class="pd">${[p.fornecedor,pr?pr.restam+' de '+pr.quantidade+' '+String(pr.rotulo).toLowerCase():'',p.valor?money(p.valor):''].filter(Boolean).map(esc).join(' · ')}</div></div></div>`;}).join(''):'<div class="t-mut">Nenhum plano. Cadastre um plano pré-pago (banho e tosa) para acompanhar o saldo.</div>'}</div>`;
   h+=`<div class="sec">Lembretes <span role="button" tabindex="0" onclick="editRot(null)">+ lembrete</span></div><div class="pet">${rots.length?rots.map(r=>`<div class="prod" role="button" tabindex="0" onclick="editRot(${r.id})"><i class="ti ${(TIPOS[r.tipo]||TIPOS.outro).ic}" style="color:var(--ink3);font-size:18px;margin-top:2px"></i><div style="flex:1"><div class="pn">${esc(r.titulo)}${r.ativo?'':'<span class="tag b">pausado</span>'}${r.cao_id==null?'<span class="tag b">os dois</span>':''}</div><div class="pd">a cada ${r.intervalo_dias} dias${r.produto?' · '+esc(r.produto):''}${r.proxima_data?' · próxima '+dBR(r.proxima_data):' · <b style="color:var(--rosa);font-weight:600">sem data</b>'}</div></div></div>`).join(''):'<div class="t-mut">Nenhum lembrete. Crie um para vacina, antipulgas ou banho.</div>'}</div>`;
   h+=pushSec();
   h+=`<div class="sec">Contatos <span role="button" tabindex="0" onclick="sheetCont(null)">+ contato</span></div><div class="pet">`+(CONT.length?CONT.map(k=>`<div class="ct"><div style="flex:1;min-width:0" role="button" tabindex="0" onclick="sheetCont(${k.id})"><div class="cp">${esc(k.papel)}</div><div class="cn">${esc(k.nome)||'<span style=\"color:var(--ink3)\">preencher</span>'}</div>${k.telefone||k.endereco?`<div class="cs">${esc(k.telefone||'')}${k.telefone&&k.endereco?' · ':''}${esc(k.endereco||'')}</div>`:''}${k.observacao?`<div class="cs">${esc(k.observacao)}</div>`:''}</div>${k.telefone?`<a class="call" aria-label="Ligar para ${esc(k.nome||k.papel)}" href="tel:${esc(k.telefone.replace(/[^0-9+]/g,''))}"><i class="ti ti-phone"></i></a>`:''}</div>`).join(''):'<div class="t-mut">Nenhum contato.</div>')+`</div>`;
@@ -454,8 +537,23 @@ function anexoUI(e){if(!e||!e.id)return'';const ds=docsDoEv(e);
   return(ds.length?`<div class="t-mut" style="margin:0 0 4px">${ds.length===1?'1 documento':ds.length+' documentos'}</div><div style="margin:0 0 12px">${ds.map(linha).join('')}</div>`:'')
     +`<div class="anexo" role="button" tabindex="0" onclick="anexarEv(${e.id})"><i class="ti ti-paperclip"></i> ${ds.length?'Anexar mais um documento':'Anexar foto ou PDF'}</div>`;}
 const TIPOS_PROD=['vacina','vermifugo','antipulga','medicacao'];
+// linha discreta "Usa o plano" no formulário de banho/tosa concluído. Sem saldo, ela nem aparece.
+// Registro novo já vem ligado; registro antigo que foi salvo fora do plano continua fora até marcarem.
+function planoUI(e,tipo,st,novo){
+  if(!['banho','tosa'].includes(tipo)||st!=='realizado')return'';
+  const at=e.pacote_item_id?itemById(e.pacote_item_id):null;
+  const disp=planoItens(tipo,e.cao_id).slice();
+  if(at&&!disp.some(x=>x.item_id===at.item_id))disp.unshift(at);
+  if(!disp.length)return'';
+  const on=(window._plOn===undefined)?(!!at||!!novo):!!window._plOn,sel=at?at.item_id:disp[0].item_id,p=pacById(disp[0].pacote_id)||{};
+  const um=disp[0],info=at?esc(at.rotulo)+' · '+at.restam+' de '+at.quantidade:saldoFrase(um);
+  return`<label class="plinha"><input type="checkbox" id="ePlOn" ${on?'checked':''} onchange="evPlanoTgl()">Usa o plano${p.nome?` <span>· ${esc(p.nome)}</span>`:''}</label>
+  <div id="ePlBox" style="margin:-4px 0 12px;display:${on?'block':'none'}">${disp.length>1
+    ?`<select id="ePl" aria-label="Item do plano">${disp.map(x=>`<option value="${x.item_id}" ${sel===x.item_id?'selected':''}>${esc(x.rotulo)} — ${x.restam} de ${x.quantidade}</option>`).join('')}</select>`
+    :`<div class="t-mut">${info}</div><select id="ePl" hidden><option value="${um.item_id}" selected></option></select>`}</div>`;}
+function evPlanoTgl(){const b=$('#ePlBox'),c=$('#ePlOn');if(!c)return;window._plOn=c.checked;if(b)b.style.display=c.checked?'block':'none';}
 function editEv(id,preset,mais,keep){
-  if(!keep){window._evPrev=null;window._rotEsc=false;}
+  if(!keep){window._evPrev=null;window._rotEsc=false;window._plOn=undefined;}
   const base=id?EV.find(x=>x.id===id):{cao_id:cao,tipo:'vacina',data:hojeISO(),status:'realizado',confirmado:true};
   if(!base)return;
   if(!keep)abriuFolha('pet_eventos',id,id?base:null);
@@ -491,6 +589,7 @@ function editEv(id,preset,mais,keep){
   <div class="field"><label>Detalhe <span style="color:var(--ink3);font-weight:400">(opcional)</span></label><input id="eSu" value="${esc(e.subtitulo)}" placeholder="Ex.: marca, dose, o que inclui"></div>
   <div class="row2"><div class="field"><label>Status</label><select id="eS" data-prev="${st}" onchange="evRefresh(${id||'null'})"><option value="realizado" ${st==='realizado'?'selected':''}>Concluído</option><option value="agendado" ${st==='agendado'?'selected':''}>Agendado</option><option value="a_agendar" ${pend?'selected':''}>Para agendar</option><option value="cancelado" ${st==='cancelado'?'selected':''}>Cancelado</option></select></div>${dataH}</div>
   ${rotL.length?`<div class="field"><label>Vincular a um lembrete</label><select id="eRot" onchange="window._rotEsc=true">${optRot(rotL,rotSel)}</select></div>`:''}
+  ${planoUI(e,tipo,st,!id)}
   ${st==='agendado'?F.hora.h:''}
   ${pend?'<div class="t-mut" style="margin:-4px 0 12px">Ainda precisa ser marcado. Não mexe nos lembretes; aparece em Hoje → Para agendar.</div>':''}
   ${linhas(pri.map(k=>F[k]))}
@@ -501,7 +600,10 @@ function editEv(id,preset,mais,keep){
   ${id?`<div style="display:flex;gap:8px;margin-top:8px">${e.confirmado?'':`<button class="btn" type="button" onclick="confirmar(${id});closeSheet()">Confirmar</button>`}<button class="btn btn-danger" type="button" onclick="delEv(${id},this)">Apagar</button></div>${e.pagina_origem?`<div class="t-mut" style="margin-top:10px">Veio de: ${esc(e.pagina_origem)}</div>`:''}`:''}`);}
 function evMais(){const d=$('#eMais');if(!d)return;const on=d.style.display==='none';d.style.display=on?'block':'none';$('#eMaisTx').textContent=on?'Menos detalhes':'Mais detalhes';$('#eMaisIc').className='ti ti-chevron-'+(on?'up':'down');}
 function evRow(){const o={cao_id:+val('eC'),tipo:val('eT'),status:val('eS')||'realizado',hora:val('eH')||null,data:val('eD')||null,proxima_data:val('eP')||null,titulo:val('eTi'),subtitulo:val('eSu')||null,produto:val('ePr')||null,lote:val('eL')||null,veterinario:val('eV')||null,clinica:val('eCl')||null,peso_kg:num('eK'),valor:num('eR'),observacao:val('eO')||null};
-  if($('#eRot'))o.rotina_id=val('eRot')?+val('eRot'):null;return o;}
+  if($('#eRot'))o.rotina_id=val('eRot')?+val('eRot'):null;
+  // plano: só entra no que vai ser gravado quando a linha "Usa o plano" está na tela
+  if($('#ePlOn')){const it=$('#ePlOn').checked?itemById(+val('ePl')):null;o.pacote_item_id=it?it.item_id:null;o.pacote_id=it?it.pacote_id:null;}
+  return o;}
 function evForm(){const t=$('#eTi'),sug=t?t.dataset.sug:'';const o=evRow();if(o.titulo===sug)o.titulo='';
   // campos que somem do formulário ao trocar tipo/situação continuam guardados
   const cur=window._evPrev||{};for(const k of ['hora','produto','lote','peso_kg','proxima_data'])if(!$('#'+{hora:'eH',produto:'ePr',lote:'eL',peso_kg:'eK',proxima_data:'eP'}[k])&&cur[k]!=null)o[k]=cur[k];return o;}
@@ -512,6 +614,7 @@ async function saveEv(id,btn){const row=evRow();const prev=window._evPrev||{};
   for(const [k,el] of Object.entries({hora:'eH',produto:'ePr',lote:'eL',peso_kg:'eK',proxima_data:'eP'}))if(!$('#'+el)){if(prev[k]!=null)row[k]=prev[k];else delete row[k];}
   if(row.status==='a_agendar'){row.hora=null;}
   if(!row.titulo||(!row.data&&row.status!=='a_agendar')){toast(row.titulo?'Informe a data':'Informe o título');return;}
+  const b0=id?(EV.find(x=>x.id===id)||{}):{};const plAntes=(b0.status==='realizado'&&b0.pacote_item_id)||null;
   const semRot=!!$('#eRot')&&!val('eRot')&&window._rotEsc===true;let novoId=id;
   let env=row;
   if(id){const d=soMudou('pet_eventos',id,row);if(!podeGravar(d.conf))return;
@@ -522,9 +625,11 @@ async function saveEv(id,btn){const row=evRow();const prev=window._evPrev||{};
     else{row.origem='manual';row.confirmado=true;row.criado_por=autor;const r=ok(await sb.from('pet_eventos').insert(row).select().single());EV.unshift(r.data);novoId=r.data.id;}
     EV.sort(porData);}))return;
   if(semRot&&novoId)semVinc(novoId);
-  window._evPrev=null;window._rotEsc=false;closeSheet();
+  window._evPrev=null;window._rotEsc=false;window._plOn=undefined;closeSheet();
   try{await syncRotina(EV.find(x=>x.id===novoId)||Object.assign({id:novoId},row));}catch(e){console.warn(e);}
-  render(atual);toast('Salvo');}
+  const ef=EV.find(x=>x.id===novoId)||{};
+  const s=planoAjustar(plAntes,(ef.status==='realizado'&&ef.pacote_item_id)||null);
+  render(atual);toast(s?'Salvo · '+saldoFrase(s):'Salvo');}
 // anda com o lembrete que o registro alimenta. Vínculo explícito (rotina_id) manda; sem ele, a heurística —
 // e se a heurística ficar ambígua, não chuta: deixa quieto e o app pede a escolha (precisaVinculo).
 async function syncRotina(ev){if(!ev.data||ev.status==='cancelado'||ev.status==='a_agendar')return;
@@ -538,9 +643,26 @@ async function confirmar(id){const e=EV.find(x=>x.id===id);if(!e||e.confirmado)r
   const r=await sb.from('pet_eventos').update({confirmado:true}).eq('id',id);if(r.error){e.confirmado=false;render(atual);toast(msgErro(r.error));return;}toast('Confirmado');}
 // agendado → aconteceu. Se a data marcada ainda é futura (ou não tem), registra como hoje.
 async function aconteceu(id){const e=EV.find(x=>x.id===id);if(!e||aconteceu._b)return;const hj=hojeISO(),d=(!e.data||e.data>hj)?hj:e.data;
-  if(!confirm(`Concluir "${titSub(e).t}" em ${dBR(d)}?`))return;aconteceu._b=1;
-  try{const r=ok(await sb.from('pet_eventos').update({status:'realizado',confirmado:true,data:d}).eq('id',id).select().single());Object.assign(e,r.data);EV.sort(porData);
-    try{await syncRotina(e);}catch(x){console.warn(x);}render(atual);toast('Concluído');}
+  // banho/tosa com plano: quando há mais de um item possível (as duas tosas), pergunta em vez de chutar
+  if(!e.pacote_item_id&&['banho','tosa'].includes(e.tipo)){const disp=planoItens(e.tipo,e.cao_id);
+    if(disp.length>1)return sheetPlanoQual(id,d,disp);}
+  return concluirEv(id,d);}
+function sheetPlanoQual(id,d,disp){const e=EV.find(x=>x.id===id);if(!e)return;
+  openSheet(`<h3>Usou o plano?</h3><div class="t-mut" style="margin:-8px 0 14px">${esc(titSub(e).t)} · ${esc(nomeCao(e.cao_id))} · ${dBR(d)}</div>
+  ${disp.map(x=>`<button class="btn" type="button" style="margin-bottom:8px" onclick="concluirEv(${id},'${d}',${x.item_id},1)">${esc(x.rotulo)} <span class="t-mut" style="margin-left:6px">${x.restam} de ${x.quantidade}</span></button>`).join('')}
+  <button class="btn" type="button" onclick="concluirEv(${id},'${d}',null,1)">Fora do plano</button>`);}
+// conclui um registro agendado. itemId: undefined = o app resolve sozinho · null = fora do plano · número = escolhido
+async function concluirEv(id,d,itemId,jaPerguntou){const e=EV.find(x=>x.id===id);if(!e||aconteceu._b)return;
+  if(itemId===undefined){const disp=e.pacote_item_id?[]:planoItens(e.tipo,e.cao_id);itemId=disp.length===1?disp[0].item_id:null;}
+  if(!jaPerguntou&&!confirm(`Concluir "${titSub(e).t}" em ${dBR(d)}?`))return;aconteceu._b=1;
+  const upd={status:'realizado',confirmado:true,data:d};
+  const it=itemId?itemById(itemId):null;
+  if(it&&!e.pacote_item_id){upd.pacote_id=it.pacote_id;upd.pacote_item_id=it.item_id;}
+  try{const r=ok(await sb.from('pet_eventos').update(upd).eq('id',id).select().single());Object.assign(e,r.data);EV.sort(porData);
+    try{await syncRotina(e);}catch(x){console.warn(x);}
+    const s=e.pacote_item_id?planoConsumir(e.pacote_item_id,1):null;
+    if(jaPerguntou)closeSheet();
+    render(atual);toast(s?'Concluído · '+saldoFrase(s):'Concluído');}
   catch(err){toast(msgErro(err));}finally{aconteceu._b=0;}}
 function sheetMarquei(id){const e=EV.find(x=>x.id===id);if(!e)return;const ts=titSub(e);
   openSheet(`<h3>Agendar</h3><div class="t-mut" style="margin:-8px 0 14px">${esc(ts.t)}${ts.s?' · '+esc(ts.s):''} — ${esc(nomeCao(e.cao_id))}</div>
@@ -590,7 +712,8 @@ function sheetAdicionar(){NOVO=null;
   <div class="falar" role="button" tabindex="0" style="margin:0" onclick="sheetFalar()"><i class="ti ti-microphone" aria-hidden="true"></i><div>Falar ou escrever<span>“dei Bravecto na Stout hoje, 95 reais” · “banho dos dois ontem”</span></div></div>
   <div class="sec" style="margin:20px 2px 10px">Ou escolha o que aconteceu</div>
   <div class="tgrid">${ADD_TIPOS.map(t=>{const T=TIPOS[t]||TIPOS.outro;return`<button class="tbtn" type="button" onclick="addTipo('${t}')"><i class="ti ${T.ic}" style="background:${T.bg};color:${T.c}" aria-hidden="true"></i>${esc(ADD_LBL[t])}</button>`;}).join('')}</div>`);}
-function addTipo(t){NOVO={tipo:t,cao_id:cao,data:hojeISO(),status:'realizado',mais:false,fam:'',ex:'',titulo:'',produto:'',prodOutro:false,lote:'',veterinario:'',clinica:'',clinOutro:false,valor:'',observacao:'',peso:'',dose:'',hora:''};addForm();}
+function addTipo(t){NOVO={tipo:t,cao_id:cao,data:hojeISO(),status:'realizado',mais:false,fam:'',ex:'',titulo:'',produto:'',prodOutro:false,lote:'',veterinario:'',clinica:'',clinOutro:false,valor:'',observacao:'',peso:'',dose:'',hora:'',plano:true,planoItem:null};addForm();}
+function addPlanoTgl(v){if(!NOVO)return;addColeta();NOVO.plano=!!v;addForm();}
 // guarda o que ja esta digitado antes de redesenhar a folha
 function addColeta(){if(!NOVO)return;const m={aD:'data',aH:'hora',aTi:'titulo',aPr:'produto',aL:'lote',aV:'veterinario',aCl:'clinica',aR:'valor',aO:'observacao',aK:'peso',aDo:'dose'};
   for(const id in m){const el=$('#'+id);if(el)NOVO[m[id]]=el.value;}}
@@ -665,6 +788,13 @@ function addForm(){const n=NOVO;if(!n)return;ADD_OPS={};const T=TIPOS[n.tipo]||T
     clinica:()=>`<div class="field"><label>Clínica</label><input id="aCl" value="${esc(n.clinica)}"></div>`,
     valor:()=>`<div class="field"><label>Valor (R$)</label><input type="text" inputmode="decimal" autocomplete="off" id="aR" value="${esc(n.valor)}"></div>`,
     obs:()=>`<div class="field"><label>Observação</label><textarea id="aO" rows="3">${esc(n.observacao)}</textarea></div>`};
+  // plano de banho e tosa: linha discreta, ligada por padrão. Sem saldo, não aparece.
+  if(['banho','tosa'].includes(n.tipo)&&n.status==='realizado'){const disp=planoItens(n.tipo,n.cao_id);
+    if(disp.length){const it=disp.find(x=>x.item_id===n.planoItem)||disp[0],pc=pacById(it.pacote_id)||{};
+      h+=`<label class="plinha"><input type="checkbox" ${n.plano!==false?'checked':''} onchange="addPlanoTgl(this.checked)">Usa o plano${pc.nome?` <span>· ${esc(pc.nome)}</span>`:''}</label>`;
+      h+=n.plano===false?'':(disp.length>1
+        ?`<div class="field"><label>Qual?</label>${addChipsV('planoItem',disp.map(x=>({v:x.item_id,n:x.rotulo})),it.item_id)}</div>`
+        :`<div class="t-mut" style="margin:-4px 2px 12px">${saldoFrase(it)}</div>`);}}
   const ex=(ADD_MAIS[n.tipo]||[]).filter(k=>F[k]);
   h+=`<div class="mais" role="button" tabindex="0" onclick="addMais()"><i class="ti ti-chevron-${n.mais?'up':'down'}" aria-hidden="true"></i><span>${n.mais?'Menos detalhes':'Mais detalhes'}</span></div>
   <div id="aMais" style="display:${n.mais?'block':'none'}">${ex.map(k=>F[k]()).join('')}<div class="anexo" role="button" tabindex="0" onclick="addSalvar(null,undefined,1)"><i class="ti ti-paperclip" aria-hidden="true"></i> Salvar e anexar documento</div></div>
@@ -690,11 +820,18 @@ async function addSalvar(btn,rotId,anexar){if(!NOVO)return;addColeta();
     rid=cs.length===1?cs[0].id:null;}
   const ids=row.cao_id==null?CAES.map(c=>c.id):[row.cao_id];
   const rows=ids.map(id=>Object.assign({},row,{cao_id:id,rotina_id:rid,origem:'manual',confirmado:true,criado_por:autor}));
+  // plano: desconta 1 por registro, até onde o saldo alcança (banho dos dois tira 2)
+  let itPl=null;
+  if(['banho','tosa'].includes(n.tipo)&&row.status==='realizado'&&n.plano!==false){
+    const disp=planoItens(n.tipo,row.cao_id);const it=disp.find(x=>x.item_id===n.planoItem)||disp[0];
+    if(it){itPl=it;let resta=it.restam;rows.forEach(r=>{if(resta>0){r.pacote_id=it.pacote_id;r.pacote_item_id=it.item_id;resta--;}});}}
   let novos=[];
   if(!await comBotao(btn,async()=>{const r=ok(await sb.from('pet_eventos').insert(rows).select());novos=[].concat(r.data||[]);EV=novos.concat(EV);EV.sort(porData);}))return;
   const tipo=n.tipo;NOVO=null;closeSheet();
   for(const e of novos){try{await syncRotina(e);}catch(x){console.warn(x);}}
-  render(atual);toast('Salvo');
+  const usou=novos.filter(e=>e.pacote_item_id).length;
+  const s=(itPl&&usou)?planoConsumir(itPl.item_id,usou):null;
+  render(atual);toast(s?'Salvo · '+saldoFrase(s):'Salvo');
   if(novos.length===1&&(anexar||tipo==='exame')){if(anexar)anexarEv(novos[0].id);else addOferecerAnexo(novos[0].id);}}
 
 // --- rotina ---
@@ -737,15 +874,30 @@ function sheetFeito(id){const r=ROT.find(x=>x.id===id);if(!r)return;
   <div class="row2"><div class="field"><label>Produto</label><input id="fP" value="${esc(r.produto)}"></div><div class="field"><label>Lote</label><input id="fL"></div></div>
   ${['vacina','consulta','exame'].includes(r.tipo)?`<div class="row2"><div class="field"><label>Veterinário</label><input id="fV"></div><div class="field"><label>Peso (kg)</label><input type="text" inputmode="decimal" autocomplete="off" id="fK"></div></div>`:''}
   <div class="field"><label>Observação</label><input id="fO"></div>
+  ${feitoPlanoUI(r)}
   <div class="t-mut" style="margin-bottom:12px">Próxima ficará em <b id="fProx">${dBR(addDays(hojeISO(),r.intervalo_dias))}</b> (a cada ${r.intervalo_dias} dias).</div>
   <button class="btn btn-p" type="button" onclick="saveFeito(${id},this)">Salvar</button>`);}
+// linha do plano dentro de "Concluir" um lembrete de banho/tosa
+function feitoPlanoUI(r){if(!['banho','tosa'].includes(r.tipo))return'';
+  const disp=planoItens(r.tipo,r.cao_id);if(!disp.length)return'';
+  const pc=pacById(disp[0].pacote_id)||{};
+  return`<label class="plinha"><input type="checkbox" id="fPlOn" checked onchange="feitoPlanoTgl()">Usa o plano${pc.nome?` <span>· ${esc(pc.nome)}</span>`:''}</label>
+  <div id="fPlBox" style="margin:-4px 0 12px">${disp.length>1
+    ?`<div class="field"><label>Qual?</label><select id="fPl">${disp.map(x=>`<option value="${x.item_id}">${esc(x.rotulo)} — ${x.restam} de ${x.quantidade}</option>`).join('')}</select></div>`
+    :`<div class="t-mut">${saldoFrase(disp[0])}</div><select id="fPl" hidden><option value="${disp[0].item_id}" selected></option></select>`}</div>`;}
+function feitoPlanoTgl(){const b=$('#fPlBox'),c=$('#fPlOn');if(b&&c)b.style.display=c.checked?'block':'none';}
 function feitoProx(n){const d=val('fD'),b=$('#fProx');if(b&&d)b.textContent=dBR(addDays(d,n));}
 async function saveFeito(id,btn){const r=ROT.find(x=>x.id===id);if(!r)return;const d=val('fD')||hojeISO();if(d>hojeISO()){toast('Data no futuro: use Novo registro → Agendado');return;}const ids=r.cao_id?[r.cao_id]:[...document.querySelectorAll('.fC:checked')].map(x=>+x.value);if(!ids.length){toast('Escolha o cão');return;}
   const prox=addDays(d,r.intervalo_dias);const rows=ids.map(c=>({cao_id:c,tipo:r.tipo==='higiene'?'outro':r.tipo,rotina_id:r.id,data:d,titulo:r.titulo,produto:val('fP')||null,lote:val('fL')||null,veterinario:val('fV')||null,peso_kg:num('fK'),valor:num('fR'),proxima_data:prox,observacao:val('fO')||null,origem:'manual',confirmado:true,criado_por:autor}));
-  let andou=false;
-  if(!await comBotao(btn,async()=>{const ins=ok(await sb.from('pet_eventos').insert(rows).select());EV=ins.data.concat(EV);EV.sort(porData);
+  // plano: desconta 1 por cão marcado, até onde o saldo alcança
+  let itPl=null;
+  if($('#fPlOn')&&$('#fPlOn').checked){const it=itemById(+val('fPl'));
+    if(it&&it.restam>0){itPl=it;let resta=it.restam;rows.forEach(x=>{if(resta>0){x.pacote_id=it.pacote_id;x.pacote_item_id=it.item_id;resta--;}});}}
+  let andou=false,usou=0;
+  if(!await comBotao(btn,async()=>{const ins=ok(await sb.from('pet_eventos').insert(rows).select());EV=ins.data.concat(EV);EV.sort(porData);usou=ins.data.filter(x=>x.pacote_item_id).length;
     if(!(r.ultima_data&&r.ultima_data>d)){const upd={ultima_data:d,proxima_data:prox};ok(await sb.from('pet_rotinas').update(upd).eq('id',id));Object.assign(r,upd);andou=true;}}))return;
-  closeSheet();render(atual);toast(andou?'Concluído · próxima '+dBR(prox):'Concluído');}
+  const s=(itPl&&usou)?planoConsumir(itPl.item_id,usou):null;
+  closeSheet();render(atual);toast(s?'Concluído · '+saldoFrase(s):(andou?'Concluído · próxima '+dBR(prox):'Concluído'));}
 
 // --- produto ---
 function sheetProd(id,preset){const b0=id?PROD.find(x=>x.id===id):{cao_id:cao,categoria:'racao',em_uso:true};if(!b0)return;const p=Object.assign({},b0,preset||{});
@@ -767,6 +919,73 @@ async function saveProd(id,btn){const n=val('pN');if(!n){toast('Informe o nome')
   if(!await comBotao(btn,async()=>{if(id){const r=ok(await sb.from('pet_produtos').update(env).eq('id',id).select().single());const x=PROD.find(x=>x.id===id);if(x)Object.assign(x,r.data);}else{const r=ok(await sb.from('pet_produtos').insert(row).select().single());PROD.push(r.data);}}))return;
   closeSheet();render(atual);toast('Salvo');}
 async function delProd(id,btn){if(!confirm('Apagar este produto?'))return;if(!await comBotao(btn,async()=>{ok(await sb.from('pet_produtos').delete().eq('id',id));},'Apagando…'))return;PROD=PROD.filter(x=>x.id!==id);closeSheet();render(atual);toast('Apagado');}
+
+// --- plano (criar/editar) ---
+// "Conta como" liga o item ao tipo do registro: é o que faz o desconto automático acontecer.
+const PAC_TIPOS=['banho','tosa','higiene','consulta','exame','vacina','outro'];
+let PAC=null;
+function editPacote(id){const p=id?pacById(id):null;
+  PAC={id:p?p.id:null,nome:p?p.nome:'',fornecedor:p?(p.fornecedor||''):'',cao_id:p?p.cao_id:null,
+    valor:p&&p.valor!=null?String(p.valor):'',parcelas:p&&p.parcelas?String(p.parcelas):'1',
+    comprado_em:p?p.comprado_em:hojeISO(),validade:p?(p.validade||''):'',ativo:p?p.ativo!==false:true,observacao:p?(p.observacao||''):'',
+    itens:p?itensPac(p.id).map(i=>({id:i.item_id,tipo:i.tipo,rotulo:i.rotulo,quantidade:String(i.quantidade),usados:i.usados}))
+          :[{id:null,tipo:'banho',rotulo:'Banhos',quantidade:'',usados:0}],remover:[]};
+  if(!PAC.itens.length)PAC.itens=[{id:null,tipo:'banho',rotulo:'',quantidade:'',usados:0}];
+  pacForm();}
+function pacColeta(){if(!PAC)return;const m={kN:'nome',kF:'fornecedor',kV:'valor',kX:'parcelas',kC:'comprado_em',kVa:'validade',kO:'observacao'};
+  for(const id in m){const el=$('#'+id);if(el)PAC[m[id]]=el.value;}
+  const d=$('#kD');if(d)PAC.cao_id=d.value===''?null:+d.value;
+  const a=$('#kA');if(a)PAC.ativo=a.checked;
+  PAC.itens.forEach((it,i)=>{const r=$('#kR'+i),q=$('#kQ'+i),t=$('#kT'+i);if(r)it.rotulo=r.value;if(q)it.quantidade=q.value;if(t)it.tipo=t.value;});}
+function pacAddItem(){if(!PAC)return;pacColeta();PAC.itens.push({id:null,tipo:'banho',rotulo:'',quantidade:'',usados:0});pacForm();}
+function pacTiraItem(i){if(!PAC)return;pacColeta();const it=PAC.itens[i];if(!it)return;
+  if(it.usados>0&&!confirm(`"${it.rotulo}" já tem ${it.usados} uso${it.usados>1?'s':''} registrado${it.usados>1?'s':''}. Tirar do plano?`))return;
+  if(it.id)PAC.remover.push(it.id);PAC.itens.splice(i,1);
+  if(!PAC.itens.length)PAC.itens.push({id:null,tipo:'banho',rotulo:'',quantidade:'',usados:0});pacForm();}
+function pacForm(){const P=PAC;if(!P)return;const opc=' <span style="color:var(--ink3);font-weight:400">(opcional)</span>';
+  openSheet(`<h3>${P.id?'Editar plano':'Novo plano'}</h3>
+  <div class="field"><label>Nome</label><input id="kN" value="${esc(P.nome)}" placeholder="Ex.: Plano trimestral de banho e tosa"></div>
+  <div class="row2"><div class="field"><label>Onde comprou</label><input id="kF" value="${esc(P.fornecedor)}" placeholder="Ex.: Pet Dreams"></div><div class="field"><label>Vale para</label>${selCao('kD',P.cao_id,true)}</div></div>
+  <div class="row2"><div class="field"><label>Valor (R$)</label><input type="text" inputmode="decimal" autocomplete="off" id="kV" value="${esc(P.valor)}"></div><div class="field"><label>Parcelas</label><input type="number" inputmode="numeric" id="kX" value="${esc(P.parcelas)}"></div></div>
+  <div class="row2"><div class="field"><label>Data da compra</label><input type="date" id="kC" value="${esc(P.comprado_em)}"></div><div class="field"><label>Vale até${opc}</label><input type="date" id="kVa" value="${esc(P.validade)}"></div></div>
+  <div class="sec" style="margin:20px 2px 9px">Itens do plano <span role="button" tabindex="0" onclick="pacAddItem()">+ item</span></div>
+  <div class="t-mut" style="margin:-4px 2px 10px">"Conta como" é o que faz o desconto sozinho: um registro de banho tira 1 do item que conta como banho.</div>
+  ${P.itens.map((it,i)=>`<div style="border:1px solid var(--line);border-radius:13px;padding:12px 12px 4px;margin-bottom:9px">
+    <div class="field"><label>O que é</label><input id="kR${i}" value="${esc(it.rotulo)}" placeholder="Ex.: Banhos"></div>
+    <div class="row2"><div class="field"><label>Quantos</label><input type="number" inputmode="numeric" id="kQ${i}" value="${esc(it.quantidade)}"></div>
+      <div class="field"><label>Conta como</label><select id="kT${i}">${PAC_TIPOS.map(t=>`<option value="${t}" ${it.tipo===t?'selected':''}>${TIPOS[t].n}</option>`).join('')}</select></div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:-6px 0 4px">${it.usados?`<span class="t-mut">${it.usados} já usado${it.usados>1?'s':''}</span>`:'<span></span>'}<button class="lnk" type="button" style="color:var(--rosa)" onclick="pacTiraItem(${i})">tirar</button></div></div>`).join('')}
+  <div class="field"><label>Observação${opc}</label><textarea id="kO" rows="2" placeholder="Ex.: cada banho inclui escovação">${esc(P.observacao)}</textarea></div>
+  <div class="field"><label><input type="checkbox" id="kA" ${P.ativo?'checked':''} style="width:auto;margin-right:8px">Plano em uso</label></div>
+  <button class="btn btn-p" type="button" onclick="pacSalvar(this)">Salvar</button>
+  ${P.id?`<button class="btn btn-danger" type="button" style="margin-top:8px" onclick="pacApagar(this)">Apagar plano</button>`:''}`);}
+async function loadPacotes(){const [a,b]=await Promise.all([sb.from('pet_pacotes').select('*').order('id'),sb.from('pet_pacote_saldo').select('*').order('ordem')]);
+  for(const x of [a,b])if(x.error)throw x.error;PACOTES=a.data;SALDO=b.data;}
+async function pacSalvar(btn){if(!PAC)return;pacColeta();const P=PAC;
+  if(!String(P.nome).trim()){toast('Informe o nome do plano');return;}
+  const itens=P.itens.filter(i=>String(i.rotulo).trim()&&Math.round(addDec(i.quantidade)||0)>0);
+  if(!itens.length){toast('Informe ao menos um item do plano (o que é e quantos)');return;}
+  const row={nome:String(P.nome).trim(),fornecedor:String(P.fornecedor).trim()||null,cao_id:P.cao_id,
+    valor:addDec(P.valor),parcelas:Math.max(1,Math.round(addDec(P.parcelas)||1)),
+    comprado_em:P.comprado_em||hojeISO(),validade:P.validade||null,ativo:P.ativo!==false,observacao:String(P.observacao).trim()||null};
+  if(!await comBotao(btn,async()=>{
+    let pid=P.id;
+    if(pid)ok(await sb.from('pet_pacotes').update(row).eq('id',pid));
+    else pid=ok(await sb.from('pet_pacotes').insert(row).select().single()).data.id;
+    if(P.remover.length)ok(await sb.from('pet_pacote_itens').delete().in('id',P.remover));
+    const novos=[];
+    for(let i=0;i<itens.length;i++){const it=itens[i];
+      const o={pacote_id:pid,tipo:PAC_TIPOS.indexOf(it.tipo)>=0?it.tipo:'outro',rotulo:String(it.rotulo).trim(),quantidade:Math.round(addDec(it.quantidade)),ordem:i+1};
+      if(it.id)ok(await sb.from('pet_pacote_itens').update(o).eq('id',it.id));else novos.push(o);}
+    if(novos.length)ok(await sb.from('pet_pacote_itens').insert(novos));
+    await loadPacotes();}))return;
+  PAC=null;closeSheet();render(atual);toast('Plano salvo');}
+async function pacApagar(btn){if(!PAC||!PAC.id)return;const usos=EV.filter(e=>e.pacote_id===PAC.id).length;
+  if(!confirm(usos?`Apagar este plano? Os ${usos} registros continuam, só deixam de aparecer como usados do plano.`:'Apagar este plano?'))return;
+  const id=PAC.id;
+  if(!await comBotao(btn,async()=>{ok(await sb.from('pet_pacotes').delete().eq('id',id));await loadPacotes();},'Apagando…'))return;
+  EV.forEach(e=>{if(e.pacote_id===id){e.pacote_id=null;e.pacote_item_id=null;}});
+  PAC=null;closeSheet();render(atual);toast('Plano apagado');}
 
 // --- cão ---
 function editCao(id){const c=CAES.find(x=>x.id===id);if(!c)return;abriuFolha('pet_caes',id,c);openSheet(`<h3>${esc(c.nome)}</h3>
@@ -925,7 +1144,7 @@ async function boot(){
   if(!CANAL){try{CANAL=sb.channel('pets').on('postgres_changes',{event:'*',schema:'public'},scheduleReload).subscribe();}catch(e){}}
 }
 sb.auth.onAuthStateChange((ev,sess)=>{if(ev==='SIGNED_IN'&&sess){setTimeout(boot,0);}
-  if(ev==='SIGNED_OUT'){BOOTED=null;CAES=[];EV=[];ROT=[];PROD=[];DOCS=[];CONT=[];closeSheet();lgVoltar();$('#lgCode').value='';$('#login').classList.add('on');$('#view').innerHTML='';}});
+  if(ev==='SIGNED_OUT'){BOOTED=null;CAES=[];EV=[];ROT=[];PROD=[];DOCS=[];CONT=[];PACOTES=[];SALDO=[];closeSheet();lgVoltar();$('#lgCode').value='';$('#login').classList.add('on');$('#view').innerHTML='';}});
 // --- login por código ---
 let lgEmail='';
 function msgLogin(e,codigo){const m=String((e&&e.message)||e||'');
@@ -1011,25 +1230,41 @@ const temCao=v=>!!v&&String(v).toLowerCase()!=='null'&&String(v).toLowerCase()!=
 // só aceita lembrete que existe, está ativo e é do cão certo — a IA nunca inventa id
 function rotValida(v,caoId){const r=rotById(+v);return r&&r.ativo&&(r.cao_id==null||caoId==null||r.cao_id===caoId)?r.id:null;}
 function entradaEv(e){e=e||{};const pend=e.status==='a_agendar';const d=e.data||(pend?null:hojeISO());
-  return{cao_id:caoIdPorNome(e.cao),rotina_id:e.rotina_id!=null?rotValida(e.rotina_id,caoIdPorNome(e.cao)):null,tipo:TIPOS[e.tipo]?e.tipo:'outro',status:pend?'a_agendar':(e.status==='agendado'||d>hojeISO())?'agendado':(e.status==='cancelado'?'cancelado':'realizado'),hora:pend?null:(e.hora||null),data:d,titulo:e.titulo||titSug(TIPOS[e.tipo]?e.tipo:'outro'),subtitulo:e.subtitulo||null,produto:e.produto||null,lote:e.lote||null,dose:e.dose||null,veterinario:e.veterinario||null,clinica:e.clinica||null,peso_kg:e.peso_kg??null,valor:e.valor??null,proxima_data:e.proxima_data||null,observacao:e.observacao||null};}
+  const cid=caoIdPorNome(e.cao),tp=TIPOS[e.tipo]?e.tipo:'outro';
+  const st=pend?'a_agendar':(e.status==='agendado'||d>hojeISO())?'agendado':(e.status==='cancelado'?'cancelado':'realizado');
+  // plano: só id de item que existe e tem saldo; se a IA não disse e é banho/tosa concluído com um
+  // único item possível, o app liga sozinho (mesma regra do formulário)
+  // null explícito = a IA decidiu que foi fora do plano (banho avulso); campo ausente = o app resolve
+  let it=e.pacote_item_id!=null?itemValido(e.pacote_item_id,cid):null;
+  if(!it&&e.pacote_item_id===undefined&&st==='realizado'&&['banho','tosa'].includes(tp)){const l=planoItens(tp,cid);if(l.length===1)it=l[0];}
+  return{cao_id:cid,rotina_id:e.rotina_id!=null?rotValida(e.rotina_id,cid):null,tipo:tp,status:st,hora:pend?null:(e.hora||null),data:d,titulo:e.titulo||titSug(tp),subtitulo:e.subtitulo||null,produto:e.produto||null,lote:e.lote||null,dose:e.dose||null,veterinario:e.veterinario||null,clinica:e.clinica||null,peso_kg:e.peso_kg??null,valor:e.valor??null,proxima_data:e.proxima_data||null,observacao:e.observacao||null,pacote_id:it?it.pacote_id:null,pacote_item_id:it?it.item_id:null};}
 function rotRow(r){r=r||{};const t=TIPOS_ROT.indexOf(r.tipo)>=0?r.tipo:'outro',i=+r.intervalo_dias||365;
   return{cao_id:temCao(r.cao)?caoIdPorNome(r.cao):null,tipo:t,titulo:r.titulo||titSug(t),produto:r.produto||null,intervalo_dias:i,ultima_data:r.ultima_data||null,proxima_data:r.proxima_data||(r.ultima_data?addDays(r.ultima_data,i):null),ativo:true,observacao:r.observacao||null};}
 function prodRowIA(p){p=p||{};
   return{cao_id:temCao(p.cao)?caoIdPorNome(p.cao):null,categoria:CATP[p.categoria]?p.categoria:'outro',nome:p.nome||'Produto',marca:p.marca||null,apresentacao:p.apresentacao||null,dose:p.dose||null,frequencia:p.frequencia||null,valor:p.valor??null,em_uso:true,observacao:p.observacao||'Cadastrado por voz/texto'};}
-const K_EV=['cao_id','tipo','status','data','hora','titulo','subtitulo','produto','lote','dose','veterinario','clinica','peso_kg','valor','proxima_data','observacao','rotina_id'];
+const K_EV=['cao_id','tipo','status','data','hora','titulo','subtitulo','produto','lote','dose','veterinario','clinica','peso_kg','valor','proxima_data','observacao','rotina_id','pacote_id','pacote_item_id'];
 const K_ROT=['cao_id','tipo','titulo','produto','intervalo_dias','ultima_data','proxima_data','ativo','observacao'];
 const K_PROD=['cao_id','categoria','nome','marca','apresentacao','dose','frequencia','em_uso','valor','onde_compra','observacao'];
 function soCampos(c,keys){const o={};if(!c)return o;for(const k of keys)if(c[k]!==undefined)o[k]=c[k];
   if(o.cao_id===undefined&&c.cao!==undefined&&keys.indexOf('cao_id')>=0)o.cao_id=temCao(c.cao)?caoIdPorNome(c.cao):null;return o;}
 function camposEv(c){const o=soCampos(c,K_EV);if(o.tipo&&!TIPOS[o.tipo])delete o.tipo;if(o.status&&['realizado','agendado','a_agendar','cancelado'].indexOf(o.status)<0)delete o.status;if(o.hora==='')o.hora=null;if(o.proxima_data==='')o.proxima_data=null;
   if(o.rotina_id!==undefined){const v=o.rotina_id==null||o.rotina_id===''?null:rotValida(o.rotina_id,o.cao_id==null?null:o.cao_id);if(v==null&&o.rotina_id!=null&&o.rotina_id!=='')delete o.rotina_id;else o.rotina_id=v;}
+  // item do plano: só id real e com saldo; id inventado é descartado (não mexe no que já está gravado)
+  if(o.pacote_item_id!==undefined){
+    const it=o.pacote_item_id==null||o.pacote_item_id===''?null:itemValido(o.pacote_item_id,o.cao_id!=null?o.cao_id:null);
+    if(it){o.pacote_item_id=it.item_id;o.pacote_id=it.pacote_id;}
+    else if(o.pacote_item_id==null||o.pacote_item_id===''){o.pacote_item_id=null;o.pacote_id=null;}
+    else{delete o.pacote_item_id;delete o.pacote_id;}}
+  else if(o.pacote_id!==undefined)delete o.pacote_id;
   return o;}
 function camposRot(c){const o=soCampos(c,K_ROT);if(o.tipo&&TIPOS_ROT.indexOf(o.tipo)<0)delete o.tipo;if(o.intervalo_dias)o.intervalo_dias=+o.intervalo_dias;return o;}
 function camposProd(c){const o=soCampos(c,K_PROD);if(o.categoria&&!CATP[o.categoria])delete o.categoria;return o;}
-const LBL={cao_id:'cão',tipo:'tipo',status:'situação',data:'data',hora:'hora',titulo:'título',subtitulo:'detalhe',produto:'produto',lote:'lote',dose:'dose',veterinario:'veterinário',clinica:'clínica',peso_kg:'peso',valor:'valor',proxima_data:'próxima',observacao:'observação',rotina_id:'lembrete',intervalo_dias:'a cada',ultima_data:'última',ativo:'ativo',nome:'nome',marca:'marca',categoria:'categoria',frequencia:'frequência',apresentacao:'apresentação',em_uso:'em uso'};
+const LBL={pacote_id:'plano',pacote_item_id:'item do plano',cao_id:'cão',tipo:'tipo',status:'situação',data:'data',hora:'hora',titulo:'título',subtitulo:'detalhe',produto:'produto',lote:'lote',dose:'dose',veterinario:'veterinário',clinica:'clínica',peso_kg:'peso',valor:'valor',proxima_data:'próxima',observacao:'observação',rotina_id:'lembrete',intervalo_dias:'a cada',ultima_data:'última',ativo:'ativo',nome:'nome',marca:'marca',categoria:'categoria',frequencia:'frequência',apresentacao:'apresentação',em_uso:'em uso'};
 function descCampos(c){return Object.keys(c||{}).map(k=>{let v=c[k];
   if(k==='cao_id')v=nomeCao(v);
   else if(k==='rotina_id')v=v==null?'nenhum':((rotById(v)||{}).titulo||v);
+  else if(k==='pacote_id')v=v==null?'fora do plano':((pacById(v)||{}).nome||v);
+  else if(k==='pacote_item_id')v=v==null?'fora do plano':((itemById(v)||{}).rotulo||v);
   else if(v===null||v==='')v='em branco';
   else if(v===true||v===false)v=v?'sim':'não';
   else if(k==='status')v={realizado:'concluído',agendado:'agendado',a_agendar:'para agendar',cancelado:'cancelado'}[v]||v;
@@ -1042,7 +1277,7 @@ function descCampos(c){return Object.keys(c||{}).map(k=>{let v=c[k];
 function acaoLinha(a,i){let ic='ti-pencil',cor='var(--ink2)',pre='',et='',es='';
   if(a.tipo==='evento_novo'){const e=entradaEv(a.evento);const T=TIPOS[e.tipo]||TIPOS.outro;ic=T.ic;cor=T.c;pre='Novo';
     et=esc(e.titulo)+` <span class="tag b">${esc(nomeCao(e.cao_id))}</span>`+(e.subtitulo?`<div class="es">${esc(e.subtitulo)}</div>`:'');
-    es=`${e.status==='agendado'?'agendado · ':''}${e.status==='a_agendar'?'para agendar'+(e.data?' · até ':''):''}${dBR(e.data)}${e.hora?' '+hBR(e.hora):''}${e.produto?' · '+esc(e.produto):''}${e.valor?' · '+money(e.valor):''}${e.peso_kg?' · '+e.peso_kg+' kg':''}${e.proxima_data?' · próxima '+dBR(e.proxima_data):''}${e.rotina_id?' · '+esc((rotById(e.rotina_id)||{}).titulo||''):''}`;}
+    es=`${e.status==='agendado'?'agendado · ':''}${e.status==='a_agendar'?'para agendar'+(e.data?' · até ':''):''}${dBR(e.data)}${e.hora?' '+hBR(e.hora):''}${e.produto?' · '+esc(e.produto):''}${e.valor?' · '+money(e.valor):''}${e.peso_kg?' · '+e.peso_kg+' kg':''}${e.proxima_data?' · próxima '+dBR(e.proxima_data):''}${e.rotina_id?' · '+esc((rotById(e.rotina_id)||{}).titulo||''):''}${e.pacote_item_id?' · '+esc((itemById(e.pacote_item_id)||{}).rotulo||'')+' do plano':''}`;}
   else if(a.tipo==='evento_atualizar'){const o=EV.find(x=>x.id===a.id)||{};const T=TIPOS[o.tipo]||TIPOS.outro;ic=T.ic;cor=T.c;pre='Atualizar';
     et=esc(o.titulo?titSub(o).t:'registro')+(o.data?` <span class="tag b">${dBR(o.data)}</span>`:'');
     es=descCampos(camposEv(a.campos));}
@@ -1106,12 +1341,17 @@ async function aplicarAcao(a){
   if(a.tipo==='evento_novo'){
     const row=Object.assign(entradaEv(a.evento),{origem:'ia',confirmado:true,criado_por:autor+' (voz/texto)'});
     const r=await sb.from('pet_eventos').insert(row).select().single();if(r.error)throw r.error;
-    EV.unshift(r.data);await syncRotina(r.data);return;}
+    EV.unshift(r.data);await syncRotina(r.data);
+    if(r.data.status==='realizado'&&r.data.pacote_item_id)aplicarAcao._plano=planoConsumir(r.data.pacote_item_id,1);
+    return;}
   if(a.tipo==='evento_atualizar'){
     const c=camposEv(a.campos);if(!Object.keys(c).length)return;
+    const x0=EV.find(e=>e.id===a.id)||{};const antes=(x0.status==='realizado'&&x0.pacote_item_id)||null;
     const r=await sb.from('pet_eventos').update(c).eq('id',a.id).select().single();if(r.error)throw r.error;
     const x=EV.find(e=>e.id===a.id);if(x)Object.assign(x,r.data);else EV.unshift(r.data);
-    await syncRotina(r.data);return;}
+    await syncRotina(r.data);
+    const s=planoAjustar(antes,(r.data.status==='realizado'&&r.data.pacote_item_id)||null);if(s)aplicarAcao._plano=s;
+    return;}
   if(a.tipo==='rotina_nova'){
     const r=await sb.from('pet_rotinas').insert(Object.assign(rotRow(a.rotina),{ordem:50})).select().single();if(r.error)throw r.error;
     ROT.push(r.data);return;}
@@ -1131,14 +1371,14 @@ async function marcarEntradaAplicada(){const id=ENTRADA&&ENTRADA.entradaId;if(!i
   try{await sb.from('pet_entradas').update({aplicado:true}).eq('id',id);}catch(_){}}
 // salva item por item; o que falhar FICA na folha com "Tentar de novo" — a folha só fecha quando tudo gravou
 async function salvarEntrada(){const acoes=((ENTRADA&&ENTRADA.acoes)||[]).slice();if(!acoes.length||salvarEntrada._b)return;
-  salvarEntrada._b=1;const b=$('#btEnt');if(b){b.disabled=true;b.textContent='Salvando…';}
+  salvarEntrada._b=1;aplicarAcao._plano=null;const b=$('#btEnt');if(b){b.disabled=true;b.textContent='Salvando…';}
   const falhas=[];let n=0;
   for(const a of acoes){try{await aplicarAcao(a);n++;}catch(err){console.warn(err);falhas.push({a,m:erroSimples(err,'Não consegui salvar')});}}
   salvarEntrada._b=0;EV.sort(porData);
   if(n)await marcarEntradaAplicada();
   ENTRADA.acoes=falhas.map(x=>x.a);
   render(atual);
-  if(!falhas.length){closeSheet();toast(n===1?'Salvo':n+' itens salvos');return;}
+  if(!falhas.length){closeSheet();const sp=aplicarAcao._plano;toast((n===1?'Salvo':n+' itens salvos')+(sp?' · '+saldoFrase(sp):''));return;}
   openSheet(`<h3>${n?'Salvei '+n+' de '+acoes.length:'Não consegui salvar'}</h3>
     <div class="t-mut" style="margin:-8px 0 12px">${falhas.length===1?'Este item não gravou:':'Estes itens não gravaram:'}</div>
     ${falhas.map((x,i)=>acaoLinha(x.a,i)+`<div class="t-mut" style="margin:-6px 2px 10px;color:var(--rosa)">${esc(x.m)}</div>`).join('')}
