@@ -287,7 +287,7 @@ const optRot=(l,sel)=>`<option value="" ${sel==null?'selected':''}>Nenhum</optio
 // registros recentes em que há mais de um lembrete possível: o app não chuta, pede a escolha
 let SEM_VINC=[];try{SEM_VINC=JSON.parse(localStorage.getItem('fof_semvinc')||'[]');}catch(_){}
 function semVinc(id){if(SEM_VINC.indexOf(id)<0){SEM_VINC.push(id);try{localStorage.setItem('fof_semvinc',JSON.stringify(SEM_VINC.slice(-300)));}catch(_){}}}
-function precisaVinculo(e){return e&&e.rotina_id==null&&e.data&&['realizado','agendado'].includes(e.status)&&e.data>=addDays(hojeISO(),-45)&&SEM_VINC.indexOf(e.id)<0&&rotCandidatos(e).length>1;}
+function precisaVinculo(e){return e&&e.rotina_id==null&&!e.sem_lembrete&&e.data&&['realizado','agendado'].includes(e.status)&&e.data>=addDays(hojeISO(),-45)&&SEM_VINC.indexOf(e.id)<0&&rotCandidatos(e).length>1;}
 const agendado=e=>e.status==='agendado';
 const aAgendar=e=>e.status==='a_agendar';
 const hBR=t=>t?String(t).slice(0,5):'';
@@ -692,7 +692,7 @@ function sheetVincular(id){const e=EV.find(x=>x.id===id);if(!e)return;const ts=t
   <div class="t-mut" style="margin:-4px 0 14px">O lembrete escolhido passa a contar a partir deste registro.</div>
   <button class="btn btn-p" type="button" onclick="saveVinculo(${id},this)">Salvar</button>`:'<div class="vazio">Este cão não tem lembretes ativos.</div>'}`);}
 async function saveVinculo(id,btn){const e=EV.find(x=>x.id===id);if(!e)return;const v=val('vR')?+val('vR'):null;
-  if(!await comBotao(btn,async()=>{const r=ok(await sb.from('pet_eventos').update({rotina_id:v}).eq('id',id).select().single());Object.assign(e,r.data);}))return;
+  if(!await comBotao(btn,async()=>{const r=ok(await sb.from('pet_eventos').update({rotina_id:v,sem_lembrete:v==null}).eq('id',id).select().single());Object.assign(e,r.data);}))return;
   if(v==null)semVinc(id);
   closeSheet();try{await syncRotina(e);}catch(x){console.warn(x);}
   render(atual);toast(v==null?'Sem lembrete':'Lembrete atualizado');}
